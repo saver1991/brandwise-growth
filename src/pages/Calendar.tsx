@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Linkedin, MessageSquare, Twitter } from "lucide-react";
+import { Plus, Filter, Linkedin, MessageSquare, Twitter, CalendarClock, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import aiGenerationService from "@/services/aiGenerationService";
 
 const calendarEvents = [
   {
@@ -47,11 +49,21 @@ const calendarEvents = [
   },
 ];
 
+// Best posting times based on platform analytics
+const platformBestTimes = {
+  linkedin: { days: [1, 3, 5], hours: [9, 12, 17] }, // Mon, Wed, Fri at 9am, 12pm, 5pm
+  medium: { days: [2, 4], hours: [8, 20] },          // Tue, Thu at 8am, 8pm
+  twitter: { days: [0, 1, 3, 5], hours: [7, 12, 15, 19] } // Sun, Mon, Wed, Fri at 7am, 12pm, 3pm, 7pm
+};
+
 const Calendar = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [events, setEvents] = useState(calendarEvents);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   const filteredEvents = date 
-    ? calendarEvents.filter(event => 
+    ? events.filter(event => 
         event.date.getDate() === date.getDate() && 
         event.date.getMonth() === date.getMonth() && 
         event.date.getFullYear() === date.getFullYear()
@@ -82,7 +94,78 @@ const Calendar = () => {
     }
   };
 
-  const daysWithEvents = calendarEvents.map(event => event.date);
+  const daysWithEvents = events.map(event => event.date);
+
+  // Function to generate AI-powered content schedule
+  const generateContentSchedule = async () => {
+    setIsGenerating(true);
+    toast({
+      title: "Generating optimal content schedule",
+      description: "Analyzing platform data and best posting times...",
+    });
+
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const currentDate = new Date();
+      const newEvents = [];
+      
+      // Generate content for the next 14 days based on platform best practices
+      for (let i = 0; i < 14; i++) {
+        const futureDate = new Date(currentDate);
+        futureDate.setDate(currentDate.getDate() + i);
+        const dayOfWeek = futureDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        
+        // Check if this day is good for any platform
+        const platformsForDay = Object.entries(platformBestTimes)
+          .filter(([_, times]) => times.days.includes(dayOfWeek))
+          .map(([platform]) => platform);
+        
+        if (platformsForDay.length > 0) {
+          // Choose a random platform from the available ones for this day
+          const platform = platformsForDay[Math.floor(Math.random() * platformsForDay.length)];
+          
+          // Get best hours for this platform
+          const hours = platformBestTimes[platform as keyof typeof platformBestTimes].hours;
+          const hour = hours[Math.floor(Math.random() * hours.length)];
+          
+          // Generate content for this platform
+          const content = await aiGenerationService.generateContent({ platform });
+          
+          // Set the time of the future date
+          futureDate.setHours(hour, 0, 0, 0);
+          
+          // Create a new event
+          newEvents.push({
+            id: events.length + newEvents.length + 1,
+            title: content.title,
+            platform,
+            date: new Date(futureDate),
+            status: "scheduled"
+          });
+        }
+      }
+      
+      // Add new events to the calendar
+      setEvents([...events, ...newEvents]);
+      
+      toast({
+        title: "Schedule generated successfully",
+        description: `Added ${newEvents.length} new content items to your calendar based on optimal posting times.`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to generate schedule",
+        description: "An error occurred while generating your content schedule.",
+        variant: "destructive",
+      });
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -134,6 +217,24 @@ const Calendar = () => {
                 <div className="flex justify-between items-center">
                   <CardTitle>Scheduled Content</CardTitle>
                   <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2 bg-gradient-to-r from-brand-teal/30 to-blue-400/30 hover:from-brand-teal/40 hover:to-blue-400/40 border-brand-teal/50"
+                      onClick={generateContentSchedule}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="h-4 w-4 border-2 border-t-transparent border-brand-teal animate-spin rounded-full"></div>
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 text-brand-teal" />
+                          <span>AI Schedule</span>
+                        </>
+                      )}
+                    </Button>
                     <Select defaultValue="all">
                       <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Platform" />
@@ -175,6 +276,9 @@ const Calendar = () => {
                                     month: 'short', 
                                     day: 'numeric', 
                                     year: 'numeric' 
+                                  })} {event.date.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: 'numeric'
                                   })}
                                 </p>
                               </div>
@@ -194,14 +298,144 @@ const Calendar = () => {
                   </TabsContent>
                   
                   <TabsContent value="week" className="animate-slide-up">
-                    <div className="text-center py-12 text-muted-foreground">
-                      <p>Weekly content view will be available soon</p>
+                    <div className="space-y-4">
+                      {events
+                        .filter(event => {
+                          if (!date) return false;
+                          const eventDate = new Date(event.date);
+                          const selectedDate = new Date(date);
+                          
+                          // Get the start of the week (Sunday)
+                          const startOfWeek = new Date(selectedDate);
+                          startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+                          
+                          // Get the end of the week (Saturday)
+                          const endOfWeek = new Date(startOfWeek);
+                          endOfWeek.setDate(startOfWeek.getDate() + 6);
+                          
+                          return eventDate >= startOfWeek && eventDate <= endOfWeek;
+                        })
+                        .sort((a, b) => a.date.getTime() - b.date.getTime())
+                        .map((event) => (
+                          <div key={event.id} className="border rounded-lg p-4 hover:border-brand-teal/50 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  {getPlatformIcon(event.platform)}
+                                  <h3 className="font-medium">{event.title}</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {event.date.toLocaleDateString('en-US', { 
+                                    weekday: 'short',
+                                    month: 'short', 
+                                    day: 'numeric'
+                                  })} {event.date.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: 'numeric'
+                                  })}
+                                </p>
+                              </div>
+                              {getStatusBadge(event.status)}
+                            </div>
+                          </div>
+                        ))}
+                      {events.filter(event => {
+                        if (!date) return false;
+                        const eventDate = new Date(event.date);
+                        const selectedDate = new Date(date);
+                        
+                        // Get the start of the week (Sunday)
+                        const startOfWeek = new Date(selectedDate);
+                        startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+                        
+                        // Get the end of the week (Saturday)
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(startOfWeek.getDate() + 6);
+                        
+                        return eventDate >= startOfWeek && eventDate <= endOfWeek;
+                      }).length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <p>No content scheduled for this week</p>
+                          <div className="mt-4 flex justify-center gap-4">
+                            <Button variant="outline" className="text-brand-teal">
+                              <Plus className="mr-1 h-4 w-4" /> Add Content
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              className="flex items-center gap-2 text-brand-teal"
+                              onClick={generateContentSchedule}
+                              disabled={isGenerating}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              <span>AI Schedule</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                   
                   <TabsContent value="month" className="animate-slide-up">
-                    <div className="text-center py-12 text-muted-foreground">
-                      <p>Monthly content view will be available soon</p>
+                    <div className="space-y-4">
+                      {events
+                        .filter(event => {
+                          if (!date) return false;
+                          const eventDate = new Date(event.date);
+                          const selectedDate = new Date(date);
+                          
+                          return eventDate.getMonth() === selectedDate.getMonth() && 
+                                 eventDate.getFullYear() === selectedDate.getFullYear();
+                        })
+                        .sort((a, b) => a.date.getTime() - b.date.getTime())
+                        .map((event) => (
+                          <div key={event.id} className="border rounded-lg p-4 hover:border-brand-teal/50 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  {getPlatformIcon(event.platform)}
+                                  <h3 className="font-medium">{event.title}</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {event.date.toLocaleDateString('en-US', { 
+                                    weekday: 'short',
+                                    month: 'short', 
+                                    day: 'numeric'
+                                  })} {event.date.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: 'numeric'
+                                  })}
+                                </p>
+                              </div>
+                              {getStatusBadge(event.status)}
+                            </div>
+                          </div>
+                        ))}
+                      {events.filter(event => {
+                        if (!date) return false;
+                        const eventDate = new Date(event.date);
+                        const selectedDate = new Date(date);
+                        
+                        return eventDate.getMonth() === selectedDate.getMonth() && 
+                               eventDate.getFullYear() === selectedDate.getFullYear();
+                      }).length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <p>No content scheduled for this month</p>
+                          <div className="mt-4 flex justify-center gap-4">
+                            <Button variant="outline" className="text-brand-teal">
+                              <Plus className="mr-1 h-4 w-4" /> Add Content
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              className="flex items-center gap-2 text-brand-teal"
+                              onClick={generateContentSchedule}
+                              disabled={isGenerating}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              <span>AI Schedule</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
