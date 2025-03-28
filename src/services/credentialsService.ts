@@ -4,6 +4,7 @@ export interface PlatformCredential {
   apiSecret?: string;
   accessToken?: string;
   connected: boolean;
+  lastVerified?: number;
 }
 
 export type PlatformType = 'linkedin' | 'medium' | 'googleAnalytics';
@@ -67,7 +68,8 @@ export const disconnectPlatform = (platform: PlatformType): void => {
     ...allCredentials,
     [platform]: {
       ...allCredentials[platform],
-      connected: false
+      connected: false,
+      lastVerified: undefined
     }
   };
   
@@ -88,7 +90,25 @@ export const verifyCredentials = async (
   // Simulate API verification delay
   return new Promise((resolve) => {
     setTimeout(() => {
+      const timestamp = Date.now();
+      // Update the lastVerified timestamp
+      savePlatformCredentials(platform, { 
+        ...credentials,
+        lastVerified: timestamp
+      });
       resolve(true);
     }, 1500);
   });
+};
+
+// Check if credentials need re-verification (e.g., after 24 hours)
+export const needsReVerification = (platform: PlatformType): boolean => {
+  const credentials = getPlatformCredentials(platform);
+  if (!credentials.connected || !credentials.lastVerified) {
+    return true;
+  }
+  
+  // Re-verify after 24 hours (86400000 ms)
+  const twentyFourHours = 86400000;
+  return Date.now() - credentials.lastVerified > twentyFourHours;
 };
