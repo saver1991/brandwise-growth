@@ -58,9 +58,54 @@ const sampleContentIdeas = [
   }
 ];
 
+// Sample inspiration articles with links
+const inspirationArticles = [
+  {
+    id: 1,
+    title: "Design Trends in 2023: What's New and What's Next",
+    source: "Nielsen Norman Group",
+    url: "https://www.nngroup.com/articles/design-trends/"
+  },
+  {
+    id: 2,
+    title: "The Role of Design Systems in Product Development",
+    source: "Smashing Magazine",
+    url: "https://www.smashingmagazine.com/2022/05/you-dont-need-a-design-system/"
+  },
+  {
+    id: 3,
+    title: "Product Strategy: Aligning Business Goals with User Needs",
+    source: "Harvard Business Review",
+    url: "https://hbr.org/2018/05/why-design-thinking-works"
+  }
+];
+
+// Additional inspiration articles for "View more" functionality
+const additionalInspirationArticles = [
+  {
+    id: 4,
+    title: "The Psychology of User Experience Design",
+    source: "UX Collective",
+    url: "https://uxdesign.cc/"
+  },
+  {
+    id: 5,
+    title: "Making the Business Case for Accessibility",
+    source: "A List Apart",
+    url: "https://alistapart.com/article/making-the-business-case-for-web-accessibility/"
+  },
+  {
+    id: 6,
+    title: "Building Digital Products That Matter",
+    source: "Product Hunt",
+    url: "https://www.producthunt.com/"
+  }
+];
+
 const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
+  const [showMoreInspiration, setShowMoreInspiration] = useState(false);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
@@ -100,6 +145,18 @@ const Ideas = () => {
       description: "An AI-generated content idea has been added to your list.",
     });
   };
+
+  const handleViewMoreInspiration = () => {
+    setShowMoreInspiration(!showMoreInspiration);
+  };
+
+  const openExternalLink = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const displayedInspiration = showMoreInspiration 
+    ? [...inspirationArticles, ...additionalInspirationArticles]
+    : inspirationArticles;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -163,45 +220,31 @@ const Ideas = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="rounded-md border p-3">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-sm">
-                          Design Trends in 2023: What's New and What's Next
-                        </h3>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    {displayedInspiration.map((article) => (
+                      <div 
+                        key={article.id} 
+                        className="rounded-md border p-3 cursor-pointer hover:border-brand-teal/50 transition-colors"
+                        onClick={() => openExternalLink(article.url)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-medium text-sm">
+                            {article.title}
+                          </h3>
+                          <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          From {article.source}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        From Nielsen Norman Group
-                      </p>
-                    </div>
-                    
-                    <div className="rounded-md border p-3">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-sm">
-                          The Role of Design Systems in Product Development
-                        </h3>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        From Smashing Magazine
-                      </p>
-                    </div>
-                    
-                    <div className="rounded-md border p-3">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-sm">
-                          Product Strategy: Aligning Business Goals with User Needs
-                        </h3>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        From Harvard Business Review
-                      </p>
-                    </div>
+                    ))}
                   </div>
                   
-                  <Button variant="link" className="text-brand-teal mt-3 p-0 h-auto">
-                    View more inspiration
+                  <Button 
+                    variant="link" 
+                    className="text-brand-teal mt-3 p-0 h-auto"
+                    onClick={handleViewMoreInspiration}
+                  >
+                    {showMoreInspiration ? "Show less inspiration" : "View more inspiration"}
                   </Button>
                 </CardContent>
               </Card>

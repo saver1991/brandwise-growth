@@ -38,7 +38,7 @@ const Navigation = () => {
       icon: <Calendar className="h-5 w-5" />,
     },
     {
-      title: "Content Ideas",
+      title: "Content Creation",
       href: "/ideas",
       icon: <BookOpen className="h-5 w-5" />,
     },
