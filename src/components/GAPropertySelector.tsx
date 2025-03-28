@@ -159,7 +159,7 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
       </CardHeader>
       <CardContent>
         {error && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4 mr-2" />
             <AlertTitle>Using Demo Data</AlertTitle>
             <AlertDescription className="mt-2">
