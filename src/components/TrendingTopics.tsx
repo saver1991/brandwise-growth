@@ -40,7 +40,7 @@ const TrendingTopics = () => {
           const gaData = await fetchGoogleAnalyticsData();
           // Convert page performance to trending topics
           trendingTopics = gaData.pagePerformance.map((page, index) => ({
-            id: `ga-${index}`,
+            id: index + 1, // Convert to number type as required by PopularTrendingTopic
             name: page.page,
             count: page.views,
             trending: page.views > 1000 ? "up" : "down"
