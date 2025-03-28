@@ -8,8 +8,80 @@ import ContentPerformance from "@/components/ContentPerformance";
 import ContentIdeas from "@/components/ContentIdeas";
 import UpcomingContent from "@/components/UpcomingContent";
 import RecentActivity from "@/components/RecentActivity";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+// Sample content ideas for the dashboard
+const sampleContentIdeas = [
+  {
+    id: 1,
+    title: "10 AI Tools Every Content Creator Should Know",
+    description: "A roundup of the best AI tools that can help streamline your content creation process.",
+    platform: "medium" as const,
+    topics: ["AI Tools", "Content Creation", "Productivity"],
+    imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
+    score: {
+      overall: 88,
+      breakdown: {
+        "Depth of Content": 90,
+        "Formatting": 85,
+        "Estimated Read Time": 90
+      },
+      feedback: "Well-structured content with good depth for Medium readers."
+    }
+  },
+  {
+    id: 2,
+    title: "How I Grew My LinkedIn Network by 500% in 6 Months",
+    description: "The exact strategy I used to exponentially grow my professional network and increase engagement.",
+    platform: "linkedin" as const,
+    topics: ["LinkedIn Growth", "Networking", "Personal Branding"],
+    imageUrl: "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=800",
+    score: {
+      overall: 92,
+      breakdown: {
+        "Professional Tone": 95,
+        "Call to Action": 90,
+        "Strategic Hashtags": 90
+      },
+      feedback: "Excellent professional content with strong calls to action."
+    }
+  }
+];
 
 const Dashboard = () => {
+  const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
+  const { toast } = useToast();
+
+  const handleGenerateMoreIdeas = () => {
+    // In a real app, this would call an AI service to generate more ideas
+    // For demo purposes, we'll just add a sample idea
+    const newIdea = {
+      id: Date.now(),
+      title: "The Future of Remote Work: Trends to Watch",
+      description: "Analysis of emerging remote work patterns and how they're reshaping the modern workplace.",
+      platform: "linkedin" as const,
+      topics: ["Remote Work", "Future of Work", "Workplace Trends"],
+      imageUrl: "https://images.unsplash.com/photo-1591382386627-349b692688ff?w=800",
+      score: {
+        overall: 85,
+        breakdown: {
+          "Professional Tone": 90,
+          "Call to Action": 80,
+          "Strategic Hashtags": 85
+        },
+        feedback: "Strong professional analysis with good engagement elements."
+      }
+    };
+    
+    setContentIdeas([...contentIdeas, newIdea]);
+    
+    toast({
+      title: "New Idea Generated!",
+      description: "An AI-generated content idea has been added to your dashboard.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -63,7 +135,10 @@ const Dashboard = () => {
             <RecentActivity />
           </div>
           
-          <ContentIdeas />
+          <ContentIdeas 
+            ideas={contentIdeas} 
+            onGenerateMore={handleGenerateMoreIdeas} 
+          />
         </div>
       </main>
     </div>

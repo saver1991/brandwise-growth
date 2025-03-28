@@ -20,8 +20,47 @@ const trendingTopics = [
   { id: 5, name: "Design Leadership", count: 65, trending: "down" },
 ];
 
+// Sample content ideas for the ContentIdeas component
+const sampleContentIdeas = [
+  {
+    id: 1,
+    title: "The Future of UX Design in 2023",
+    description: "Exploring emerging trends and technologies shaping the future of user experience design.",
+    platform: "medium" as const,
+    topics: ["UX Design", "Technology", "Future Trends"],
+    imageUrl: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800",
+    score: {
+      overall: 85,
+      breakdown: {
+        "Depth of Content": 90,
+        "Formatting": 80,
+        "Estimated Read Time": 85
+      },
+      feedback: "Great depth and structure for a Medium article."
+    }
+  },
+  {
+    id: 2,
+    title: "5 Design System Tips for Growing Teams",
+    description: "Learn how to scale your design system as your team and product portfolio expands.",
+    platform: "linkedin" as const,
+    topics: ["Design Systems", "Team Growth", "Product Design"],
+    imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+    score: {
+      overall: 78,
+      breakdown: {
+        "Professional Tone": 85,
+        "Call to Action": 70,
+        "Strategic Hashtags": 80
+      },
+      feedback: "Good professional content, consider adding more specific call to action."
+    }
+  }
+];
+
 const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
@@ -30,6 +69,35 @@ const Ideas = () => {
     toast({
       title: "Idea Created!",
       description: "Your new content idea has been added to the list.",
+    });
+  };
+
+  const handleGenerateMoreIdeas = () => {
+    // In a real app, this would call an AI service to generate more ideas
+    // For demo purposes, we'll just add a sample idea
+    const newIdea = {
+      id: Date.now(),
+      title: "Building a Design-Driven Culture",
+      description: "Strategies for fostering a design-thinking approach across your entire organization.",
+      platform: "linkedin" as const,
+      topics: ["Design Culture", "Leadership", "Organizational Change"],
+      imageUrl: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800",
+      score: {
+        overall: 82,
+        breakdown: {
+          "Professional Tone": 88,
+          "Call to Action": 75,
+          "Strategic Hashtags": 83
+        },
+        feedback: "Strong professional content with good engagement hooks."
+      }
+    };
+    
+    setContentIdeas([...contentIdeas, newIdea]);
+    
+    toast({
+      title: "New Idea Generated!",
+      description: "An AI-generated content idea has been added to your list.",
     });
   };
 
@@ -56,7 +124,10 @@ const Ideas = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <ContentIdeas />
+              <ContentIdeas 
+                ideas={contentIdeas} 
+                onGenerateMore={handleGenerateMoreIdeas} 
+              />
             </div>
             
             <div className="space-y-6">
