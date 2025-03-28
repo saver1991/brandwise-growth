@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Lightbulb, Linkedin, MessageSquare, Twitter, Edit } from "lucide-react";
+import { Plus, Lightbulb, Linkedin, MessageSquare, Twitter, Edit, BarChart } from "lucide-react";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
+import { ContentScore } from "@/services/aiGenerationService";
+import { Progress } from "@/components/ui/progress";
 
 interface ContentIdea {
   id: number;
@@ -14,6 +16,7 @@ interface ContentIdea {
   platform: "linkedin" | "medium" | "twitter";
   topics: string[];
   imageUrl?: string;
+  score?: ContentScore;
 }
 
 const initialIdeas: ContentIdea[] = [
@@ -23,6 +26,17 @@ const initialIdeas: ContentIdea[] = [
     description: "Explore how AI is reshaping product design methodologies and creating new opportunities.",
     platform: "linkedin",
     topics: ["AI", "Product Design", "Future Trends"],
+    score: {
+      overall: 78,
+      breakdown: {
+        "Content Length": 65,
+        "Paragraphs": 80,
+        "Call to Action": 70,
+        "Professional Tone": 85,
+        "Strategic Hashtags": 90
+      },
+      feedback: "Good professional tone. Consider breaking your content into more paragraphs for better readability."
+    }
   },
   {
     id: 2,
@@ -30,6 +44,15 @@ const initialIdeas: ContentIdea[] = [
     description: "A deep dive into effective research methods that lead to breakthrough product insights.",
     platform: "medium",
     topics: ["UX Research", "Product Strategy", "Case Study"],
+    score: {
+      overall: 82,
+      breakdown: {
+        "Estimated Read Time": 75,
+        "Formatting": 85,
+        "Depth of Content": 85
+      },
+      feedback: "Good use of formatting to structure your article. Article has good depth for Medium readers."
+    }
   },
   {
     id: 3,
@@ -37,6 +60,17 @@ const initialIdeas: ContentIdea[] = [
     description: "Practical insights on creating and maintaining design systems for complex products.",
     platform: "linkedin",
     topics: ["Design Systems", "Enterprise", "Scaling"],
+    score: {
+      overall: 71,
+      breakdown: {
+        "Content Length": 65,
+        "Paragraphs": 60,
+        "Call to Action": 80,
+        "Professional Tone": 90,
+        "Strategic Hashtags": 60
+      },
+      feedback: "Excellent professional tone. Adding 3-5 relevant hashtags would increase discoverability."
+    }
   },
 ];
 
@@ -65,6 +99,18 @@ const ContentIdeas = () => {
     twitter: <Twitter className="h-4 w-4" />,
   };
 
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-500";
+    if (score >= 60) return "text-amber-500";
+    return "text-red-500";
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 60) return "bg-amber-500";
+    return "bg-red-500";
+  };
+
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     const newIdea: ContentIdea = {
       id: Date.now(),
@@ -73,6 +119,7 @@ const ContentIdeas = () => {
       platform: data.platform,
       topics: data.topics,
       imageUrl: data.imageUrl,
+      score: data.score,
     };
 
     setIdeas([newIdea, ...ideas]);
@@ -94,7 +141,8 @@ const ContentIdeas = () => {
             description: data.description,
             platform: data.platform,
             topics: data.topics,
-            imageUrl: data.imageUrl
+            imageUrl: data.imageUrl,
+            score: data.score
           } 
         : idea
     );
@@ -169,6 +217,23 @@ const ContentIdeas = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
+                </div>
+              )}
+              
+              {idea.score && (
+                <div className="mt-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <BarChart className="h-4 w-4 text-muted-foreground" />
+                    <div className="text-sm font-medium">Content Effectiveness Score</div>
+                    <div className={`text-sm font-bold ${getScoreColor(idea.score.overall)}`}>
+                      {idea.score.overall}/100
+                    </div>
+                  </div>
+                  <Progress 
+                    value={idea.score.overall} 
+                    className="h-2 mt-1" 
+                    indicatorClassName={getProgressColor(idea.score.overall)}
+                  />
                 </div>
               )}
               

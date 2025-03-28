@@ -10,14 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus, Edit } from "lucide-react";
+import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus, Edit, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import aiGenerationService from "@/services/aiGenerationService";
+import aiGenerationService, { ContentScore } from "@/services/aiGenerationService";
 import { generateImagePromptFromContent } from "@/utils/aiTemplates";
 import LinkedInEditor from "./platform-editors/LinkedInEditor";
 import MediumEditor from "./platform-editors/MediumEditor";
 import TwitterEditor from "./platform-editors/TwitterEditor";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -26,6 +28,11 @@ const formSchema = z.object({
   topics: z.array(z.string()).min(1, { message: "Please add at least one topic" }),
   imagePrompt: z.string().optional(),
   imageUrl: z.string().optional(),
+  score: z.object({
+    overall: z.number(),
+    breakdown: z.record(z.string(), z.number()),
+    feedback: z.string()
+  }).optional(),
 });
 
 export type ContentIdeaFormValues = z.infer<typeof formSchema>;
@@ -41,6 +48,7 @@ interface NewIdeaDialogProps {
     platform: "linkedin" | "medium" | "twitter";
     topics: string[];
     imageUrl?: string;
+    score?: ContentScore;
   };
   editMode?: boolean;
 }
@@ -58,6 +66,7 @@ export function NewIdeaDialog({
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("content");
   const [autoGenerateImage, setAutoGenerateImage] = useState(true);
+  const [isScoring, setIsScoring] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ContentIdeaFormValues>({
@@ -69,6 +78,7 @@ export function NewIdeaDialog({
       topics: initialData.topics,
       imagePrompt: "",
       imageUrl: initialData.imageUrl || "",
+      score: initialData.score,
     } : {
       title: "",
       description: "",
@@ -89,6 +99,7 @@ export function NewIdeaDialog({
         topics: initialData.topics,
         imagePrompt: "",
         imageUrl: initialData.imageUrl || "",
+        score: initialData.score,
       });
       
       if (initialData.imageUrl) {
@@ -101,6 +112,7 @@ export function NewIdeaDialog({
   const title = form.watch("title");
   const description = form.watch("description");
   const platform = form.watch("platform");
+  const score = form.watch("score");
 
   // Generate image automatically when content is generated
   useEffect(() => {
@@ -124,6 +136,13 @@ export function NewIdeaDialog({
       generateImage();
     }
   }, [activeTab]);
+
+  // Score content when it changes
+  useEffect(() => {
+    if (description && description.length > 10 && platform) {
+      scoreContent();
+    }
+  }, [description, platform]);
 
   const handleAddTopic = () => {
     if (topicInput.trim() !== "") {
@@ -150,6 +169,25 @@ export function NewIdeaDialog({
     }
   };
 
+  const scoreContent = () => {
+    if (isScoring) return;
+    
+    try {
+      setIsScoring(true);
+      const description = form.getValues("description");
+      const platform = form.getValues("platform");
+      
+      if (description && description.length > 10) {
+        const contentScore = aiGenerationService.scoreContent(description, platform);
+        form.setValue("score", contentScore);
+      }
+    } catch (error) {
+      console.error("Error scoring content:", error);
+    } finally {
+      setIsScoring(false);
+    }
+  };
+
   const generateContentIdea = async () => {
     try {
       setIsGenerating(true);
@@ -162,6 +200,10 @@ export function NewIdeaDialog({
       form.setValue("title", generatedContent.title);
       form.setValue("description", generatedContent.description);
       form.setValue("topics", generatedContent.topics);
+      
+      if (generatedContent.score) {
+        form.setValue("score", generatedContent.score);
+      }
       
       // Generate image prompt based on content
       const imagePrompt = generateImagePromptFromContent(generatedContent.title, generatedContent.description, platform);
@@ -238,6 +280,12 @@ export function NewIdeaDialog({
   };
 
   const handleSubmitForm = (data: ContentIdeaFormValues) => {
+    // Ensure content is scored before submitting
+    if (!data.score) {
+      const contentScore = aiGenerationService.scoreContent(data.description, data.platform);
+      data.score = contentScore;
+    }
+    
     onSubmit(data);
     onOpenChange(false);
     form.reset();
@@ -250,6 +298,18 @@ export function NewIdeaDialog({
     { value: "medium", label: "Medium" },
     { value: "twitter", label: "Twitter" },
   ];
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-500";
+    if (score >= 60) return "text-amber-500";
+    return "text-red-500";
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 60) return "bg-amber-500";
+    return "bg-red-500";
+  };
 
   // Render the appropriate content editor based on platform
   const renderPlatformEditor = () => {
@@ -287,9 +347,10 @@ export function NewIdeaDialog({
               onValueChange={setActiveTab} 
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="content">Content Details</TabsTrigger>
                 <TabsTrigger value="visuals">Visuals</TabsTrigger>
+                <TabsTrigger value="score">Effectiveness Score</TabsTrigger>
               </TabsList>
 
               <TabsContent value="content" className="space-y-4 pt-4">
@@ -468,6 +529,95 @@ export function NewIdeaDialog({
                         className="w-full h-full object-cover"
                       />
                     </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="score" className="space-y-4 pt-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Content Effectiveness Score</h3>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={scoreContent}
+                    disabled={isScoring}
+                    className="flex items-center gap-2"
+                  >
+                    {isScoring ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <BarChart className="h-4 w-4 text-blue-500" />
+                        Recalculate Score
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {score ? (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg">
+                          Overall Score
+                        </CardTitle>
+                        <div className={`text-2xl font-bold ${getScoreColor(score.overall)}`}>
+                          {score.overall}
+                        </div>
+                      </div>
+                      <Progress 
+                        value={score.overall} 
+                        className="h-2" 
+                        indicatorClassName={getProgressColor(score.overall)}
+                      />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Score Breakdown</h4>
+                        <div className="space-y-2">
+                          {Object.entries(score.breakdown).map(([criteria, value]) => (
+                            <div key={criteria} className="flex items-center justify-between">
+                              <div className="text-sm">{criteria}</div>
+                              <div className="flex items-center">
+                                <div className={`text-sm font-medium ${getScoreColor(value)}`}>
+                                  {value}
+                                </div>
+                                <div className="w-24 ml-2">
+                                  <Progress 
+                                    value={value} 
+                                    className="h-1.5" 
+                                    indicatorClassName={getProgressColor(value)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-muted/50 p-3 rounded-md">
+                        <h4 className="text-sm font-medium mb-1">Improvement Suggestions</h4>
+                        <p className="text-sm text-muted-foreground">{score.feedback}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 border rounded-md border-dashed text-center">
+                    <BarChart className="h-12 w-12 text-muted-foreground mb-2" />
+                    <h3 className="text-lg font-medium">No Score Available</h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-4">
+                      Add content to your idea to generate an effectiveness score. 
+                    </p>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab("content")}
+                    >
+                      Return to Content
+                    </Button>
                   </div>
                 )}
               </TabsContent>

@@ -13,10 +13,25 @@ interface LinkedInEditorProps {
 
 const LinkedInEditor: React.FC<LinkedInEditorProps> = ({ form }) => {
   const [characterCount, setCharacterCount] = React.useState(0);
+  const maxCharCount = 3000;
+  const recommendedCharCount = 1300;
   
   React.useEffect(() => {
     const description = form.watch("description");
     setCharacterCount(description ? description.length : 0);
+  }, [form.watch("description")]);
+
+  // Detects if post has hashtags
+  const hasHashtags = form.watch("description")?.includes('#') || false;
+
+  // Detects if post has a call to action
+  const hasCTA = React.useMemo(() => {
+    const content = form.watch("description")?.toLowerCase() || "";
+    return content.includes("agree?") || 
+           content.includes("thoughts?") || 
+           content.includes("comment") || 
+           content.includes("share") || 
+           content.includes("like if");
   }, [form.watch("description")]);
 
   return (
@@ -46,8 +61,15 @@ const LinkedInEditor: React.FC<LinkedInEditorProps> = ({ form }) => {
             <FormLabel>
               <div className="flex items-center justify-between">
                 <span>Post Content</span>
-                <Badge variant={characterCount > 2600 ? "destructive" : "outline"} className="ml-2">
-                  {characterCount}/3000
+                <Badge 
+                  variant={
+                    characterCount > maxCharCount ? "destructive" : 
+                    characterCount > recommendedCharCount ? "default" : 
+                    "outline"
+                  } 
+                  className="ml-2"
+                >
+                  {characterCount}/{maxCharCount}
                 </Badge>
               </div>
             </FormLabel>
@@ -63,8 +85,27 @@ const LinkedInEditor: React.FC<LinkedInEditorProps> = ({ form }) => {
               />
             </FormControl>
             <FormDescription>
-              LinkedIn has a 3,000 character limit for posts. Add hashtags to increase visibility.
+              LinkedIn has a {maxCharCount} character limit, but posts around {recommendedCharCount} characters tend to perform best.
             </FormDescription>
+            
+            <div className="flex gap-2 mt-2">
+              {!hasHashtags && (
+                <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">
+                  Missing hashtags
+                </Badge>
+              )}
+              {!hasCTA && (
+                <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">
+                  Missing call to action
+                </Badge>
+              )}
+              {characterCount > recommendedCharCount && (
+                <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">
+                  Consider shortening
+                </Badge>
+              )}
+            </div>
+            
             <FormMessage />
           </FormItem>
         )}

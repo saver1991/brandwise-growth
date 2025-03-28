@@ -55,6 +55,45 @@ const MediumEditor: React.FC<MediumEditorProps> = ({ form }) => {
     });
   };
 
+  // Preview the formatted text with basic markdown rendering
+  const renderPreview = (text: string): string => {
+    if (!text) return "";
+    
+    let formattedText = text;
+    
+    // Format headings (## Heading)
+    formattedText = formattedText.replace(/## (.*?)(\n|$)/g, '<h2>$1</h2>');
+    
+    // Format bold (**text**)
+    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Format italic (*text*)
+    formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Format links ([text](url))
+    formattedText = formattedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+    
+    // Format lists (- item)
+    formattedText = formattedText.replace(/- (.*?)(\n|$)/g, '<li>$1</li>');
+    
+    // Wrap lists in <ul> tags
+    if (formattedText.includes('<li>')) {
+      formattedText = '<ul>' + formattedText + '</ul>';
+    }
+    
+    // Handle paragraphs
+    formattedText = formattedText.split('\n\n')
+      .map(para => {
+        if (!para.startsWith('<h2>') && !para.startsWith('<ul>')) {
+          return `<p>${para}</p>`;
+        }
+        return para;
+      })
+      .join('');
+    
+    return formattedText;
+  };
+
   return (
     <div className="space-y-4">
       <FormField
@@ -144,6 +183,16 @@ const MediumEditor: React.FC<MediumEditorProps> = ({ form }) => {
           </FormItem>
         )}
       />
+
+      {form.watch("description") && (
+        <div className="border rounded-md p-4">
+          <h4 className="text-sm font-medium mb-2">Preview</h4>
+          <div 
+            className="prose prose-sm max-w-none text-sm"
+            dangerouslySetInnerHTML={{ __html: renderPreview(form.watch("description")) }} 
+          />
+        </div>
+      )}
     </div>
   );
 };
