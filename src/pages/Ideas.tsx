@@ -8,49 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, MessageSquare, Linkedin, Twitter, BookOpen, ArrowUpRight } from "lucide-react";
 import ContentIdeas from "@/components/ContentIdeas";
-
-const contentIdeas = [
-  {
-    id: 1,
-    title: "The Future of Product Design in AI-Driven Ecosystems",
-    description: "Explore how AI is reshaping product design methodologies and creating new opportunities.",
-    platform: "linkedin",
-    topics: ["AI", "Product Design", "Future Trends"],
-    status: "new",
-  },
-  {
-    id: 2,
-    title: "5 UX Research Methods That Transformed Our Product Strategy",
-    description: "A deep dive into effective research methods that lead to breakthrough product insights.",
-    platform: "medium",
-    topics: ["UX Research", "Product Strategy", "Case Study"],
-    status: "in-progress",
-  },
-  {
-    id: 3,
-    title: "Building Design Systems That Scale: Lessons from Enterprise Products",
-    description: "Practical insights on creating and maintaining design systems for complex products.",
-    platform: "linkedin",
-    topics: ["Design Systems", "Enterprise", "Scaling"],
-    status: "new",
-  },
-  {
-    id: 4,
-    title: "Breaking Down Design Silos: Cross-Functional Collaboration",
-    description: "How to foster collaboration between design, engineering, and product teams.",
-    platform: "twitter",
-    topics: ["Collaboration", "Team Building", "Design Process"],
-    status: "planned",
-  },
-  {
-    id: 5,
-    title: "Product Design Portfolio Tips: Standing Out in a Competitive Market",
-    description: "Practical advice for creating a portfolio that showcases your unique skills and approach.",
-    platform: "medium",
-    topics: ["Portfolio", "Career Growth", "Design Tips"],
-    status: "in-progress",
-  },
-];
+import { useState } from "react";
+import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const trendingTopics = [
   { id: 1, name: "AI in Design", count: 120, trending: "up" },
@@ -61,30 +21,16 @@ const trendingTopics = [
 ];
 
 const Ideas = () => {
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case "linkedin":
-        return <Linkedin className="h-4 w-4 text-[#0077B5]" />;
-      case "medium":
-        return <MessageSquare className="h-4 w-4 text-[#00AB6C]" />;
-      case "twitter":
-        return <Twitter className="h-4 w-4 text-[#1DA1F2]" />;
-      default:
-        return null;
-    }
-  };
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "new":
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">New</Badge>;
-      case "in-progress":
-        return <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">In Progress</Badge>;
-      case "planned":
-        return <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">Planned</Badge>;
-      default:
-        return null;
-    }
+  const handleCreateIdea = (data: ContentIdeaFormValues) => {
+    // In a real app, this would save to a database
+    // For now, we'll just show a toast notification
+    toast({
+      title: "Idea Created!",
+      description: "Your new content idea has been added to the list.",
+    });
   };
 
   return (
@@ -100,7 +46,10 @@ const Ideas = () => {
                 Discover, organize, and develop your content ideas
               </p>
             </div>
-            <Button className="bg-brand-teal hover:bg-brand-teal/90">
+            <Button 
+              className="bg-brand-teal hover:bg-brand-teal/90"
+              onClick={() => setDialogOpen(true)}
+            >
               <Plus className="mr-1 h-4 w-4" /> New Idea
             </Button>
           </div>
@@ -189,6 +138,12 @@ const Ideas = () => {
           </div>
         </div>
       </main>
+      
+      <NewIdeaDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onSubmit={handleCreateIdea}
+      />
     </div>
   );
 };

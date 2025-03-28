@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import aiGenerationService from "@/services/aiGenerationService";
+import { generateImagePromptFromContent } from "@/utils/aiTemplates";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -36,6 +38,8 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("content");
+  const [autoGenerateImage, setAutoGenerateImage] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<ContentIdeaFormValues>({
@@ -49,6 +53,34 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
       imageUrl: "",
     },
   });
+
+  // Watch for changes to title, description, and platform
+  const title = form.watch("title");
+  const description = form.watch("description");
+  const platform = form.watch("platform");
+
+  // Generate image automatically when content is generated
+  useEffect(() => {
+    const hasContent = title && description && autoGenerateImage;
+    
+    if (hasContent && title.length > 3 && description.length > 10) {
+      // Only auto-generate if we have meaningful content and no image yet
+      if (!generatedImage && !isGeneratingImage) {
+        const imagePrompt = generateImagePromptFromContent(title, description, platform);
+        form.setValue("imagePrompt", imagePrompt);
+        
+        // Don't auto-generate right away, wait for user to switch to visuals tab
+        // This prevents too many simultaneous API calls
+      }
+    }
+  }, [title, description, platform, autoGenerateImage, generatedImage, isGeneratingImage]);
+
+  // Auto-generate image when switching to visuals tab if we have content
+  useEffect(() => {
+    if (activeTab === "visuals" && autoGenerateImage && title && description && !generatedImage && !isGeneratingImage) {
+      generateImage();
+    }
+  }, [activeTab]);
 
   const handleAddTopic = () => {
     if (topicInput.trim() !== "") {
@@ -80,39 +112,28 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
       setIsGenerating(true);
       const platform = form.getValues("platform");
       
-      // In a real application, this would be an API call to OpenAI or similar
-      // For demo purposes, we'll simulate an API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const generatedContent = await aiGenerationService.generateContent({
+        platform,
+      });
       
-      // Simulated AI responses based on platform
-      let title = "", description = "", topics = [];
+      form.setValue("title", generatedContent.title);
+      form.setValue("description", generatedContent.description);
+      form.setValue("topics", generatedContent.topics);
       
-      switch(platform) {
-        case "linkedin":
-          title = "5 Strategies to Boost Your Personal Brand Authority in 2023";
-          description = "Discover proven techniques to establish yourself as a thought leader in your industry through strategic LinkedIn content.";
-          topics = ["Personal Branding", "Thought Leadership", "LinkedIn Strategy"];
-          break;
-        case "medium":
-          title = "The Art of Storytelling in Technical Content Writing";
-          description = "Learn how to transform complex technical concepts into compelling narratives that engage and educate your readers.";
-          topics = ["Content Writing", "Technical Content", "Storytelling"];
-          break;
-        case "twitter":
-          title = "Building a Micro-Content Strategy That Drives Engagement";
-          description = "How to create concise, high-impact content that resonates with your audience and encourages meaningful interactions.";
-          topics = ["Micro-Content", "Engagement", "Twitter Growth"];
-          break;
-      }
-      
-      form.setValue("title", title);
-      form.setValue("description", description);
-      form.setValue("topics", topics);
+      // Generate image prompt based on content
+      const imagePrompt = generateImagePromptFromContent(generatedContent.title, generatedContent.description, platform);
+      form.setValue("imagePrompt", imagePrompt);
       
       toast({
         title: "Content idea generated!",
         description: "The AI has suggested content based on your selected platform.",
       });
+      
+      // Switch to visuals tab after generating content
+      setTimeout(() => {
+        setActiveTab("visuals");
+      }, 1000);
+      
     } catch (error) {
       toast({
         variant: "destructive",
@@ -130,27 +151,37 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
       const imagePrompt = form.getValues("imagePrompt");
       
       if (!imagePrompt || imagePrompt.trim() === "") {
-        toast({
-          variant: "destructive",
-          title: "Image prompt required",
-          description: "Please enter a prompt to generate an image.",
-        });
-        setIsGeneratingImage(false);
-        return;
+        // If no prompt is provided, generate one from the content
+        const title = form.getValues("title");
+        const description = form.getValues("description");
+        const platform = form.getValues("platform");
+        
+        if (title && description) {
+          const generatedPrompt = generateImagePromptFromContent(title, description, platform);
+          form.setValue("imagePrompt", generatedPrompt);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Content required",
+            description: "Please generate or enter content details first.",
+          });
+          setIsGeneratingImage(false);
+          return;
+        }
       }
       
-      // In a real application, this would be an API call to Stability AI, DALL-E, or similar
-      // For demo purposes, we'll simulate an API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const imagePromptToUse = form.getValues("imagePrompt");
       
-      // For demo, we'll use a placeholder image related to content marketing
-      const placeholderImage = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80";
-      setGeneratedImage(placeholderImage);
-      form.setValue("imageUrl", placeholderImage);
+      const generatedImage = await aiGenerationService.generateImage({
+        prompt: imagePromptToUse,
+      });
+      
+      setGeneratedImage(generatedImage.url);
+      form.setValue("imageUrl", generatedImage.url);
       
       toast({
         title: "Image generated!",
-        description: "The AI has created an image based on your prompt.",
+        description: "The AI has created an image based on your content.",
       });
     } catch (error) {
       toast({
@@ -168,6 +199,7 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
     onOpenChange(false);
     form.reset();
     setGeneratedImage(null);
+    setActiveTab("content");
   };
 
   const platformOptions = [
@@ -188,7 +220,12 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmitForm)} className="space-y-6">
-            <Tabs defaultValue="content" className="w-full">
+            <Tabs 
+              defaultValue="content" 
+              value={activeTab} 
+              onValueChange={setActiveTab} 
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="content">Content Details</TabsTrigger>
                 <TabsTrigger value="visuals">Visuals</TabsTrigger>
@@ -335,7 +372,7 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                     type="button" 
                     variant="outline" 
                     onClick={generateImage}
-                    disabled={isGeneratingImage || !form.getValues("imagePrompt")}
+                    disabled={isGeneratingImage}
                     className="flex items-center gap-2"
                   >
                     {isGeneratingImage ? (
@@ -346,10 +383,23 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                     ) : (
                       <>
                         <ImageIcon className="h-4 w-4 text-blue-500" />
-                        Generate Image
+                        {generatedImage ? "Regenerate" : "Generate Image"}
                       </>
                     )}
                   </Button>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="autoGenerateImage"
+                    checked={autoGenerateImage}
+                    onChange={(e) => setAutoGenerateImage(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor="autoGenerateImage" className="text-sm text-muted-foreground">
+                    Automatically generate image from content
+                  </label>
                 </div>
 
                 <FormField
@@ -366,7 +416,7 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                         />
                       </FormControl>
                       <FormDescription>
-                        Provide a detailed prompt for the AI to generate an image.
+                        The prompt is automatically generated from your content, but you can modify it.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

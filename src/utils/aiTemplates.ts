@@ -132,10 +132,36 @@ export const getRandomImagePrompt = (): string => {
   return template.prompt;
 };
 
+// Generate an image prompt based on content details
+export const generateImagePromptFromContent = (title: string, description: string, platform: string): string => {
+  // Choose a template based on content type/platform
+  let template = '';
+  
+  switch(platform) {
+    case 'linkedin':
+      template = 'Professional business illustration representing the concept of "[title]", clean corporate style, professional, minimalist, suitable for LinkedIn';
+      break;
+    case 'medium':
+      template = 'Conceptual illustration for an article titled "[title]", editorial style, clean design, intellectual, thought-provoking, suitable for Medium';
+      break;
+    case 'twitter':
+      template = 'Eye-catching social media graphic about "[title]", vibrant, attention-grabbing, modern design, suitable for Twitter';
+      break;
+    default:
+      template = 'Conceptual illustration representing "[title]", minimalist design, professional, clean lines';
+  }
+  
+  // Replace placeholders with actual content
+  const prompt = template.replace('[title]', title);
+  
+  return prompt;
+};
+
 export default {
   contentTemplates,
   imagePromptTemplates,
   getTemplateByPlatform,
   getRandomTemplate,
-  getRandomImagePrompt
+  getRandomImagePrompt,
+  generateImagePromptFromContent
 };
