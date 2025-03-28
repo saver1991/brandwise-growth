@@ -1,10 +1,11 @@
-
 export interface PlatformCredential {
   apiKey: string;
   apiSecret?: string;
   accessToken?: string;
   connected: boolean;
   lastVerified?: number;
+  selectedProperties?: string[];
+  propertyNames?: Record<string, string>;
 }
 
 export type PlatformType = 'linkedin' | 'medium' | 'googleAnalytics';
@@ -58,6 +59,37 @@ export const savePlatformCredentials = (
   };
   
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCredentials));
+};
+
+// Save Google Analytics properties
+export const saveGAProperties = (
+  propertyIds: string[],
+  propertyNames: Record<string, string>
+): void => {
+  const allCredentials = getAllCredentials();
+  
+  const updatedCredentials = {
+    ...allCredentials,
+    googleAnalytics: {
+      ...allCredentials.googleAnalytics,
+      selectedProperties: propertyIds,
+      propertyNames: propertyNames
+    }
+  };
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCredentials));
+};
+
+// Get selected Google Analytics properties
+export const getSelectedGAProperties = (): string[] => {
+  const credentials = getPlatformCredentials('googleAnalytics');
+  return credentials?.selectedProperties || [];
+};
+
+// Get Google Analytics property names
+export const getGAPropertyNames = (): Record<string, string> => {
+  const credentials = getPlatformCredentials('googleAnalytics');
+  return credentials?.propertyNames || {};
 };
 
 // Disconnect a platform

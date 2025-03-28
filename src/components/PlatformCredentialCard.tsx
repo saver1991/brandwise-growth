@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import PlatformVerificationStatus from "@/components/PlatformVerificationStatus";
+import GAPropertySelector from "@/components/GAPropertySelector";
 import type { PlatformType, PlatformCredential } from "@/services/credentialsService";
 import { savePlatformCredentials, verifyCredentials, disconnectPlatform } from "@/services/credentialsService";
 
@@ -34,6 +35,7 @@ const PlatformCredentialCard = ({
 }: PlatformCredentialCardProps) => {
   const { toast } = useToast();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showPropertySelector, setShowPropertySelector] = useState(false);
   
   const handleSave = () => {
     savePlatformCredentials(platform, credentials);
@@ -80,6 +82,11 @@ const PlatformCredentialCard = ({
           description: `Your ${platform} account has been connected.`,
           duration: 3000,
         });
+        
+        // If Google Analytics, show property selector
+        if (platform === 'googleAnalytics') {
+          setShowPropertySelector(true);
+        }
       } else {
         toast({
           title: "Connection failed",
@@ -111,10 +118,17 @@ const PlatformCredentialCard = ({
       description: `Your ${platform} account has been disconnected.`,
       duration: 3000,
     });
+    
+    // Hide property selector if showing
+    setShowPropertySelector(false);
   };
   
   const handleVerify = async () => {
     await handleConnect();
+  };
+  
+  const handleConfigureProperties = () => {
+    setShowPropertySelector(true);
   };
 
   return (
@@ -158,12 +172,22 @@ const PlatformCredentialCard = ({
               </Button>
               
               {credentials?.connected ? (
-                <Button
-                  variant="outline"
-                  onClick={handleDisconnect}
-                >
-                  Disconnect
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleDisconnect}
+                  >
+                    Disconnect
+                  </Button>
+                  
+                  {platform === 'googleAnalytics' && (
+                    <Button
+                      onClick={handleConfigureProperties}
+                    >
+                      Configure Properties
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button
                   onClick={handleConnect}
@@ -192,6 +216,12 @@ const PlatformCredentialCard = ({
           onVerify={handleVerify}
           isVerifying={isVerifying}
         />
+        
+        {platform === 'googleAnalytics' && showPropertySelector && credentials?.connected && (
+          <div className="mt-4">
+            <GAPropertySelector onSave={() => setShowPropertySelector(false)} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
