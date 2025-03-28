@@ -53,10 +53,18 @@ const ContentIdeas = () => {
     });
   };
 
+  const handleNewIdea = () => {
+    // This could open a modal or navigate to a form to create a new idea
+    toast({
+      title: "Create new content idea",
+      description: "Feature coming soon - you'll be able to create custom content ideas.",
+    });
+  };
+
   return (
     <Card className="col-span-full card-hover">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Content Ideas</CardTitle>
+        <CardTitle>Content Ideas from Trends</CardTitle>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -71,7 +79,11 @@ const ContentIdeas = () => {
             )}
             Refresh Ideas
           </Button>
-          <Button size="sm" className="bg-brand-teal hover:bg-brand-teal/90">
+          <Button 
+            size="sm" 
+            className="bg-brand-teal hover:bg-brand-teal/90"
+            onClick={handleNewIdea}
+          >
             <Plus className="mr-1 h-4 w-4" /> New Idea
           </Button>
         </div>
