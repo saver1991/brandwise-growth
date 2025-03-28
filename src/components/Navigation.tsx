@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   LogOut,
-  User
+  User,
+  Key
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthContext";
@@ -71,6 +72,11 @@ const Navigation = () => {
       title: "Growth Analytics",
       href: "/analytics",
       icon: <TrendingUp className="h-5 w-5" />,
+    },
+    {
+      title: "API Credentials",
+      href: "/credentials",
+      icon: <Key className="h-5 w-5" />,
     },
   ];
 
