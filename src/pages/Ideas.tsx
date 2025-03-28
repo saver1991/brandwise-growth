@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, MessageSquare, Linkedin, Twitter, BookOpen, ArrowUpRight } from "lucide-react";
 import ContentIdeas from "@/components/ContentIdeas";
+import TrendingTopics from "@/components/TrendingTopics";
+import { useState } from "react";
 
 const contentIdeas = [
   {
@@ -264,31 +266,7 @@ const Ideas = () => {
             </div>
             
             <div className="space-y-6">
-              <Card className="card-hover">
-                <CardHeader>
-                  <CardTitle>Trending Topics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {trendingTopics.map((topic) => (
-                      <div key={topic.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-muted-foreground" />
-                          <span>{topic.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-muted-foreground">{topic.count}</span>
-                          {topic.trending === "up" ? (
-                            <div className="text-green-500">↑</div>
-                          ) : (
-                            <div className="text-red-500">↓</div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <TrendingTopics />
               
               <Card className="card-hover">
                 <CardHeader>
