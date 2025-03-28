@@ -3,8 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { DataProvider } from "@/context/DataContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import Index from "./pages/Index";
@@ -16,6 +17,7 @@ import Medium from "./pages/Medium";
 import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,41 +27,60 @@ const AppRoutes = () => (
     {/* Auth Routes */}
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/onboarding" element={
+      <ProtectedRoute>
+        <Onboarding />
+      </ProtectedRoute>
+    } />
     
     {/* Protected Routes */}
     <Route path="/" element={
       <ProtectedRoute>
-        <Index />
+        <DataProvider>
+          <Index />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/calendar" element={
       <ProtectedRoute>
-        <Calendar />
+        <DataProvider>
+          <Calendar />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/ideas" element={
       <ProtectedRoute>
-        <Ideas />
+        <DataProvider>
+          <Ideas />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/linkedin" element={
       <ProtectedRoute>
-        <LinkedIn />
+        <DataProvider>
+          <LinkedIn />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/audience" element={
       <ProtectedRoute>
-        <Audience />
+        <DataProvider>
+          <Audience />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/medium" element={
       <ProtectedRoute>
-        <Medium />
+        <DataProvider>
+          <Medium />
+        </DataProvider>
       </ProtectedRoute>
     } />
     <Route path="/analytics" element={
       <ProtectedRoute>
-        <Analytics />
+        <DataProvider>
+          <Analytics />
+        </DataProvider>
       </ProtectedRoute>
     } />
     
