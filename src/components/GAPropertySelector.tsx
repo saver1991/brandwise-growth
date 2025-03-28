@@ -39,22 +39,15 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
 
         console.log("Attempting to fetch GA properties with key:", credentials.apiKey.substring(0, 5) + "...");
         
-        // Use a direct proxy approach instead of trying to call the Google API directly
-        // This avoids CORS issues that are likely causing the fetch to fail
         try {
-          // In a real implementation with a proper backend:
-          // 1. This request would go to your own backend server
-          // 2. Your server would make the authenticated request to Google's API
-          // 3. Your server would return the properties to the frontend
-          
-          // Since we don't have a backend for this demo, we'll simulate it
-          // with realistic but fixed data to avoid the CORS errors
+          // In a real implementation, this would call our Supabase Edge Function
+          // For now, we'll still use simulated data until the Edge Function is set up
           
           // Simulating network delay
           await new Promise(resolve => setTimeout(resolve, 800));
           
-          // These would normally come from the API but we're using realistic sample data
-          // In a production environment, you would implement a proper server-side proxy
+          // These would come from the Supabase Edge Function in a real implementation
+          // This is still using realistic sample data for demo purposes
           const fetchedProperties: GAProperty[] = [
             { id: "GA4-123456789", name: "Your Corporate Website" },
             { id: "GA4-987654321", name: "Your Marketing Blog" },
@@ -75,7 +68,10 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
           }
         } catch (fetchError) {
           console.error("Error fetching GA properties:", fetchError);
-          setError("Failed to fetch Google Analytics properties. In a production environment, this would require a server-side proxy to avoid CORS issues.");
+          setError(
+            "Failed to fetch Google Analytics properties. To use real Google Analytics data, " +
+            "a Supabase Edge Function needs to be implemented to handle the Google OAuth flow and API calls."
+          );
           toast.error("Failed to fetch Google Analytics properties");
         }
       } catch (error) {
@@ -149,7 +145,18 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
       </CardHeader>
       <CardContent>
         {properties.length === 0 ? (
-          <p className="text-muted-foreground">No Google Analytics properties found. Please check your API credentials.</p>
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              To use real Google Analytics data, you need to implement a Supabase Edge Function that handles:
+              <ol className="list-decimal ml-6 mt-2">
+                <li>Google OAuth authentication flow</li>
+                <li>Secure storage of refresh tokens</li>
+                <li>API calls to Google Analytics Data API</li>
+              </ol>
+              <p className="mt-2">Currently using simulated data for demonstration purposes.</p>
+            </AlertDescription>
+          </Alert>
         ) : (
           <>
             <div className="space-y-4">

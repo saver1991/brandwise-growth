@@ -48,10 +48,17 @@ export async function fetchGoogleAnalyticsData(): Promise<GoogleAnalyticsData> {
   }
 
   try {
-    // In a production environment, this would make an authenticated request to the Google Analytics API
-    // For this demo, we'll use realistic data based on the selected properties
-    
     console.log(`Fetching data for ${selectedPropertyIds.length} GA properties`);
+    
+    // NOTE: In a production environment with Supabase integration:
+    // 1. This would call a Supabase Edge Function that handles authentication with Google
+    // 2. The Edge Function would use the Google Analytics Data API (v1beta)
+    // 3. The Edge Function would return real data from the authenticated user's GA account
+    
+    // For complete implementation, we would need:
+    // - OAuth 2.0 authentication flow (handled by Supabase Edge Function)
+    // - Secure storage of refresh tokens in Supabase
+    // - Implementation of Google Analytics Data API calls
     
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -91,7 +98,6 @@ export async function fetchGoogleAnalyticsData(): Promise<GoogleAnalyticsData> {
     }
     
     // Generate page performance data that's unique to each property
-    // This makes the data more realistic and property-specific
     const pageNames = [
       "/blog/analytics", "/services", "/products", "/about", "/contact",
       "/pricing", "/features", "/team", "/resources", "/help"
