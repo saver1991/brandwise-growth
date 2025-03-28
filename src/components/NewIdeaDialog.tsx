@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,10 @@ import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus, Edit } from 
 import { useToast } from "@/hooks/use-toast";
 import aiGenerationService from "@/services/aiGenerationService";
 import { generateImagePromptFromContent } from "@/utils/aiTemplates";
+import LinkedInEditor from "./platform-editors/LinkedInEditor";
+import MediumEditor from "./platform-editors/MediumEditor";
+import TwitterEditor from "./platform-editors/TwitterEditor";
+import { Textarea } from "@/components/ui/textarea";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -248,6 +251,22 @@ export function NewIdeaDialog({
     { value: "twitter", label: "Twitter" },
   ];
 
+  // Render the appropriate content editor based on platform
+  const renderPlatformEditor = () => {
+    const currentPlatform = form.watch("platform");
+    
+    switch (currentPlatform) {
+      case "linkedin":
+        return <LinkedInEditor form={form} />;
+      case "medium":
+        return <MediumEditor form={form} />;
+      case "twitter":
+        return <TwitterEditor form={form} />;
+      default:
+        return <LinkedInEditor form={form} />;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
@@ -331,37 +350,8 @@ export function NewIdeaDialog({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter a title for your content idea" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe your content idea" 
-                          className="min-h-[100px]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Platform-specific editor */}
+                {renderPlatformEditor()}
 
                 <FormField
                   control={form.control}
