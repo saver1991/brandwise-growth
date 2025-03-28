@@ -9,11 +9,14 @@ import {
 } from "@/services/googleTrendsService";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { isPlatformConnected } from "@/services/credentialsService";
+import { fetchGoogleAnalyticsData } from "@/services/platformDataService";
 
 const TrendingTopics = () => {
   const [topics, setTopics] = useState<PopularTrendingTopic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usingGAData, setUsingGAData] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -23,8 +26,36 @@ const TrendingTopics = () => {
   const loadTrendingTopics = async () => {
     setIsLoading(true);
     setError(null);
+    
+    // First check if we can use Google Analytics data
+    const isGAConnected = isPlatformConnected('googleAnalytics');
+    setUsingGAData(false);
+    
     try {
-      const trendingTopics = await fetchPopularTrendingTopics();
+      let trendingTopics: PopularTrendingTopic[] = [];
+      
+      if (isGAConnected) {
+        // Try to get topics from GA first
+        try {
+          const gaData = await fetchGoogleAnalyticsData();
+          // Convert page performance to trending topics
+          trendingTopics = gaData.pagePerformance.map((page, index) => ({
+            id: `ga-${index}`,
+            name: page.page,
+            count: page.views,
+            trending: page.views > 1000 ? "up" : "down"
+          }));
+          setUsingGAData(true);
+        } catch (gaError) {
+          console.error("Failed to fetch GA data for trends:", gaError);
+          // Fall back to Google Trends API
+          trendingTopics = await fetchPopularTrendingTopics();
+        }
+      } else {
+        // Use Google Trends API directly
+        trendingTopics = await fetchPopularTrendingTopics();
+      }
+      
       setTopics(trendingTopics);
     } catch (error) {
       console.error("Failed to fetch trending topics", error);
@@ -50,7 +81,14 @@ const TrendingTopics = () => {
   return (
     <Card className="card-hover">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Trending Topics</CardTitle>
+        <CardTitle>
+          Trending Topics
+          {usingGAData && (
+            <span className="text-xs font-normal text-muted-foreground ml-2">
+              (from Google Analytics)
+            </span>
+          )}
+        </CardTitle>
         <Button 
           variant="outline" 
           size="sm" 

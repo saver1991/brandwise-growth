@@ -1,4 +1,3 @@
-
 import { 
   isPlatformConnected, 
   getPlatformCredentials, 
@@ -7,6 +6,7 @@ import {
   getSelectedGAProperties,
   getGAPropertyNames
 } from './credentialsService';
+import { fetchGoogleAnalyticsData as fetchGAData } from './googleAnalyticsService';
 
 export async function fetchLinkedInData() {
   if (!isPlatformConnected('linkedin')) {
@@ -174,81 +174,14 @@ export async function fetchGoogleAnalyticsData() {
   
   // Get selected properties
   const selectedProperties = getSelectedGAProperties();
-  const propertyNames = getGAPropertyNames();
   
   if (!selectedProperties || selectedProperties.length === 0) {
     throw new Error('No Google Analytics properties selected. Please configure properties in the credentials page.');
   }
   
-  // In a real implementation, this would make API calls to Google Analytics using the provided credentials
   try {
-    console.log('Fetching Google Analytics data with credentials:', credentials);
-    console.log('Selected properties:', selectedProperties);
-    
-    // For demo purposes, we're returning realistic data
-    // In a real app, you would make actual API calls to Google Analytics API for each selected property
-    const mockDataByProperty: Record<string, any> = {
-      "123456789": {
-        propertyName: propertyNames["123456789"] || "Corporate Website",
-        visitors: 12450,
-        pageViews: 28750,
-        averageSessionDuration: 125,
-        bounceRate: 45.2,
-      },
-      "987654321": {
-        propertyName: propertyNames["987654321"] || "Marketing Blog",
-        visitors: 8320,
-        pageViews: 15980,
-        averageSessionDuration: 95,
-        bounceRate: 52.1,
-      },
-      "456789123": {
-        propertyName: propertyNames["456789123"] || "E-commerce Store",
-        visitors: 21540,
-        pageViews: 42760,
-        averageSessionDuration: 185,
-        bounceRate: 32.5,
-      },
-      "789123456": {
-        propertyName: propertyNames["789123456"] || "Mobile App",
-        visitors: 5620,
-        pageViews: 9870,
-        averageSessionDuration: 75,
-        bounceRate: 65.8,
-      },
-    };
-    
-    // Filter to only include selected properties
-    const selectedPropertiesData = selectedProperties
-      .filter(propId => mockDataByProperty[propId])
-      .map(propId => mockDataByProperty[propId]);
-    
-    // Aggregate data across all selected properties
-    const aggregatedData = {
-      properties: selectedPropertiesData,
-      totalVisitors: selectedPropertiesData.reduce((sum, prop) => sum + prop.visitors, 0),
-      totalPageViews: selectedPropertiesData.reduce((sum, prop) => sum + prop.pageViews, 0),
-      averageBounceRate: selectedPropertiesData.reduce((sum, prop) => sum + prop.bounceRate, 0) / selectedPropertiesData.length,
-      
-      // Common data for all properties
-      trafficBySource: [
-        { source: "Direct", value: 35 },
-        { source: "Organic Search", value: 28 },
-        { source: "Social", value: 22 },
-        { source: "Referral", value: 10 },
-        { source: "Email", value: 5 },
-      ],
-      pagePerformance: [
-        { page: "/blog/design-systems", views: 1850, avgTime: 145 },
-        { page: "/portfolio", views: 1240, avgTime: 210 },
-        { page: "/services", views: 980, avgTime: 85 },
-        { page: "/about", views: 720, avgTime: 65 },
-        { page: "/contact", views: 540, avgTime: 50 },
-      ]
-    };
-    
-    return aggregatedData;
-    
+    // Use the dedicated GA service to fetch data
+    return await fetchGAData();
   } catch (error) {
     console.error('Error fetching Google Analytics data:', error);
     throw error;

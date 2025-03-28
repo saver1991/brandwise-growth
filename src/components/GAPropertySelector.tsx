@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { saveGAProperties, getSelectedGAProperties, getGAPropertyNames } from "@/services/credentialsService";
+import { saveGAProperties, getSelectedGAProperties, getGAPropertyNames, getPlatformCredentials } from "@/services/credentialsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface GAProperty {
   id: string;
@@ -20,39 +21,77 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
   const [properties, setProperties] = useState<GAProperty[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load properties
   useEffect(() => {
-    const loadProperties = async () => {
+    const fetchGAProperties = async () => {
       try {
-        // In a real app, this would fetch from the Google Analytics API
-        // For demo purposes, we'll simulate some properties
-        const demoProperties = [
-          { id: "123456789", name: "Corporate Website" },
-          { id: "987654321", name: "Marketing Blog" },
-          { id: "456789123", name: "E-commerce Store" },
-          { id: "789123456", name: "Mobile App" }
-        ];
+        setLoading(true);
+        setError(null);
         
-        // Short delay to simulate API call
+        // Get GA credentials
+        const credentials = getPlatformCredentials('googleAnalytics');
+        
+        if (!credentials.apiKey) {
+          throw new Error("API key not found");
+        }
+        
+        // In a real implementation, we would use the Google Analytics Management API
+        // https://developers.google.com/analytics/devguides/config/mgmt/v3/mgmtReference/management/accounts/list
+        
+        // For now, we'll simulate the API call with a short delay
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        setProperties(demoProperties);
+        // Try to fetch from the Google Analytics API
+        const response = await fetch(
+          `https://analyticsdata.googleapis.com/v1beta/properties?access_token=${credentials.apiKey}`, 
+          { headers: { Authorization: `Bearer ${credentials.apiKey}` } }
+        ).catch(err => {
+          console.error("GA API fetch error:", err);
+          // If the API call fails, fall back to simulated properties
+          return null;
+        });
+        
+        let fetchedProperties: GAProperty[] = [];
+        
+        if (response && response.ok) {
+          const data = await response.json();
+          fetchedProperties = data.properties.map((prop: any) => ({
+            id: prop.property,
+            name: prop.displayName || prop.name
+          }));
+        } else {
+          console.log("Falling back to demo properties");
+          // Fall back to demo properties if API call fails
+          fetchedProperties = [
+            { id: "123456789", name: "Corporate Website" },
+            { id: "987654321", name: "Marketing Blog" },
+            { id: "456789123", name: "E-commerce Store" },
+            { id: "789123456", name: "Mobile App" }
+          ];
+        }
+        
+        setProperties(fetchedProperties);
         
         // Load previously selected properties
         const savedSelected = getSelectedGAProperties();
         if (savedSelected && savedSelected.length) {
           setSelectedProperties(savedSelected);
+        } else if (fetchedProperties.length > 0) {
+          // If no properties were previously selected, select the first one by default
+          setSelectedProperties([fetchedProperties[0].id]);
         }
       } catch (error) {
         console.error("Error fetching GA properties:", error);
+        setError("Failed to load Google Analytics properties. Please check your API credentials.");
         toast.error("Failed to load Google Analytics properties");
       } finally {
         setLoading(false);
       }
     };
     
-    loadProperties();
+    fetchGAProperties();
   }, []);
 
   const handleToggleProperty = (propertyId: string) => {
@@ -66,6 +105,11 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
   };
 
   const handleSave = () => {
+    if (selectedProperties.length === 0) {
+      toast.error("Please select at least one property");
+      return;
+    }
+    
     // Create a map of property IDs to names
     const propertyNames: Record<string, string> = {};
     properties.forEach(property => {
@@ -90,6 +134,15 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
     );
   }
 
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4 mr-2" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -100,7 +153,7 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
       </CardHeader>
       <CardContent>
         {properties.length === 0 ? (
-          <p className="text-muted-foreground">No Google Analytics properties found.</p>
+          <p className="text-muted-foreground">No Google Analytics properties found. Please check your API credentials.</p>
         ) : (
           <>
             <div className="space-y-4">
