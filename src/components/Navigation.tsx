@@ -15,6 +15,7 @@ import {
   X
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ProfileSwitcher from "./ProfileSwitcher";
 
 interface NavItem {
   title: string;
@@ -80,14 +81,17 @@ const Navigation = () => {
 
           {isMobile ? (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={toggleMobileMenu}
-              >
-                {mobileMenuOpen ? <X /> : <Menu />}
-              </Button>
+              <div className="flex items-center gap-2">
+                <ProfileSwitcher />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={toggleMobileMenu}
+                >
+                  {mobileMenuOpen ? <X /> : <Menu />}
+                </Button>
+              </div>
 
               {mobileMenuOpen && (
                 <div className="fixed inset-0 top-16 z-50 bg-background animate-fade-in">
@@ -108,21 +112,24 @@ const Navigation = () => {
               )}
             </>
           ) : (
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
-                    window.location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </Link>
-              ))}
-            </nav>
+            <div className="flex items-center gap-2">
+              <nav className="hidden md:flex items-center gap-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
+                      window.location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {item.icon}
+                    <span>{item.title}</span>
+                  </Link>
+                ))}
+              </nav>
+              <ProfileSwitcher />
+            </div>
           )}
         </div>
       </div>
