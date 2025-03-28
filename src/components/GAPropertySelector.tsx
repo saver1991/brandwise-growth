@@ -5,8 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { saveGAProperties, getSelectedGAProperties, getGAPropertyNames, getPlatformCredentials } from "@/services/credentialsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface GAProperty {
   id: string;
@@ -22,6 +22,7 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUsingDemo, setIsUsingDemo] = useState<boolean>(true);
 
   // Load properties
   useEffect(() => {
@@ -37,42 +38,63 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
           throw new Error("API key not found");
         }
 
-        console.log("Attempting to fetch GA properties with key:", credentials.apiKey.substring(0, 5) + "...");
+        console.log("Attempting to fetch GA properties");
         
         try {
-          // In a real implementation, this would call our Supabase Edge Function
-          // For now, we'll still use simulated data until the Edge Function is set up
+          // Check if we have a Supabase Edge Function endpoint for Google Analytics
+          const edgeFunctionUrl = window.location.origin.includes('localhost') 
+            ? 'http://localhost:54321/functions/v1/google-analytics-auth/properties'
+            : `${window.location.origin}/functions/v1/google-analytics-auth/properties`;
           
-          // Simulating network delay
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Try to fetch from Edge Function
+          const response = await fetch(edgeFunctionUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+            }
+          }).catch(err => {
+            console.log("Edge function not available:", err);
+            return null;
+          });
           
-          // These would come from the Supabase Edge Function in a real implementation
-          // This is still using realistic sample data for demo purposes
-          const fetchedProperties: GAProperty[] = [
-            { id: "GA4-123456789", name: "Your Corporate Website" },
-            { id: "GA4-987654321", name: "Your Marketing Blog" },
-            { id: "GA4-456789123", name: "Your E-commerce Store" },
-            { id: "UA-789123456", name: "Your Mobile App (Universal Analytics)" }
-          ];
-          
-          console.log("Successfully retrieved properties:", fetchedProperties.length);
-          setProperties(fetchedProperties);
-          
-          // Load previously selected properties
-          const savedSelected = getSelectedGAProperties();
-          if (savedSelected && savedSelected.length) {
-            setSelectedProperties(savedSelected);
-          } else if (fetchedProperties.length > 0) {
-            // If no properties were previously selected, select the first one by default
-            setSelectedProperties([fetchedProperties[0].id]);
+          if (response && response.ok) {
+            const data = await response.json();
+            setProperties(data.properties);
+            setIsUsingDemo(false);
+            console.log("Successfully retrieved properties from Edge Function:", data.properties.length);
+          } else {
+            throw new Error("Edge function not available or returned an error");
           }
         } catch (fetchError) {
-          console.error("Error fetching GA properties:", fetchError);
+          console.error("Edge function error:", fetchError);
+          
+          // Fallback to demo data
+          const fetchedProperties: GAProperty[] = [
+            { id: "GA4-123456789", name: "Your Corporate Website (Demo)" },
+            { id: "GA4-987654321", name: "Your Marketing Blog (Demo)" },
+            { id: "GA4-456789123", name: "Your E-commerce Store (Demo)" },
+            { id: "UA-789123456", name: "Your Mobile App (Demo)" }
+          ];
+          
+          setProperties(fetchedProperties);
+          setIsUsingDemo(true);
+          console.log("Using demo properties:", fetchedProperties.length);
+          
           setError(
-            "Failed to fetch Google Analytics properties. To use real Google Analytics data, " +
-            "a Supabase Edge Function needs to be implemented to handle the Google OAuth flow and API calls."
+            "Currently using demo data. To display real Google Analytics properties, " +
+            "you need to implement a Supabase Edge Function for Google Analytics OAuth. " +
+            "See the implementation guide in src/services/realGAIntegration.md"
           );
-          toast.error("Failed to fetch Google Analytics properties");
+        }
+        
+        // Load previously selected properties
+        const savedSelected = getSelectedGAProperties();
+        if (savedSelected && savedSelected.length) {
+          setSelectedProperties(savedSelected);
+        } else if (properties.length > 0) {
+          // If no properties were previously selected, select the first one by default
+          setSelectedProperties([properties[0].id]);
         }
       } catch (error) {
         console.error("Error in GA properties setup:", error);
@@ -126,63 +148,71 @@ const GAPropertySelector = ({ onSave }: GAPropertySelectorProps) => {
     );
   }
 
-  if (error) {
-    return (
-      <Alert variant="destructive" className="my-4">
-        <AlertCircle className="h-4 w-4 mr-2" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Select Google Analytics Properties</CardTitle>
         <CardDescription>
           Choose which properties you want to track in the dashboard
+          {isUsingDemo && <span className="text-amber-500 ml-2">(Demo Data)</span>}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {properties.length === 0 ? (
-          <Alert className="mb-4">
+        {error && (
+          <Alert variant="warning" className="mb-4">
             <AlertCircle className="h-4 w-4 mr-2" />
-            <AlertDescription>
-              To use real Google Analytics data, you need to implement a Supabase Edge Function that handles:
-              <ol className="list-decimal ml-6 mt-2">
-                <li>Google OAuth authentication flow</li>
-                <li>Secure storage of refresh tokens</li>
-                <li>API calls to Google Analytics Data API</li>
-              </ol>
-              <p className="mt-2">Currently using simulated data for demonstration purposes.</p>
+            <AlertTitle>Using Demo Data</AlertTitle>
+            <AlertDescription className="mt-2">
+              {error}
+              <div className="mt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open('/services/realGAIntegration.md', '_blank')}
+                  className="flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  View Implementation Guide
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
-        ) : (
-          <>
-            <div className="space-y-4">
-              {properties.map(property => (
-                <div key={property.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`property-${property.id}`}
-                    checked={selectedProperties.includes(property.id)}
-                    onCheckedChange={() => handleToggleProperty(property.id)}
-                  />
-                  <label
-                    htmlFor={`property-${property.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {property.name}
-                  </label>
-                </div>
-              ))}
+        )}
+        
+        <div className="space-y-4">
+          {properties.map(property => (
+            <div key={property.id} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`property-${property.id}`}
+                checked={selectedProperties.includes(property.id)}
+                onCheckedChange={() => handleToggleProperty(property.id)}
+              />
+              <label
+                htmlFor={`property-${property.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {property.name}
+              </label>
             </div>
-            
-            <div className="mt-6 flex justify-end">
-              <Button onClick={handleSave}>
-                Save Preferences
-              </Button>
-            </div>
-          </>
+          ))}
+        </div>
+        
+        {properties.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleSave}>
+              Save Preferences
+            </Button>
+          </div>
+        )}
+        
+        {properties.length === 0 && !loading && (
+          <div className="py-8 text-center">
+            <AlertCircle className="mx-auto h-10 w-10 text-amber-500 mb-4" />
+            <p className="text-lg font-medium">No Google Analytics properties found</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Please implement the Google Analytics Edge Function or check your API credentials
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
