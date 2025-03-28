@@ -1,17 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Loader2, RefreshCcw } from "lucide-react";
+import { BookOpen, Loader2, RefreshCcw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   fetchPopularTrendingTopics, 
   PopularTrendingTopic 
 } from "@/services/googleTrendsService";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const TrendingTopics = () => {
   const [topics, setTopics] = useState<PopularTrendingTopic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -20,11 +22,13 @@ const TrendingTopics = () => {
 
   const loadTrendingTopics = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const trendingTopics = await fetchPopularTrendingTopics();
       setTopics(trendingTopics);
     } catch (error) {
       console.error("Failed to fetch trending topics", error);
+      setError("Could not fetch trending topics. We might be experiencing CORS issues with the Google Trends API.");
       toast({
         title: "Failed to load trending topics",
         description: "Could not fetch trending topics data. Please try again later.",
@@ -65,6 +69,11 @@ const TrendingTopics = () => {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-brand-teal" />
           </div>
+        ) : error ? (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         ) : (
           <div className="space-y-3">
             {topics.map((topic) => (
@@ -86,7 +95,7 @@ const TrendingTopics = () => {
                 </div>
               </div>
             ))}
-            {topics.length === 0 && !isLoading && (
+            {topics.length === 0 && !isLoading && !error && (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No trending topics found. Try refreshing.</p>
               </div>
