@@ -36,7 +36,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'Listicle',
       description: 'Easy-to-consume content with actionable points',
       titleTemplate: '[Number] Essential [Resources/Strategies/Tools] for [Professional Goal]',
-      contentTemplate: 'Based on my experience helping professionals achieve [goal], I've compiled these [number] proven [resources/strategies/tools] that can help you...',
+      contentTemplate: 'Based on my experience helping professionals achieve [goal], I\'ve compiled these [number] proven [resources/strategies/tools] that can help you...',
       suggestedTopics: ['Professional Tips', 'Career Growth', 'Productivity', 'Skills Development']
     }
   ],
@@ -46,7 +46,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'How-To Guide',
       description: 'Step-by-step instructions for solving specific problems',
       titleTemplate: 'How to [Accomplish Task] in [Number] Simple Steps',
-      contentTemplate: 'In this comprehensive guide, I'll walk you through the exact process I use to [accomplish task], breaking it down into manageable steps that anyone can follow...',
+      contentTemplate: 'In this comprehensive guide, I\'ll walk you through the exact process I use to [accomplish task], breaking it down into manageable steps that anyone can follow...',
       suggestedTopics: ['Tutorial', 'Process', 'Guide', 'Skill Building']
     },
     {
@@ -54,7 +54,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'Deep Dive',
       description: 'Comprehensive analysis of a specific topic',
       titleTemplate: 'The Ultimate Guide to [Topic]: Everything You Need to Know',
-      contentTemplate: 'In this in-depth exploration of [topic], we'll cover everything from the fundamental concepts to advanced strategies that few experts are discussing...',
+      contentTemplate: 'In this in-depth exploration of [topic], we\'ll cover everything from the fundamental concepts to advanced strategies that few experts are discussing...',
       suggestedTopics: ['Analysis', 'Comprehensive Guide', 'Research', 'Industry Knowledge']
     },
     {
@@ -72,7 +72,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'Thread',
       description: 'Connected tweets that tell a compelling story',
       titleTemplate: '[Number] Things I Learned About [Topic] After [Experience]',
-      contentTemplate: '1/ After [experience with topic], I discovered some surprising insights that changed how I approach [related area]. Here's what I learned: [continue in thread]',
+      contentTemplate: '1/ After [experience with topic], I discovered some surprising insights that changed how I approach [related area]. Here\'s what I learned: [continue in thread]',
       suggestedTopics: ['Insights', 'Lessons Learned', 'Quick Tips', 'Personal Story']
     },
     {
@@ -80,7 +80,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'Hot Take',
       description: 'Bold, attention-grabbing statement with supporting points',
       titleTemplate: 'Unpopular Opinion: [Controversial Statement about Industry]',
-      contentTemplate: 'Most people in [industry] believe [common belief], but based on my experience, I've found that [alternative perspective] actually works better because...',
+      contentTemplate: 'Most people in [industry] believe [common belief], but based on my experience, I\'ve found that [alternative perspective] actually works better because...',
       suggestedTopics: ['Perspective', 'Debate', 'Industry Trends', 'Contrarian View']
     },
     {
@@ -88,7 +88,7 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       name: 'Quick Tips',
       description: 'Bite-sized, actionable advice',
       titleTemplate: '[Number] [Topic] Tips That Will Immediately Make You Better at [Skill]',
-      contentTemplate: 'Want to improve your [skill]? Here are [number] tips I've learned from [experience] that you can implement today: 1. [tip] 2. [tip] 3. [tip]...',
+      contentTemplate: 'Want to improve your [skill]? Here are [number] tips I\'ve learned from [experience] that you can implement today: 1. [tip] 2. [tip] 3. [tip]...',
       suggestedTopics: ['Quick Tips', 'Skills', 'Actionable Advice', 'Professional Development']
     }
   ]
