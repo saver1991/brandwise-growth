@@ -1,5 +1,10 @@
 
-import { isPlatformConnected, getPlatformCredentials } from './credentialsService';
+import { 
+  isPlatformConnected, 
+  getPlatformCredentials, 
+  needsReVerification,
+  verifyCredentials
+} from './credentialsService';
 
 export async function fetchLinkedInData() {
   if (!isPlatformConnected('linkedin')) {
@@ -7,6 +12,15 @@ export async function fetchLinkedInData() {
   }
   
   const credentials = getPlatformCredentials('linkedin');
+  
+  // Check if credentials need re-verification
+  if (needsReVerification('linkedin')) {
+    // Attempt to verify before proceeding
+    const isValid = await verifyCredentials('linkedin', credentials);
+    if (!isValid) {
+      throw new Error('LinkedIn credentials verification failed. Please reconnect your account.');
+    }
+  }
   
   // In a real implementation, this would make API calls to LinkedIn using the provided credentials
   try {
@@ -70,6 +84,15 @@ export async function fetchMediumData() {
   }
   
   const credentials = getPlatformCredentials('medium');
+  
+  // Check if credentials need re-verification
+  if (needsReVerification('medium')) {
+    // Attempt to verify before proceeding
+    const isValid = await verifyCredentials('medium', credentials);
+    if (!isValid) {
+      throw new Error('Medium credentials verification failed. Please reconnect your account.');
+    }
+  }
   
   // In a real implementation, this would make API calls to Medium using the provided credentials
   try {
@@ -137,6 +160,15 @@ export async function fetchGoogleAnalyticsData() {
   }
   
   const credentials = getPlatformCredentials('googleAnalytics');
+  
+  // Check if credentials need re-verification
+  if (needsReVerification('googleAnalytics')) {
+    // Attempt to verify before proceeding
+    const isValid = await verifyCredentials('googleAnalytics', credentials);
+    if (!isValid) {
+      throw new Error('Google Analytics credentials verification failed. Please reconnect your account.');
+    }
+  }
   
   // In a real implementation, this would make API calls to Google Analytics using the provided credentials
   try {
