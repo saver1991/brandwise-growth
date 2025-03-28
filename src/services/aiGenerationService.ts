@@ -1,4 +1,3 @@
-
 // This is a mock service for AI content generation
 // In a real application, this would integrate with OpenAI, Stability AI, or other AI APIs
 
@@ -140,14 +139,14 @@ export const formatContentForPlatform = (content: string, platform: string): str
       if (!formattedContent.toLowerCase().includes('comment') && 
           !formattedContent.toLowerCase().includes('thoughts') &&
           !formattedContent.toLowerCase().includes('agree')) {
-        formattedContent += '\n\nWhat are your thoughts on this? I'd love to hear your perspective in the comments.';
+        formattedContent = formattedContent + "\n\nWhat are your thoughts on this? I'd love to hear your perspective in the comments.";
       }
       
       // Add hashtags if not present
       if (!formattedContent.includes('#')) {
         const topics = ['ProfessionalDevelopment', 'Leadership', 'Innovation', 'BusinessStrategy'];
         const randomTopics = topics.sort(() => 0.5 - Math.random()).slice(0, 3);
-        formattedContent += '\n\n' + randomTopics.map(topic => `#${topic}`).join(' ');
+        formattedContent = formattedContent + '\n\n' + randomTopics.map(topic => `#${topic}`).join(' ');
       }
       
       return formattedContent;
