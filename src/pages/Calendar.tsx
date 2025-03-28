@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Linkedin, MessageSquare, Twitter, CalendarClock, Sparkles } from "lucide-react";
+import { Plus, Filter, Linkedin, MessageSquare, Twitter, CalendarClock, Sparkles, Edit } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import aiGenerationService from "@/services/aiGenerationService";
+import { EditContentDialog, CalendarEvent } from "@/components/EditContentDialog";
 
-const calendarEvents = [
+const initialCalendarEvents: CalendarEvent[] = [
   {
     id: 1,
     title: "Design System Article",
@@ -58,8 +58,10 @@ const platformBestTimes = {
 
 const Calendar = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [events, setEvents] = useState(calendarEvents);
+  const [events, setEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<CalendarEvent | null>(null);
   const { toast } = useToast();
 
   const filteredEvents = date 
@@ -167,6 +169,28 @@ const Calendar = () => {
     }
   };
 
+  const handleEditContent = (event: CalendarEvent) => {
+    setCurrentEvent(event);
+    setEditDialogOpen(true);
+  };
+
+  const handleAddNewContent = () => {
+    setCurrentEvent(null);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveContent = (updatedEvent: CalendarEvent) => {
+    if (currentEvent) {
+      // Update existing event
+      setEvents(events.map(event => 
+        event.id === updatedEvent.id ? updatedEvent : event
+      ));
+    } else {
+      // Add new event
+      setEvents([...events, updatedEvent]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -180,7 +204,10 @@ const Calendar = () => {
                 Schedule and manage your content across platforms
               </p>
             </div>
-            <Button className="bg-brand-teal hover:bg-brand-teal/90">
+            <Button 
+              className="bg-brand-teal hover:bg-brand-teal/90"
+              onClick={handleAddNewContent}
+            >
               <Plus className="mr-1 h-4 w-4" /> New Content
             </Button>
           </div>
@@ -201,12 +228,23 @@ const Calendar = () => {
                   }}
                   modifiersStyles={{
                     hasEvent: {
-                      backgroundColor: "#fff",
                       fontWeight: "bold",
                       textDecoration: "underline",
                       textDecorationColor: "#2A9D8F",
                       textDecorationThickness: "2px",
                     },
+                    selected: {
+                      backgroundColor: "#2A9D8F",
+                      color: "white",
+                      fontWeight: "bold"
+                    }
+                  }}
+                  styles={{
+                    day_selected: { 
+                      backgroundColor: "#2A9D8F !important",
+                      color: "white !important", 
+                      fontWeight: "bold" 
+                    }
                   }}
                 />
               </CardContent>
@@ -282,7 +320,17 @@ const Calendar = () => {
                                   })}
                                 </p>
                               </div>
-                              {getStatusBadge(event.status)}
+                              <div className="flex items-center gap-2">
+                                {getStatusBadge(event.status)}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditContent(event)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -290,7 +338,7 @@ const Calendar = () => {
                     ) : (
                       <div className="text-center py-12 text-muted-foreground">
                         <p>No content scheduled for this date</p>
-                        <Button variant="link" className="text-brand-teal mt-2">
+                        <Button variant="link" className="text-brand-teal mt-2" onClick={handleAddNewContent}>
                           <Plus className="mr-1 h-4 w-4" /> Add Content
                         </Button>
                       </div>
@@ -335,7 +383,17 @@ const Calendar = () => {
                                   })}
                                 </p>
                               </div>
-                              {getStatusBadge(event.status)}
+                              <div className="flex items-center gap-2">
+                                {getStatusBadge(event.status)}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditContent(event)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -357,7 +415,7 @@ const Calendar = () => {
                         <div className="text-center py-12 text-muted-foreground">
                           <p>No content scheduled for this week</p>
                           <div className="mt-4 flex justify-center gap-4">
-                            <Button variant="outline" className="text-brand-teal">
+                            <Button variant="outline" className="text-brand-teal" onClick={handleAddNewContent}>
                               <Plus className="mr-1 h-4 w-4" /> Add Content
                             </Button>
                             <Button 
@@ -406,7 +464,17 @@ const Calendar = () => {
                                   })}
                                 </p>
                               </div>
-                              {getStatusBadge(event.status)}
+                              <div className="flex items-center gap-2">
+                                {getStatusBadge(event.status)}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditContent(event)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -421,7 +489,7 @@ const Calendar = () => {
                         <div className="text-center py-12 text-muted-foreground">
                           <p>No content scheduled for this month</p>
                           <div className="mt-4 flex justify-center gap-4">
-                            <Button variant="outline" className="text-brand-teal">
+                            <Button variant="outline" className="text-brand-teal" onClick={handleAddNewContent}>
                               <Plus className="mr-1 h-4 w-4" /> Add Content
                             </Button>
                             <Button 
@@ -444,6 +512,13 @@ const Calendar = () => {
           </div>
         </div>
       </main>
+      
+      <EditContentDialog 
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        event={currentEvent}
+        onSave={handleSaveContent}
+      />
     </div>
   );
 };
