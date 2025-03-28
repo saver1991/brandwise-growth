@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
 import Ideas from "./pages/Ideas";
 import LinkedIn from "./pages/LinkedIn";
+import Audience from "./pages/Audience";
+import Medium from "./pages/Medium";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +26,9 @@ const App = () => (
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/ideas" element={<Ideas />} />
           <Route path="/linkedin" element={<LinkedIn />} />
+          <Route path="/audience" element={<Audience />} />
+          <Route path="/medium" element={<Medium />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
