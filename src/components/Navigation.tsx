@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   User,
-  Key
+  Key,
+  UserCog
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthContext";
@@ -23,7 +24,8 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 
 interface NavItem {
@@ -73,11 +75,6 @@ const Navigation = () => {
       href: "/analytics",
       icon: <TrendingUp className="h-5 w-5" />,
     },
-    {
-      title: "API Credentials",
-      href: "/credentials",
-      icon: <Key className="h-5 w-5" />,
-    },
   ];
 
   const toggleMobileMenu = () => {
@@ -106,6 +103,19 @@ const Navigation = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem className="font-medium">{user.name}</DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                          <UserCog className="h-4 w-4" />
+                          Profile Settings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/credentials" className="flex items-center gap-2 cursor-pointer">
+                          <Key className="h-4 w-4" />
+                          API Credentials
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={logout}>
                         <LogOut className="h-4 w-4 mr-2" />
                         Logout
@@ -169,6 +179,19 @@ const Navigation = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                        <UserCog className="h-4 w-4" />
+                        Profile Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/credentials" className="flex items-center gap-2 cursor-pointer">
+                        <Key className="h-4 w-4" />
+                        API Credentials
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout

@@ -15,6 +15,7 @@ import Audience from "./pages/Audience";
 import Medium from "./pages/Medium";
 import Analytics from "./pages/Analytics";
 import Credentials from "./pages/Credentials";
+import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -66,6 +67,11 @@ const AppRoutes = () => (
     <Route path="/credentials" element={
       <ProtectedRoute>
         <Credentials />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile" element={
+      <ProtectedRoute>
+        <Profile />
       </ProtectedRoute>
     } />
     
