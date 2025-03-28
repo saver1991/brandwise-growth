@@ -8,62 +8,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Linkedin, BarChart4, MessageSquare, AlertCircle, CheckCircle, Key } from "lucide-react";
-
-interface PlatformCredential {
-  apiKey: string;
-  apiSecret?: string;
-  accessToken?: string;
-  connected: boolean;
-}
+import { 
+  PlatformType, 
+  getPlatformCredentials, 
+  savePlatformCredentials, 
+  disconnectPlatform,
+  verifyCredentials 
+} from "@/services/credentialsService";
+import type { PlatformCredential } from "@/services/credentialsService";
 
 const Credentials = () => {
   const { toast } = useToast();
+  const [isVerifying, setIsVerifying] = useState<Record<string, boolean>>({});
   const [credentials, setCredentials] = useState<Record<string, PlatformCredential>>(() => {
-    // Try to load saved credentials from localStorage
-    const savedCredentials = localStorage.getItem("brandwise_credentials");
-    if (savedCredentials) {
-      try {
-        return JSON.parse(savedCredentials);
-      } catch (e) {
-        console.error("Failed to parse saved credentials", e);
-      }
-    }
+    const platforms: PlatformType[] = ['linkedin', 'medium', 'googleAnalytics'];
+    const creds: Record<string, PlatformCredential> = {};
     
-    // Default empty credentials
-    return {
-      linkedin: { apiKey: "", apiSecret: "", connected: false },
-      medium: { apiKey: "", accessToken: "", connected: false },
-      googleAnalytics: { apiKey: "", connected: false }
-    };
+    platforms.forEach(platform => {
+      creds[platform] = getPlatformCredentials(platform);
+    });
+    
+    return creds;
   });
 
-  const savePlatformCredential = (platform: string, data: Partial<PlatformCredential>) => {
-    const updatedCredentials = {
-      ...credentials,
+  const updateCredential = (platform: string, field: string, value: string) => {
+    setCredentials(prev => ({
+      ...prev,
       [platform]: {
-        ...credentials[platform],
-        ...data,
-        // Mark as connected if API key is present
-        connected: data.apiKey ? data.apiKey.trim().length > 0 : credentials[platform].connected
+        ...prev[platform],
+        [field]: value
       }
-    };
+    }));
+  };
+
+  const saveCredentials = (platform: PlatformType) => {
+    savePlatformCredentials(platform, credentials[platform]);
     
-    setCredentials(updatedCredentials);
-    
-    // Save to localStorage
-    localStorage.setItem("brandwise_credentials", JSON.stringify(updatedCredentials));
-    
-    // Show success message
     toast({
       title: "Credentials updated",
-      description: `Your ${platform} credentials have been saved successfully.`,
+      description: `Your ${platform} credentials have been saved.`,
       duration: 3000,
     });
   };
 
-  const handleConnect = (platform: string) => {
-    // For now, we'll just verify that an API key exists and mark as connected
-    // In a real app, we would validate the credentials against the actual API
+  const handleConnect = async (platform: PlatformType) => {
     const platformData = credentials[platform];
     
     if (!platformData.apiKey || platformData.apiKey.trim() === "") {
@@ -76,36 +64,71 @@ const Credentials = () => {
       return;
     }
     
-    // Simulate connection delay
-    toast({
-      title: "Connecting...",
-      description: `Verifying your ${platform} credentials.`,
-      duration: 2000,
-    });
+    // Show verifying state
+    setIsVerifying(prev => ({ ...prev, [platform]: true }));
     
-    // After a delay, mark as connected (simulating API validation)
-    setTimeout(() => {
-      savePlatformCredential(platform, { connected: true });
-      
+    try {
       toast({
-        title: "Connection successful",
-        description: `Your ${platform} account has been connected.`,
+        title: "Connecting...",
+        description: `Verifying your ${platform} credentials.`,
+        duration: 2000,
+      });
+      
+      // Attempt to verify credentials
+      const isValid = await verifyCredentials(platform, platformData);
+      
+      if (isValid) {
+        // Save with connected flag
+        savePlatformCredentials(platform, { 
+          ...platformData,
+          connected: true 
+        });
+        
+        // Update local state
+        setCredentials(prev => ({
+          ...prev,
+          [platform]: {
+            ...prev[platform],
+            connected: true
+          }
+        }));
+        
+        toast({
+          title: "Connection successful",
+          description: `Your ${platform} account has been connected.`,
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Connection failed",
+          description: "Invalid credentials. Please check and try again.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Connection error",
+        description: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
         duration: 3000,
       });
-    }, 2000);
+    } finally {
+      setIsVerifying(prev => ({ ...prev, [platform]: false }));
+    }
   };
 
-  const handleDisconnect = (platform: string) => {
-    const updatedCredentials = {
-      ...credentials,
+  const handleDisconnect = (platform: PlatformType) => {
+    disconnectPlatform(platform);
+    
+    // Update local state
+    setCredentials(prev => ({
+      ...prev,
       [platform]: {
-        ...credentials[platform],
+        ...prev[platform],
         connected: false
       }
-    };
-    
-    setCredentials(updatedCredentials);
-    localStorage.setItem("brandwise_credentials", JSON.stringify(updatedCredentials));
+    }));
     
     toast({
       title: "Disconnected",
@@ -207,27 +230,33 @@ const Credentials = () => {
                               placeholder={`Enter your ${field.label}`}
                               value={credentials[platform][field.name as keyof PlatformCredential] as string || ""}
                               onChange={(e) => {
-                                savePlatformCredential(platform, {
-                                  [field.name]: e.target.value
-                                } as Partial<PlatformCredential>);
+                                updateCredential(platform, field.name, e.target.value);
                               }}
                             />
                           </div>
                         ))}
                         
                         <div className="pt-2 flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => saveCredentials(platform as PlatformType)}
+                          >
+                            Save
+                          </Button>
+                          
                           {credentials[platform]?.connected ? (
                             <Button
                               variant="outline"
-                              onClick={() => handleDisconnect(platform)}
+                              onClick={() => handleDisconnect(platform as PlatformType)}
                             >
                               Disconnect
                             </Button>
                           ) : (
                             <Button
-                              onClick={() => handleConnect(platform)}
+                              onClick={() => handleConnect(platform as PlatformType)}
+                              disabled={isVerifying[platform]}
                             >
-                              Connect
+                              {isVerifying[platform] ? "Connecting..." : "Connect"}
                             </Button>
                           )}
                         </div>
