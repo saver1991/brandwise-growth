@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus } from "lucide-react";
+import { Loader2, Sparkles, Lightbulb, Image as ImageIcon, X, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import aiGenerationService from "@/services/aiGenerationService";
 import { generateImagePromptFromContent } from "@/utils/aiTemplates";
@@ -31,9 +31,24 @@ interface NewIdeaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ContentIdeaFormValues) => void;
+  initialData?: {
+    id: number;
+    title: string;
+    description: string;
+    platform: "linkedin" | "medium" | "twitter";
+    topics: string[];
+    imageUrl?: string;
+  };
+  editMode?: boolean;
 }
 
-export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogProps) {
+export function NewIdeaDialog({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  initialData, 
+  editMode = false 
+}: NewIdeaDialogProps) {
   const [topicInput, setTopicInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -44,7 +59,14 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
 
   const form = useForm<ContentIdeaFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+      title: initialData.title,
+      description: initialData.description,
+      platform: initialData.platform,
+      topics: initialData.topics,
+      imagePrompt: "",
+      imageUrl: initialData.imageUrl || "",
+    } : {
       title: "",
       description: "",
       platform: "linkedin",
@@ -53,6 +75,24 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
       imageUrl: "",
     },
   });
+
+  // Reset form when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        title: initialData.title,
+        description: initialData.description,
+        platform: initialData.platform,
+        topics: initialData.topics,
+        imagePrompt: "",
+        imageUrl: initialData.imageUrl || "",
+      });
+      
+      if (initialData.imageUrl) {
+        setGeneratedImage(initialData.imageUrl);
+      }
+    }
+  }, [initialData, open, form]);
 
   // Watch for changes to title, description, and platform
   const title = form.watch("title");
@@ -212,9 +252,11 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Content Idea</DialogTitle>
+          <DialogTitle>{editMode ? "Edit Content Idea" : "Create New Content Idea"}</DialogTitle>
           <DialogDescription>
-            Fill in the details below or let AI help you generate content ideas.
+            {editMode 
+              ? "Make changes to your content idea below."
+              : "Fill in the details below or let AI help you generate content ideas."}
           </DialogDescription>
         </DialogHeader>
 
@@ -234,25 +276,27 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
               <TabsContent value="content" className="space-y-4 pt-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Content Information</h3>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={generateContentIdea}
-                    disabled={isGenerating}
-                    className="flex items-center gap-2"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 text-amber-500" />
-                        Generate with AI
-                      </>
-                    )}
-                  </Button>
+                  {!editMode && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={generateContentIdea}
+                      disabled={isGenerating}
+                      className="flex items-center gap-2"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 text-amber-500" />
+                          Generate with AI
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 <FormField
@@ -264,6 +308,7 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -383,7 +428,7 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                     ) : (
                       <>
                         <ImageIcon className="h-4 w-4 text-blue-500" />
-                        {generatedImage ? "Regenerate" : "Generate Image"}
+                        {generatedImage || form.watch("imageUrl") ? "Regenerate" : "Generate Image"}
                       </>
                     )}
                   </Button>
@@ -450,8 +495,17 @@ export function NewIdeaDialog({ open, onOpenChange, onSubmit }: NewIdeaDialogPro
                 type="submit" 
                 className="bg-brand-teal hover:bg-brand-teal/90"
               >
-                <Lightbulb className="mr-2 h-4 w-4" />
-                Save Idea
+                {editMode ? (
+                  <>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Update Idea
+                  </>
+                ) : (
+                  <>
+                    <Lightbulb className="mr-2 h-4 w-4" />
+                    Save Idea
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </form>

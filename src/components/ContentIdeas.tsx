@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Lightbulb, Linkedin, MessageSquare, Twitter } from "lucide-react";
+import { Plus, Lightbulb, Linkedin, MessageSquare, Twitter, Edit } from "lucide-react";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,7 +42,9 @@ const initialIdeas: ContentIdea[] = [
 
 const ContentIdeas = () => {
   const [ideas, setIdeas] = useState<ContentIdea[]>(initialIdeas);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newDialogOpen, setNewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<ContentIdea | null>(null);
   const { toast } = useToast();
 
   const platformColors = {
@@ -81,6 +83,35 @@ const ContentIdeas = () => {
     });
   };
 
+  const handleEditIdea = (data: ContentIdeaFormValues) => {
+    if (!selectedIdea) return;
+    
+    const updatedIdeas = ideas.map(idea => 
+      idea.id === selectedIdea.id 
+        ? { 
+            ...idea, 
+            title: data.title,
+            description: data.description,
+            platform: data.platform,
+            topics: data.topics,
+            imageUrl: data.imageUrl
+          } 
+        : idea
+    );
+    
+    setIdeas(updatedIdeas);
+    
+    toast({
+      title: "Idea Updated!",
+      description: "Your content idea has been successfully updated.",
+    });
+  };
+
+  const handleIdeaClick = (idea: ContentIdea) => {
+    setSelectedIdea(idea);
+    setEditDialogOpen(true);
+  };
+
   return (
     <Card className="col-span-full card-hover">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -88,7 +119,7 @@ const ContentIdeas = () => {
         <Button 
           size="sm" 
           className="bg-brand-teal hover:bg-brand-teal/90"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => setNewDialogOpen(true)}
         >
           <Plus className="mr-1 h-4 w-4" /> New Idea
         </Button>
@@ -98,19 +129,34 @@ const ContentIdeas = () => {
           {ideas.map((idea) => (
             <div 
               key={idea.id} 
-              className="border rounded-lg p-4 hover:border-brand-teal/50 transition-colors"
+              className="border rounded-lg p-4 hover:border-brand-teal/50 transition-colors cursor-pointer group"
+              onClick={() => handleIdeaClick(idea)}
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   {platformIcons[idea.platform]}
                   <h3 className="font-medium">{idea.title}</h3>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className={platformColors[idea.platform]}
-                >
-                  {platformNames[idea.platform]}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="outline" 
+                    className={platformColors[idea.platform]}
+                  >
+                    {platformNames[idea.platform]}
+                  </Badge>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedIdea(idea);
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">{idea.description}</p>
               
@@ -138,11 +184,23 @@ const ContentIdeas = () => {
         </div>
       </CardContent>
       
+      {/* Dialog for creating a new idea */}
       <NewIdeaDialog 
-        open={dialogOpen} 
-        onOpenChange={setDialogOpen} 
+        open={newDialogOpen} 
+        onOpenChange={setNewDialogOpen} 
         onSubmit={handleCreateIdea}
       />
+      
+      {/* Dialog for editing an existing idea */}
+      {selectedIdea && (
+        <NewIdeaDialog 
+          open={editDialogOpen} 
+          onOpenChange={setEditDialogOpen} 
+          onSubmit={handleEditIdea}
+          initialData={selectedIdea}
+          editMode={true}
+        />
+      )}
     </Card>
   );
 };
