@@ -12,18 +12,9 @@ import {
   Users,
   TrendingUp,
   Menu,
-  X,
-  LogOut,
-  User
+  X
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/context/AuthContext";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   title: string;
@@ -34,7 +25,6 @@ interface NavItem {
 const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { user, logout } = useAuth();
 
   const navItems: NavItem[] = [
     {
@@ -90,33 +80,14 @@ const Navigation = () => {
 
           {isMobile ? (
             <>
-              <div className="flex items-center gap-2">
-                {user && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full">
-                        <User className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="font-medium">{user.name}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={logout}>
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden"
-                  onClick={toggleMobileMenu}
-                >
-                  {mobileMenuOpen ? <X /> : <Menu />}
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={toggleMobileMenu}
+              >
+                {mobileMenuOpen ? <X /> : <Menu />}
+              </Button>
 
               {mobileMenuOpen && (
                 <div className="fixed inset-0 top-16 z-50 bg-background animate-fade-in">
@@ -137,40 +108,21 @@ const Navigation = () => {
               )}
             </>
           ) : (
-            <div className="flex items-center gap-2">
-              <nav className="hidden md:flex items-center gap-1">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
-                      window.location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
-                    )}
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </Link>
-                ))}
-              </nav>
-              
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="ml-2">
-                      <User className="h-4 w-4 mr-2" />
-                      {user.name}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
+                    window.location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </Link>
+              ))}
+            </nav>
           )}
         </div>
       </div>
