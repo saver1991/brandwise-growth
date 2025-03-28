@@ -1,3 +1,4 @@
+
 // Fix for TypeScript errors related to ContentScore type
 import { ContentScore } from "@/services/aiGenerationService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

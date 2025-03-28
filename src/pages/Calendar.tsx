@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Filter, Linkedin, MessageSquare, Twitter, CalendarClock, Sparkles, Edit } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import aiGenerationService from "@/services/aiGenerationService";
 import { EditContentDialog, CalendarEvent } from "@/components/EditContentDialog";
 
@@ -237,13 +237,6 @@ const Calendar = () => {
                       backgroundColor: "#2A9D8F",
                       color: "white",
                       fontWeight: "bold"
-                    }
-                  }}
-                  styles={{
-                    day_selected: { 
-                      backgroundColor: "#2A9D8F !important",
-                      color: "white !important", 
-                      fontWeight: "bold" 
                     }
                   }}
                 />

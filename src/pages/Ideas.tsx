@@ -109,7 +109,7 @@ const Ideas = () => {
         <div className="brand-container space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold gradient-heading">Content Ideas</h1>
+              <h1 className="text-3xl font-bold gradient-heading">Content Creation</h1>
               <p className="text-muted-foreground">
                 Discover, organize, and develop your content ideas
               </p>

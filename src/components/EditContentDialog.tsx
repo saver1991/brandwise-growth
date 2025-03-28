@@ -98,26 +98,19 @@ export function EditContentDialog({ open, onOpenChange, event, onSave }: EditCon
             <Input
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter your content title"
+              readOnly
+              className="bg-gray-100"
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="platform">Platform</Label>
-            <Select
-              value={platform}
-              onValueChange={(value) => setPlatform(value as "linkedin" | "medium" | "twitter")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select platform" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="twitter">Twitter</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="platform"
+              value={platform === "linkedin" ? "LinkedIn" : platform === "medium" ? "Medium" : "Twitter"}
+              readOnly
+              className="bg-gray-100"
+            />
           </div>
           
           <div className="space-y-2">
