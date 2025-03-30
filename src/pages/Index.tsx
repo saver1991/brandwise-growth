@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { ContentIdea } from "@/types/ContentIdea";
+import { ContentScore } from "@/services/aiGenerationService";
 
 const sampleContentIdeas: ContentIdea[] = [
   {
@@ -116,6 +117,13 @@ const Dashboard = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
+      // Ensure score has required fields
+      const defaultScore: ContentScore = {
+        overall: data.score?.overall || 70,
+        breakdown: data.score?.breakdown || { "Content Quality": 70 },
+        feedback: data.score?.feedback || "New content idea created."
+      };
+      
       const newIdea: ContentIdea = {
         id: Date.now(),
         title: data.title,
@@ -123,14 +131,12 @@ const Dashboard = () => {
         platform: data.platform,
         topics: data.topics,
         imageUrl: data.imageUrl || "",
-        score: data.score || {
-          overall: 70,
-          breakdown: {
-            "Content Quality": 70
-          },
-          feedback: "New content idea created."
-        }
+        score: defaultScore
       };
+      
+      if (data.imagePrompt) {
+        newIdea.imagePrompt = data.imagePrompt;
+      }
       
       setContentIdeas([...contentIdeas, newIdea]);
       

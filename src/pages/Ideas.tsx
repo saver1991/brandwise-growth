@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { useState } from "react";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
 import { ContentIdea } from "@/types/ContentIdea";
+import { ContentScore } from "@/services/aiGenerationService";
 
 const trendingTopics = [
   { id: 1, name: "AI in Design", count: 120, trending: "up" },
@@ -126,6 +128,13 @@ const Ideas = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
+      // Ensure score has required fields
+      const defaultScore: ContentScore = {
+        overall: data.score?.overall || 70,
+        breakdown: data.score?.breakdown || { "Content Quality": 70 },
+        feedback: data.score?.feedback || "New content idea created."
+      };
+      
       const newIdea: ContentIdea = {
         id: Date.now(),
         title: data.title,
@@ -133,14 +142,12 @@ const Ideas = () => {
         platform: data.platform,
         topics: data.topics,
         imageUrl: data.imageUrl || "",
-        score: data.score || {
-          overall: 70,
-          breakdown: {
-            "Content Quality": 70
-          },
-          feedback: "New content idea created."
-        }
+        score: defaultScore
       };
+      
+      if (data.imagePrompt) {
+        newIdea.imagePrompt = data.imagePrompt;
+      }
       
       setContentIdeas([...contentIdeas, newIdea]);
       
