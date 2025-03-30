@@ -6,11 +6,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProfileSwitcher = () => {
   const { currentProfile, setCurrentProfile, availableProfiles } = useProfile();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    // In a real app, you would clear auth tokens, cookies, etc.
+    navigate("/login");
+  };
 
   return (
     <DropdownMenu>
@@ -43,6 +51,13 @@ const ProfileSwitcher = () => {
             </div>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+          <div className="flex items-center gap-2 text-red-500">
+            <LogOut className="h-4 w-4" />
+            <span>Sign out</span>
+          </div>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
