@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,7 @@ import LinkedIn from "./pages/LinkedIn";
 import Audience from "./pages/Audience";
 import Medium from "./pages/Medium";
 import Analytics from "./pages/Analytics";
+import WordPress from "./pages/WordPress"; // Add this import
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
 
@@ -30,6 +32,7 @@ function App() {
               <Route path="/linkedin" element={<LinkedIn />} />
               <Route path="/audience" element={<Audience />} />
               <Route path="/medium" element={<Medium />} />
+              <Route path="/wordpress" element={<WordPress />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

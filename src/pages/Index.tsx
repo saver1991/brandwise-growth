@@ -1,4 +1,3 @@
-
 import { Linkedin, Users, TrendingUp, Award, MessageSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProfileSummary from "@/components/ProfileSummary";

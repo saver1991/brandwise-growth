@@ -1,13 +1,12 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Linkedin, MessageSquare, Twitter } from "lucide-react";
+import { Calendar, Linkedin, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 
 interface ContentItem {
   id: number;
   title: string;
-  platform: "linkedin" | "medium" | "twitter";
+  platform: "linkedin" | "medium" | "wordpress";
   date: Date;
   status: "draft" | "scheduled" | "in-review";
 }
@@ -37,7 +36,7 @@ const upcomingContent: ContentItem[] = [
   {
     id: 4,
     title: "Design Leadership: Building and Managing Effective Teams",
-    platform: "twitter",
+    platform: "wordpress",
     date: new Date(2023, 6, 25),
     status: "scheduled",
   },
@@ -50,8 +49,8 @@ const UpcomingContent = () => {
         return <Linkedin className="h-4 w-4 text-[#0077B5]" />;
       case "medium":
         return <MessageSquare className="h-4 w-4 text-[#00AB6C]" />;
-      case "twitter":
-        return <Twitter className="h-4 w-4 text-[#1DA1F2]" />;
+      case "wordpress":
+        return <MessageSquare className="h-4 w-4 text-[#21759b]" />;
       default:
         return null;
     }

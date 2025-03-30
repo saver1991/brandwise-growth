@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -12,8 +11,7 @@ import {
   Users,
   TrendingUp,
   Menu,
-  X,
-  Wordpress
+  X
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileSwitcher from "./ProfileSwitcher";
@@ -62,7 +60,7 @@ const Navigation = () => {
     {
       title: "WordPress",
       href: "/wordpress",
-      icon: <Wordpress className="h-5 w-5" />,
+      icon: <MessageSquare className="h-5 w-5" />,
     },
     {
       title: "Growth Analytics",

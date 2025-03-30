@@ -1,4 +1,3 @@
-
 // AI content generation templates for different platforms and content types
 
 type TemplateCategory = 'linkedin' | 'medium' | 'wordpress';

@@ -14,9 +14,7 @@ import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-// Updated trending topics data sorted by count in descending order within each page
 const trendingTopicsData = [
-  // Page 1
   [
     { id: 1, name: "AI in Design", count: 120, trending: "up" },
     { id: 2, name: "Design Systems", count: 98, trending: "up" },
@@ -24,7 +22,6 @@ const trendingTopicsData = [
     { id: 4, name: "UX Research", count: 76, trending: "up" },
     { id: 5, name: "Design Leadership", count: 65, trending: "down" },
   ],
-  // Page 2
   [
     { id: 6, name: "User Testing", count: 110, trending: "up" },
     { id: 7, name: "Responsive Design", count: 88, trending: "down" },
@@ -32,7 +29,6 @@ const trendingTopicsData = [
     { id: 9, name: "Design Tokens", count: 72, trending: "up" },
     { id: 10, name: "Design Ethics", count: 63, trending: "down" },
   ],
-  // Page 3
   [
     { id: 11, name: "Motion Design", count: 105, trending: "up" },
     { id: 12, name: "Design Sprints", count: 83, trending: "up" },
@@ -40,7 +36,6 @@ const trendingTopicsData = [
     { id: 14, name: "Information Architecture", count: 70, trending: "up" },
     { id: 15, name: "Mobile First Design", count: 67, trending: "down" },
   ],
-  // Page 4
   [
     { id: 16, name: "Dark Mode Design", count: 102, trending: "up" },
     { id: 17, name: "Micro-interactions", count: 91, trending: "up" },
@@ -48,7 +43,6 @@ const trendingTopicsData = [
     { id: 19, name: "Typography", count: 74, trending: "up" },
     { id: 20, name: "Voice UI", count: 62, trending: "down" },
   ],
-  // Page 5
   [
     { id: 21, name: "Sustainable Design", count: 99, trending: "up" },
     { id: 22, name: "Design Thinking", count: 93, trending: "down" },
@@ -57,13 +51,10 @@ const trendingTopicsData = [
     { id: 25, name: "Data Visualization", count: 69, trending: "down" },
   ],
 ].map(page => 
-  // Sort each page by count in descending order
   page.sort((a, b) => b.count - a.count)
 );
 
-// Updated inspiration articles with 5 pages of data
 const inspirationArticlesData = [
-  // Page 1
   [
     {
       id: 1,
@@ -84,7 +75,6 @@ const inspirationArticlesData = [
       url: "https://hbr.org/2018/05/why-design-thinking-works"
     }
   ],
-  // Page 2
   [
     {
       id: 4,
@@ -105,7 +95,6 @@ const inspirationArticlesData = [
       url: "https://www.producthunt.com/"
     }
   ],
-  // Page 3
   [
     {
       id: 7,
@@ -126,7 +115,6 @@ const inspirationArticlesData = [
       url: "https://designsystems.com/"
     }
   ],
-  // Page 4
   [
     {
       id: 10,
@@ -147,7 +135,6 @@ const inspirationArticlesData = [
       url: "https://www.mindtheproduct.com/"
     }
   ],
-  // Page 5
   [
     {
       id: 13,
@@ -314,7 +301,6 @@ const Ideas = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // Get current page data
   const displayedTopics = trendingTopicsData[currentTopicsPage - 1];
   const displayedInspiration = inspirationArticlesData[currentInspirationPage - 1];
 

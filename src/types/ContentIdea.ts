@@ -5,7 +5,7 @@ export interface ContentIdea {
   id: number;
   title: string;
   description: string;
-  platform: "linkedin" | "medium" | "twitter";
+  platform: "linkedin" | "medium" | "wordpress";
   topics: string[];
   imageUrl: string;
   score: ContentScore;
