@@ -14,20 +14,157 @@ import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-const trendingTopics = [
-  { id: 1, name: "AI in Design", count: 120, trending: "up" },
-  { id: 2, name: "Design Systems", count: 98, trending: "up" },
-  { id: 3, name: "Product Strategy", count: 87, trending: "down" },
-  { id: 4, name: "UX Research", count: 76, trending: "up" },
-  { id: 5, name: "Design Leadership", count: 65, trending: "down" },
+// Updated trending topics with 5 pages of data
+const trendingTopicsData = [
+  // Page 1
+  [
+    { id: 1, name: "AI in Design", count: 120, trending: "up" },
+    { id: 2, name: "Design Systems", count: 98, trending: "up" },
+    { id: 3, name: "Product Strategy", count: 87, trending: "down" },
+    { id: 4, name: "UX Research", count: 76, trending: "up" },
+    { id: 5, name: "Design Leadership", count: 65, trending: "down" },
+  ],
+  // Page 2
+  [
+    { id: 6, name: "User Testing", count: 110, trending: "up" },
+    { id: 7, name: "Responsive Design", count: 88, trending: "down" },
+    { id: 8, name: "Accessibility", count: 95, trending: "up" },
+    { id: 9, name: "Design Tokens", count: 72, trending: "up" },
+    { id: 10, name: "Design Ethics", count: 63, trending: "down" },
+  ],
+  // Page 3
+  [
+    { id: 11, name: "Motion Design", count: 105, trending: "up" },
+    { id: 12, name: "Design Sprints", count: 83, trending: "up" },
+    { id: 13, name: "User Personas", count: 79, trending: "down" },
+    { id: 14, name: "Information Architecture", count: 70, trending: "up" },
+    { id: 15, name: "Mobile First Design", count: 67, trending: "down" },
+  ],
+  // Page 4
+  [
+    { id: 16, name: "Dark Mode Design", count: 102, trending: "up" },
+    { id: 17, name: "Micro-interactions", count: 91, trending: "up" },
+    { id: 18, name: "Color Theory", count: 85, trending: "down" },
+    { id: 19, name: "Typography", count: 74, trending: "up" },
+    { id: 20, name: "Voice UI", count: 62, trending: "down" },
+  ],
+  // Page 5
+  [
+    { id: 21, name: "Sustainable Design", count: 99, trending: "up" },
+    { id: 22, name: "Design Thinking", count: 93, trending: "down" },
+    { id: 23, name: "UI Animation", count: 81, trending: "up" },
+    { id: 24, name: "Inclusive Design", count: 77, trending: "up" },
+    { id: 25, name: "Data Visualization", count: 69, trending: "down" },
+  ],
 ];
 
-const additionalTrendingTopics = [
-  { id: 6, name: "User Testing", count: 110, trending: "up" },
-  { id: 7, name: "Responsive Design", count: 88, trending: "down" },
-  { id: 8, name: "Accessibility", count: 95, trending: "up" },
-  { id: 9, name: "Design Tokens", count: 72, trending: "up" },
-  { id: 10, name: "Design Ethics", count: 63, trending: "down" },
+// Updated inspiration articles with 5 pages of data
+const inspirationArticlesData = [
+  // Page 1
+  [
+    {
+      id: 1,
+      title: "Design Trends in 2023: What's New and What's Next",
+      source: "Nielsen Norman Group",
+      url: "https://www.nngroup.com/articles/design-trends/"
+    },
+    {
+      id: 2,
+      title: "The Role of Design Systems in Product Development",
+      source: "Smashing Magazine",
+      url: "https://www.smashingmagazine.com/2022/05/you-dont-need-a-design-system/"
+    },
+    {
+      id: 3,
+      title: "Product Strategy: Aligning Business Goals with User Needs",
+      source: "Harvard Business Review",
+      url: "https://hbr.org/2018/05/why-design-thinking-works"
+    }
+  ],
+  // Page 2
+  [
+    {
+      id: 4,
+      title: "The Psychology of User Experience Design",
+      source: "UX Collective",
+      url: "https://uxdesign.cc/"
+    },
+    {
+      id: 5,
+      title: "Making the Business Case for Accessibility",
+      source: "A List Apart",
+      url: "https://alistapart.com/article/making-the-business-case-for-web-accessibility/"
+    },
+    {
+      id: 6,
+      title: "Building Digital Products That Matter",
+      source: "Product Hunt",
+      url: "https://www.producthunt.com/"
+    }
+  ],
+  // Page 3
+  [
+    {
+      id: 7,
+      title: "Ethical Design: Creating Responsible Digital Experiences",
+      source: "Ethical Design Handbook",
+      url: "https://ethicaldesignhandbook.com/"
+    },
+    {
+      id: 8,
+      title: "Measuring UX Success: Beyond Vanity Metrics",
+      source: "UX Matters",
+      url: "https://www.uxmatters.com/"
+    },
+    {
+      id: 9,
+      title: "The Future of Design Systems in Enterprise",
+      source: "Design Systems Conference",
+      url: "https://designsystems.com/"
+    }
+  ],
+  // Page 4
+  [
+    {
+      id: 10,
+      title: "Creating Accessible Web Applications",
+      source: "Web Accessibility Initiative",
+      url: "https://www.w3.org/WAI/"
+    },
+    {
+      id: 11,
+      title: "Design Thinking for Innovation",
+      source: "IDEO",
+      url: "https://www.ideo.com/blog"
+    },
+    {
+      id: 12,
+      title: "The Art of Product Management",
+      source: "Mind the Product",
+      url: "https://www.mindtheproduct.com/"
+    }
+  ],
+  // Page 5
+  [
+    {
+      id: 13,
+      title: "The Intersection of AI and Design",
+      source: "Interaction Design Foundation",
+      url: "https://www.interaction-design.org/"
+    },
+    {
+      id: 14,
+      title: "Design Leadership: Building Creative Teams",
+      source: "InVision",
+      url: "https://www.invisionapp.com/inside-design/"
+    },
+    {
+      id: 15,
+      title: "Research Methods for Better User Understanding",
+      source: "UX Research Institute",
+      url: "https://www.uxresearch.com/"
+    }
+  ],
 ];
 
 const sampleContentIdeas: ContentIdea[] = [
@@ -67,54 +204,12 @@ const sampleContentIdeas: ContentIdea[] = [
   }
 ];
 
-const inspirationArticles = [
-  {
-    id: 1,
-    title: "Design Trends in 2023: What's New and What's Next",
-    source: "Nielsen Norman Group",
-    url: "https://www.nngroup.com/articles/design-trends/"
-  },
-  {
-    id: 2,
-    title: "The Role of Design Systems in Product Development",
-    source: "Smashing Magazine",
-    url: "https://www.smashingmagazine.com/2022/05/you-dont-need-a-design-system/"
-  },
-  {
-    id: 3,
-    title: "Product Strategy: Aligning Business Goals with User Needs",
-    source: "Harvard Business Review",
-    url: "https://hbr.org/2018/05/why-design-thinking-works"
-  }
-];
-
-const additionalInspirationArticles = [
-  {
-    id: 4,
-    title: "The Psychology of User Experience Design",
-    source: "UX Collective",
-    url: "https://uxdesign.cc/"
-  },
-  {
-    id: 5,
-    title: "Making the Business Case for Accessibility",
-    source: "A List Apart",
-    url: "https://alistapart.com/article/making-the-business-case-for-web-accessibility/"
-  },
-  {
-    id: 6,
-    title: "Building Digital Products That Matter",
-    source: "Product Hunt",
-    url: "https://www.producthunt.com/"
-  }
-];
-
 const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
-  const [showMoreInspiration, setShowMoreInspiration] = useState(false);
   const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
   const [currentTopicsPage, setCurrentTopicsPage] = useState(1);
+  const [currentInspirationPage, setCurrentInspirationPage] = useState(1);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
@@ -212,19 +307,13 @@ const Ideas = () => {
     });
   };
 
-  const handleViewMoreInspiration = () => {
-    setShowMoreInspiration(!showMoreInspiration);
-  };
-
   const openExternalLink = (url: string) => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const displayedInspiration = showMoreInspiration 
-    ? [...inspirationArticles, ...additionalInspirationArticles]
-    : inspirationArticles;
-    
-  const displayedTopics = currentTopicsPage === 1 ? trendingTopics : additionalTrendingTopics;
+  // Get current page data
+  const displayedTopics = trendingTopicsData[currentTopicsPage - 1];
+  const displayedInspiration = inspirationArticlesData[currentInspirationPage - 1];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -283,22 +372,16 @@ const Ideas = () => {
                   
                   <Pagination className="mt-4">
                     <PaginationContent>
-                      <PaginationItem>
-                        <PaginationLink 
-                          isActive={currentTopicsPage === 1} 
-                          onClick={() => setCurrentTopicsPage(1)}
-                        >
-                          1
-                        </PaginationLink>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationLink 
-                          isActive={currentTopicsPage === 2} 
-                          onClick={() => setCurrentTopicsPage(2)}
-                        >
-                          2
-                        </PaginationLink>
-                      </PaginationItem>
+                      {[1, 2, 3, 4, 5].map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            isActive={currentTopicsPage === page} 
+                            onClick={() => setCurrentTopicsPage(page)}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
                     </PaginationContent>
                   </Pagination>
                 </CardContent>
@@ -329,13 +412,20 @@ const Ideas = () => {
                     ))}
                   </div>
                   
-                  <Button 
-                    variant="link" 
-                    className="text-brand-teal mt-3 p-0 h-auto"
-                    onClick={handleViewMoreInspiration}
-                  >
-                    {showMoreInspiration ? "Show less inspiration" : "View more inspiration"}
-                  </Button>
+                  <Pagination className="mt-4">
+                    <PaginationContent>
+                      {[1, 2, 3, 4, 5].map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            isActive={currentInspirationPage === page} 
+                            onClick={() => setCurrentInspirationPage(page)}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                    </PaginationContent>
+                  </Pagination>
                 </CardContent>
               </Card>
             </div>
