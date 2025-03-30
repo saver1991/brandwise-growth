@@ -14,7 +14,7 @@ import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-// Updated trending topics with 5 pages of data
+// Updated trending topics data sorted by count in descending order within each page
 const trendingTopicsData = [
   // Page 1
   [
@@ -56,7 +56,10 @@ const trendingTopicsData = [
     { id: 24, name: "Inclusive Design", count: 77, trending: "up" },
     { id: 25, name: "Data Visualization", count: 69, trending: "down" },
   ],
-];
+].map(page => 
+  // Sort each page by count in descending order
+  page.sort((a, b) => b.count - a.count)
+);
 
 // Updated inspiration articles with 5 pages of data
 const inspirationArticlesData = [
