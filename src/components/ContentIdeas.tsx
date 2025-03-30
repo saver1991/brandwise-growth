@@ -1,9 +1,8 @@
 
-// Fix for TypeScript errors related to ContentScore type
 import { ContentScore } from "@/services/aiGenerationService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 
 interface ContentIdea {
   id: number;
@@ -12,15 +11,16 @@ interface ContentIdea {
   platform: "linkedin" | "medium" | "twitter";
   topics: string[];
   imageUrl: string;
-  score: ContentScore; // Now using the proper imported type
+  score: ContentScore;
 }
 
 interface ContentIdeasProps {
   ideas: ContentIdea[];
   onGenerateMore: () => void;
+  onEditIdea?: (idea: ContentIdea) => void;
 }
 
-const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore }) => {
+const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore, onEditIdea }) => {
   return (
     <Card className="col-span-full md:col-span-1 card-hover">
       <CardHeader>
@@ -29,7 +29,20 @@ const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore }) =>
       <CardContent className="grid gap-4">
         {ideas.map((idea) => (
           <div key={idea.id} className="border rounded-lg p-3">
-            <h3 className="font-medium text-sm">{idea.title}</h3>
+            <div className="flex justify-between">
+              <h3 className="font-medium text-sm">{idea.title}</h3>
+              {onEditIdea && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => onEditIdea(idea)}
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  <span className="sr-only">Edit idea</span>
+                </Button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">{idea.description}</p>
             <div className="mt-2 flex justify-between items-center">
               <div className="space-x-2">

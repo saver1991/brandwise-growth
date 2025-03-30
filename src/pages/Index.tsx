@@ -1,4 +1,3 @@
-
 import { Linkedin, Users, TrendingUp, Award, MessageSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProfileSummary from "@/components/ProfileSummary";
@@ -10,8 +9,8 @@ import UpcomingContent from "@/components/UpcomingContent";
 import RecentActivity from "@/components/RecentActivity";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 
-// Sample content ideas for the dashboard
 const sampleContentIdeas = [
   {
     id: 1,
@@ -51,11 +50,11 @@ const sampleContentIdeas = [
 
 const Dashboard = () => {
   const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentEditIdea, setCurrentEditIdea] = useState<typeof sampleContentIdeas[0] | null>(null);
   const { toast } = useToast();
 
   const handleGenerateMoreIdeas = () => {
-    // In a real app, this would call an AI service to generate more ideas
-    // For demo purposes, we'll just add a sample idea
     const newIdea = {
       id: Date.now(),
       title: "The Future of Remote Work: Trends to Watch",
@@ -80,6 +79,45 @@ const Dashboard = () => {
       title: "New Idea Generated!",
       description: "An AI-generated content idea has been added to your dashboard.",
     });
+  };
+
+  const handleEditIdea = (idea: typeof sampleContentIdeas[0]) => {
+    setCurrentEditIdea(idea);
+    setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setCurrentEditIdea(null);
+    }
+  };
+
+  const handleCreateIdea = (data: ContentIdeaFormValues) => {
+    if (currentEditIdea) {
+      const updatedIdeas = contentIdeas.map(idea => 
+        idea.id === currentEditIdea.id ? { ...idea, ...data, id: currentEditIdea.id } : idea
+      );
+      setContentIdeas(updatedIdeas);
+      setCurrentEditIdea(null);
+      
+      toast({
+        title: "Idea Updated!",
+        description: "Your content idea has been successfully updated.",
+      });
+    } else {
+      const newIdea = {
+        id: Date.now(),
+        ...data,
+      };
+      
+      setContentIdeas([...contentIdeas, newIdea]);
+      
+      toast({
+        title: "Idea Created!",
+        description: "Your new content idea has been added to the list.",
+      });
+    }
   };
 
   return (
@@ -137,10 +175,19 @@ const Dashboard = () => {
           
           <ContentIdeas 
             ideas={contentIdeas} 
-            onGenerateMore={handleGenerateMoreIdeas} 
+            onGenerateMore={handleGenerateMoreIdeas}
+            onEditIdea={handleEditIdea}
           />
         </div>
       </main>
+
+      <NewIdeaDialog 
+        open={dialogOpen} 
+        onOpenChange={handleDialogOpenChange} 
+        onSubmit={handleCreateIdea}
+        initialData={currentEditIdea || undefined}
+        editMode={!!currentEditIdea}
+      />
     </div>
   );
 };

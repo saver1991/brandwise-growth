@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ const trendingTopics = [
   { id: 5, name: "Design Leadership", count: 65, trending: "down" },
 ];
 
-// Sample content ideas for the ContentIdeas component
 const sampleContentIdeas = [
   {
     id: 1,
@@ -58,7 +56,6 @@ const sampleContentIdeas = [
   }
 ];
 
-// Sample inspiration articles with links
 const inspirationArticles = [
   {
     id: 1,
@@ -80,7 +77,6 @@ const inspirationArticles = [
   }
 ];
 
-// Additional inspiration articles for "View more" functionality
 const additionalInspirationArticles = [
   {
     id: 4,
@@ -106,20 +102,49 @@ const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
   const [showMoreInspiration, setShowMoreInspiration] = useState(false);
+  const [currentEditIdea, setCurrentEditIdea] = useState<typeof sampleContentIdeas[0] | null>(null);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
-    // In a real app, this would save to a database
-    // For now, we'll just show a toast notification
-    toast({
-      title: "Idea Created!",
-      description: "Your new content idea has been added to the list.",
-    });
+    if (currentEditIdea) {
+      const updatedIdeas = contentIdeas.map(idea => 
+        idea.id === currentEditIdea.id ? { ...idea, ...data, id: currentEditIdea.id } : idea
+      );
+      setContentIdeas(updatedIdeas);
+      setCurrentEditIdea(null);
+      
+      toast({
+        title: "Idea Updated!",
+        description: "Your content idea has been successfully updated.",
+      });
+    } else {
+      const newIdea = {
+        id: Date.now(),
+        ...data,
+      };
+      
+      setContentIdeas([...contentIdeas, newIdea]);
+      
+      toast({
+        title: "Idea Created!",
+        description: "Your new content idea has been added to the list.",
+      });
+    }
+  };
+
+  const handleEditIdea = (idea: typeof sampleContentIdeas[0]) => {
+    setCurrentEditIdea(idea);
+    setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setCurrentEditIdea(null);
+    }
   };
 
   const handleGenerateMoreIdeas = () => {
-    // In a real app, this would call an AI service to generate more ideas
-    // For demo purposes, we'll just add a sample idea
     const newIdea = {
       id: Date.now(),
       title: "Building a Design-Driven Culture",
@@ -173,7 +198,7 @@ const Ideas = () => {
             </div>
             <Button 
               className="bg-brand-teal hover:bg-brand-teal/90"
-              onClick={() => setDialogOpen(true)}
+              onClick={() => handleDialogOpenChange(true)}
             >
               <Plus className="mr-1 h-4 w-4" /> New Idea
             </Button>
@@ -183,7 +208,8 @@ const Ideas = () => {
             <div className="lg:col-span-2 space-y-6">
               <ContentIdeas 
                 ideas={contentIdeas} 
-                onGenerateMore={handleGenerateMoreIdeas} 
+                onGenerateMore={handleGenerateMoreIdeas}
+                onEditIdea={handleEditIdea}
               />
             </div>
             
@@ -255,8 +281,10 @@ const Ideas = () => {
       
       <NewIdeaDialog 
         open={dialogOpen} 
-        onOpenChange={setDialogOpen} 
+        onOpenChange={handleDialogOpenChange} 
         onSubmit={handleCreateIdea}
+        initialData={currentEditIdea || undefined}
+        editMode={!!currentEditIdea}
       />
     </div>
   );
