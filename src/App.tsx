@@ -10,14 +10,15 @@ import Ideas from "./pages/Ideas";
 import LinkedIn from "./pages/LinkedIn";
 import Audience from "./pages/Audience";
 import Medium from "./pages/Medium";
-import Analytics from "./pages/Analytics";
 import WordPress from "./pages/WordPress";
+import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import Home from "./pages/Home";
 import Features from "./pages/Features";
 import About from "./pages/About";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/features" element={<Features />} />
               <Route path="/about" element={<About />} />
+              <Route path="/support" element={<Support />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
