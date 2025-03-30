@@ -3,28 +3,17 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { 
-  Home,
-  Globe,
-  LayoutGrid,
-  DollarSign,
-  Users,
-  InfoIcon,
-  LifeBuoy,
-  Menu,
-  X
-} from "lucide-react";
+import { LifeBuoy, Menu, X } from "lucide-react";
 
 const AuthHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: "Home", href: "/", icon: <Home className="h-4 w-4" /> },
-    { name: "Discover the platform", href: "/discover", icon: <Globe className="h-4 w-4" /> },
-    { name: "Features", href: "/features", icon: <LayoutGrid className="h-4 w-4" /> },
-    { name: "Pricing", href: "/pricing", icon: <DollarSign className="h-4 w-4" /> },
-    { name: "Affiliate program", href: "/affiliate", icon: <Users className="h-4 w-4" /> },
-    { name: "About us", href: "/about", icon: <InfoIcon className="h-4 w-4" /> },
+    { name: "Home", href: "/" },
+    { name: "Features", href: "/features" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "Affiliate program", href: "/affiliate" },
+    { name: "About us", href: "/about" },
   ];
 
   return (
@@ -58,11 +47,10 @@ const AuthHeader = () => {
                 key={link.name}
                 to={link.href}
                 className={cn(
-                  "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors text-muted-foreground"
+                  "rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors text-muted-foreground"
                 )}
               >
-                {link.icon}
-                <span>{link.name}</span>
+                {link.name}
               </Link>
             ))}
           </nav>
@@ -97,11 +85,10 @@ const AuthHeader = () => {
               <Link
                 key={link.name}
                 to={link.href}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10"
+                className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {link.icon}
-                <span>{link.name}</span>
+                {link.name}
               </Link>
             ))}
             <div className="border-t my-2 pt-2">

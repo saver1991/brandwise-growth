@@ -15,6 +15,9 @@ import WordPress from "./pages/WordPress";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import Home from "./pages/Home";
+import Features from "./pages/Features";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +39,9 @@ function App() {
               <Route path="/wordpress" element={<WordPress />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
