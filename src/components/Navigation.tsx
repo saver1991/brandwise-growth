@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Menu,
   X,
-  FileText
+  UserPlus,
+  Percent
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileSwitcher from "./ProfileSwitcher";
@@ -27,6 +28,7 @@ interface NavItem {
 const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   const navItems: NavItem[] = [
     {
@@ -71,6 +73,44 @@ const Navigation = () => {
     },
   ];
 
+  // Check if we're on a marketing page
+  const isMarketingPage = ["/home", "/features", "/about", "/pricing", "/support", "/affiliate"].includes(location.pathname);
+
+  const marketingNavItems: NavItem[] = [
+    {
+      title: "Home",
+      href: "/home",
+      icon: <BarChart2 className="h-5 w-5" />,
+    },
+    {
+      title: "Features",
+      href: "/features",
+      icon: <BookOpen className="h-5 w-5" />,
+    },
+    {
+      title: "Pricing",
+      href: "/pricing",
+      icon: <TrendingUp className="h-5 w-5" />,
+    },
+    {
+      title: "Affiliate",
+      href: "/affiliate",
+      icon: <Percent className="h-5 w-5" />,
+    },
+    {
+      title: "About",
+      href: "/about",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      title: "Support",
+      href: "/support",
+      icon: <MessageSquare className="h-5 w-5" />,
+    },
+  ];
+
+  const currentNavItems = isMarketingPage ? marketingNavItems : navItems;
+
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
@@ -79,7 +119,7 @@ const Navigation = () => {
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <div className="flex w-full justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to={isMarketingPage ? "/home" : "/"} className="flex items-center gap-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-teal to-brand-orange bg-clip-text text-transparent">
               BrandWise
             </span>
@@ -88,7 +128,14 @@ const Navigation = () => {
           {isMobile ? (
             <>
               <div className="flex items-center gap-2">
-                <ProfileSwitcher />
+                {!isMarketingPage && <ProfileSwitcher />}
+                {isMarketingPage && (
+                  <Link to="/register">
+                    <Button size="sm" variant="outline" className="mr-2">
+                      <UserPlus className="h-4 w-4 mr-1" /> Register
+                    </Button>
+                  </Link>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -102,7 +149,7 @@ const Navigation = () => {
               {mobileMenuOpen && (
                 <div className="fixed inset-0 top-16 z-50 bg-background animate-fade-in">
                   <nav className="flex flex-col gap-2 p-4">
-                    {navItems.map((item) => (
+                    {currentNavItems.map((item) => (
                       <Link
                         key={item.href}
                         to={item.href}
@@ -113,6 +160,18 @@ const Navigation = () => {
                         {item.title}
                       </Link>
                     ))}
+                    {isMarketingPage && (
+                      <>
+                        <div className="h-px my-2 bg-border" />
+                        <Link
+                          to="/login"
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Login
+                        </Link>
+                      </>
+                    )}
                   </nav>
                 </div>
               )}
@@ -120,13 +179,13 @@ const Navigation = () => {
           ) : (
             <div className="flex items-center gap-2">
               <nav className="hidden md:flex items-center gap-1">
-                {navItems.map((item) => (
+                {currentNavItems.map((item) => (
                   <Link
                     key={item.href}
                     to={item.href}
                     className={cn(
                       "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
-                      window.location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
+                      location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
                     )}
                   >
                     {item.icon}
@@ -134,7 +193,20 @@ const Navigation = () => {
                   </Link>
                 ))}
               </nav>
-              <ProfileSwitcher />
+              {isMarketingPage ? (
+                <div className="flex items-center gap-2">
+                  <Link to="/login">
+                    <Button variant="ghost">Login</Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button>
+                      <UserPlus className="h-4 w-4 mr-1" /> Register
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <ProfileSwitcher />
+              )}
             </div>
           )}
         </div>

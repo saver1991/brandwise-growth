@@ -20,6 +20,8 @@ import Features from "./pages/Features";
 import About from "./pages/About";
 import Support from "./pages/Support";
 import Pricing from "./pages/Pricing";
+import Affiliate from "./pages/Affiliate";
+import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,8 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/support" element={<Support />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/affiliate" element={<Affiliate />} />
+              <Route path="/register" element={<Register />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
