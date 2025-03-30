@@ -1,5 +1,5 @@
-
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
 import { Button } from "@/components/ui/button";
 import { 
@@ -11,6 +11,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { 
   CreditCard, 
   HelpCircle, 
@@ -349,7 +350,6 @@ const supportCategories: SupportCategory[] = [
   },
 ];
 
-// FAQs
 const faqs = [
   {
     question: "How do I connect my social media accounts?",
@@ -406,7 +406,6 @@ const Support = () => {
       <AuthHeader />
       
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="bg-gradient-to-b from-background to-slate-50 dark:from-background dark:to-slate-900/50 py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
@@ -428,11 +427,9 @@ const Support = () => {
           </div>
         </section>
 
-        {/* Support Categories & Topics */}
         <section className="py-12 bg-white dark:bg-slate-950">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Category Sidebar */}
               <div className="w-full md:w-64">
                 <h2 className="text-lg font-medium mb-4">Support Categories</h2>
                 <div className="space-y-1">
@@ -457,7 +454,6 @@ const Support = () => {
                 </div>
               </div>
 
-              {/* Topics & Content */}
               <div className="flex-1 bg-slate-50 dark:bg-slate-900 rounded-lg p-6">
                 {currentCategory && (
                   <div>
@@ -466,7 +462,6 @@ const Support = () => {
                     </h2>
 
                     <div className="flex flex-col md:flex-row gap-6">
-                      {/* Topic List */}
                       <div className="md:w-1/3">
                         <h3 className="font-medium text-lg mb-3">Topics</h3>
                         <div className="space-y-1">
@@ -487,7 +482,6 @@ const Support = () => {
                         </div>
                       </div>
 
-                      {/* Topic Content */}
                       <div className="md:w-2/3 md:border-l dark:border-slate-800 md:pl-6">
                         {currentTopic ? (
                           <div>
@@ -517,7 +511,6 @@ const Support = () => {
           </div>
         </section>
 
-        {/* FAQs Section */}
         <section className="py-16 bg-slate-50 dark:bg-slate-900">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
@@ -549,7 +542,6 @@ const Support = () => {
           </div>
         </section>
 
-        {/* Contact Form Section */}
         <section className="py-16 bg-white dark:bg-slate-950">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto">
@@ -639,7 +631,6 @@ const Support = () => {
         </section>
       </main>
 
-      {/* Footer - reuse the same footer from other pages */}
       <footer className="bg-slate-900 text-slate-400 py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
