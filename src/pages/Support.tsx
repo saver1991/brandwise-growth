@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
@@ -166,7 +167,7 @@ const supportCategories: SupportCategory[] = [
               <Card>
                 <CardContent className="pt-6">
                   <h5 className="font-bold">Starter</h5>
-                  <p className="text-2xl font-bold mt-2">$19/month</p>
+                  <p className="text-2xl font-bold mt-2">$9.99/month</p>
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> 3 connected platforms
@@ -177,13 +178,19 @@ const supportCategories: SupportCategory[] = [
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> 20 AI content ideas/month
                     </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">✓</span> 7-day content calendar
+                    </li>
                   </ul>
+                  <div className="mt-4">
+                    <Link to="/pricing" className="text-blue-600 text-sm hover:underline">View full details</Link>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="border-brand-teal">
                 <CardContent className="pt-6">
                   <h5 className="font-bold">Professional</h5>
-                  <p className="text-2xl font-bold mt-2">$49/month</p>
+                  <p className="text-2xl font-bold mt-2">$19.99/month</p>
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> Unlimited platforms
@@ -194,16 +201,22 @@ const supportCategories: SupportCategory[] = [
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> 100 AI content ideas/month
                     </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">✓</span> Team collaboration (up to 3 users)
+                    </li>
                   </ul>
+                  <div className="mt-4">
+                    <Link to="/pricing" className="text-blue-600 text-sm hover:underline">View full details</Link>
+                  </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6">
                   <h5 className="font-bold">Enterprise</h5>
-                  <p className="text-2xl font-bold mt-2">Custom</p>
+                  <p className="text-2xl font-bold mt-2">$29.99/month</p>
                   <ul className="mt-4 space-y-2">
                     <li className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span> Multi-user access
+                      <span className="text-green-500">✓</span> Unlimited users
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> Custom integrations
@@ -211,10 +224,19 @@ const supportCategories: SupportCategory[] = [
                     <li className="flex items-center gap-2">
                       <span className="text-green-500">✓</span> Unlimited AI generation
                     </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">✓</span> Priority support
+                    </li>
                   </ul>
+                  <div className="mt-4">
+                    <Link to="/pricing" className="text-blue-600 text-sm hover:underline">View full details</Link>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+            <p className="mt-4 text-sm bg-blue-50 dark:bg-blue-950/50 p-3 rounded-md">
+              All plans include a 14-day free trial with no credit card required. Visit our <Link to="/pricing" className="text-blue-600 hover:underline">pricing page</Link> for more details and to compare features.
+            </p>
           </div>
         ),
       },

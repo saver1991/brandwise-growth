@@ -19,6 +19,7 @@ import Home from "./pages/Home";
 import Features from "./pages/Features";
 import About from "./pages/About";
 import Support from "./pages/Support";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ function App() {
               <Route path="/features" element={<Features />} />
               <Route path="/about" element={<About />} />
               <Route path="/support" element={<Support />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
