@@ -10,6 +10,7 @@ import ContentIdeas from "@/components/ContentIdeas";
 import { useState } from "react";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
+import { ContentIdea } from "@/types/ContentIdea";
 
 const trendingTopics = [
   { id: 1, name: "AI in Design", count: 120, trending: "up" },
@@ -19,12 +20,12 @@ const trendingTopics = [
   { id: 5, name: "Design Leadership", count: 65, trending: "down" },
 ];
 
-const sampleContentIdeas = [
+const sampleContentIdeas: ContentIdea[] = [
   {
     id: 1,
     title: "The Future of UX Design in 2023",
     description: "Exploring emerging trends and technologies shaping the future of user experience design.",
-    platform: "medium" as const,
+    platform: "medium",
     topics: ["UX Design", "Technology", "Future Trends"],
     imageUrl: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800",
     score: {
@@ -41,7 +42,7 @@ const sampleContentIdeas = [
     id: 2,
     title: "5 Design System Tips for Growing Teams",
     description: "Learn how to scale your design system as your team and product portfolio expands.",
-    platform: "linkedin" as const,
+    platform: "linkedin",
     topics: ["Design Systems", "Team Growth", "Product Design"],
     imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
     score: {
@@ -100,16 +101,23 @@ const additionalInspirationArticles = [
 
 const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
+  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
   const [showMoreInspiration, setShowMoreInspiration] = useState(false);
-  const [currentEditIdea, setCurrentEditIdea] = useState<typeof sampleContentIdeas[0] | null>(null);
+  const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
+      const updatedIdea: ContentIdea = {
+        ...currentEditIdea,
+        ...data,
+        id: currentEditIdea.id
+      };
+      
       const updatedIdeas = contentIdeas.map(idea => 
-        idea.id === currentEditIdea.id ? { ...idea, ...data, id: currentEditIdea.id } : idea
+        idea.id === currentEditIdea.id ? updatedIdea : idea
       );
+      
       setContentIdeas(updatedIdeas);
       setCurrentEditIdea(null);
       
@@ -118,9 +126,20 @@ const Ideas = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
-      const newIdea = {
+      const newIdea: ContentIdea = {
         id: Date.now(),
-        ...data,
+        title: data.title,
+        description: data.description,
+        platform: data.platform,
+        topics: data.topics,
+        imageUrl: data.imageUrl || "",
+        score: data.score || {
+          overall: 70,
+          breakdown: {
+            "Content Quality": 70
+          },
+          feedback: "New content idea created."
+        }
       };
       
       setContentIdeas([...contentIdeas, newIdea]);
@@ -132,7 +151,7 @@ const Ideas = () => {
     }
   };
 
-  const handleEditIdea = (idea: typeof sampleContentIdeas[0]) => {
+  const handleEditIdea = (idea: ContentIdea) => {
     setCurrentEditIdea(idea);
     setDialogOpen(true);
   };
@@ -145,11 +164,11 @@ const Ideas = () => {
   };
 
   const handleGenerateMoreIdeas = () => {
-    const newIdea = {
+    const newIdea: ContentIdea = {
       id: Date.now(),
       title: "Building a Design-Driven Culture",
       description: "Strategies for fostering a design-thinking approach across your entire organization.",
-      platform: "linkedin" as const,
+      platform: "linkedin",
       topics: ["Design Culture", "Leadership", "Organizational Change"],
       imageUrl: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800",
       score: {

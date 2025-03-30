@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,6 +19,7 @@ import TwitterEditor from "./platform-editors/TwitterEditor";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContentIdea } from "@/types/ContentIdea";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -41,15 +41,7 @@ interface NewIdeaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ContentIdeaFormValues) => void;
-  initialData?: {
-    id: number;
-    title: string;
-    description: string;
-    platform: "linkedin" | "medium" | "twitter";
-    topics: string[];
-    imageUrl?: string;
-    score?: ContentScore;
-  };
+  initialData?: ContentIdea;
   editMode?: boolean;
 }
 
@@ -89,7 +81,6 @@ export function NewIdeaDialog({
     },
   });
 
-  // Reset form when initialData changes (for edit mode)
   useEffect(() => {
     if (initialData && open) {
       form.reset({
@@ -108,36 +99,28 @@ export function NewIdeaDialog({
     }
   }, [initialData, open, form]);
 
-  // Watch for changes to title, description, and platform
   const title = form.watch("title");
   const description = form.watch("description");
   const platform = form.watch("platform");
   const score = form.watch("score");
 
-  // Generate image automatically when content is generated
   useEffect(() => {
     const hasContent = title && description && autoGenerateImage;
     
     if (hasContent && title.length > 3 && description.length > 10) {
-      // Only auto-generate if we have meaningful content and no image yet
       if (!generatedImage && !isGeneratingImage) {
         const imagePrompt = generateImagePromptFromContent(title, description, platform);
         form.setValue("imagePrompt", imagePrompt);
-        
-        // Don't auto-generate right away, wait for user to switch to visuals tab
-        // This prevents too many simultaneous API calls
       }
     }
   }, [title, description, platform, autoGenerateImage, generatedImage, isGeneratingImage]);
 
-  // Auto-generate image when switching to visuals tab if we have content
   useEffect(() => {
     if (activeTab === "visuals" && autoGenerateImage && title && description && !generatedImage && !isGeneratingImage) {
       generateImage();
     }
   }, [activeTab]);
 
-  // Score content when it changes
   useEffect(() => {
     if (description && description.length > 10 && platform) {
       scoreContent();
@@ -205,7 +188,6 @@ export function NewIdeaDialog({
         form.setValue("score", generatedContent.score);
       }
       
-      // Generate image prompt based on content
       const imagePrompt = generateImagePromptFromContent(generatedContent.title, generatedContent.description, platform);
       form.setValue("imagePrompt", imagePrompt);
       
@@ -214,11 +196,9 @@ export function NewIdeaDialog({
         description: "The AI has suggested content based on your selected platform.",
       });
       
-      // Switch to visuals tab after generating content
       setTimeout(() => {
         setActiveTab("visuals");
       }, 1000);
-      
     } catch (error) {
       toast({
         variant: "destructive",
@@ -236,7 +216,6 @@ export function NewIdeaDialog({
       const imagePrompt = form.getValues("imagePrompt");
       
       if (!imagePrompt || imagePrompt.trim() === "") {
-        // If no prompt is provided, generate one from the content
         const title = form.getValues("title");
         const description = form.getValues("description");
         const platform = form.getValues("platform");
@@ -280,7 +259,6 @@ export function NewIdeaDialog({
   };
 
   const handleSubmitForm = (data: ContentIdeaFormValues) => {
-    // Ensure content is scored before submitting
     if (!data.score) {
       const contentScore = aiGenerationService.scoreContent(data.description, data.platform);
       data.score = contentScore;
@@ -311,7 +289,6 @@ export function NewIdeaDialog({
     return "bg-red-500";
   };
 
-  // Render the appropriate content editor based on platform
   const renderPlatformEditor = () => {
     const currentPlatform = form.watch("platform");
     
@@ -411,7 +388,6 @@ export function NewIdeaDialog({
                   )}
                 />
 
-                {/* Platform-specific editor */}
                 {renderPlatformEditor()}
 
                 <FormField

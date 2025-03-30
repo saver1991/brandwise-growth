@@ -1,18 +1,8 @@
 
-import { ContentScore } from "@/services/aiGenerationService";
+import { ContentIdea } from "@/types/ContentIdea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit } from "lucide-react";
-
-interface ContentIdea {
-  id: number;
-  title: string;
-  description: string;
-  platform: "linkedin" | "medium" | "twitter";
-  topics: string[];
-  imageUrl: string;
-  score: ContentScore;
-}
 
 interface ContentIdeasProps {
   ideas: ContentIdea[];

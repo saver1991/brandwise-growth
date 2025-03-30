@@ -1,3 +1,4 @@
+
 import { Linkedin, Users, TrendingUp, Award, MessageSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProfileSummary from "@/components/ProfileSummary";
@@ -10,13 +11,14 @@ import RecentActivity from "@/components/RecentActivity";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
+import { ContentIdea } from "@/types/ContentIdea";
 
-const sampleContentIdeas = [
+const sampleContentIdeas: ContentIdea[] = [
   {
     id: 1,
     title: "10 AI Tools Every Content Creator Should Know",
     description: "A roundup of the best AI tools that can help streamline your content creation process.",
-    platform: "medium" as const,
+    platform: "medium",
     topics: ["AI Tools", "Content Creation", "Productivity"],
     imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
     score: {
@@ -33,7 +35,7 @@ const sampleContentIdeas = [
     id: 2,
     title: "How I Grew My LinkedIn Network by 500% in 6 Months",
     description: "The exact strategy I used to exponentially grow my professional network and increase engagement.",
-    platform: "linkedin" as const,
+    platform: "linkedin",
     topics: ["LinkedIn Growth", "Networking", "Personal Branding"],
     imageUrl: "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=800",
     score: {
@@ -49,17 +51,17 @@ const sampleContentIdeas = [
 ];
 
 const Dashboard = () => {
-  const [contentIdeas, setContentIdeas] = useState(sampleContentIdeas);
+  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentEditIdea, setCurrentEditIdea] = useState<typeof sampleContentIdeas[0] | null>(null);
+  const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
   const { toast } = useToast();
 
   const handleGenerateMoreIdeas = () => {
-    const newIdea = {
+    const newIdea: ContentIdea = {
       id: Date.now(),
       title: "The Future of Remote Work: Trends to Watch",
       description: "Analysis of emerging remote work patterns and how they're reshaping the modern workplace.",
-      platform: "linkedin" as const,
+      platform: "linkedin",
       topics: ["Remote Work", "Future of Work", "Workplace Trends"],
       imageUrl: "https://images.unsplash.com/photo-1591382386627-349b692688ff?w=800",
       score: {
@@ -81,7 +83,7 @@ const Dashboard = () => {
     });
   };
 
-  const handleEditIdea = (idea: typeof sampleContentIdeas[0]) => {
+  const handleEditIdea = (idea: ContentIdea) => {
     setCurrentEditIdea(idea);
     setDialogOpen(true);
   };
@@ -95,9 +97,17 @@ const Dashboard = () => {
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
+      // Create a new idea that combines the currentEditIdea with the form data
+      const updatedIdea: ContentIdea = {
+        ...currentEditIdea,
+        ...data,
+        id: currentEditIdea.id
+      };
+      
       const updatedIdeas = contentIdeas.map(idea => 
-        idea.id === currentEditIdea.id ? { ...idea, ...data, id: currentEditIdea.id } : idea
+        idea.id === currentEditIdea.id ? updatedIdea : idea
       );
+      
       setContentIdeas(updatedIdeas);
       setCurrentEditIdea(null);
       
@@ -106,9 +116,20 @@ const Dashboard = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
-      const newIdea = {
+      const newIdea: ContentIdea = {
         id: Date.now(),
-        ...data,
+        title: data.title,
+        description: data.description,
+        platform: data.platform,
+        topics: data.topics,
+        imageUrl: data.imageUrl || "",
+        score: data.score || {
+          overall: 70,
+          breakdown: {
+            "Content Quality": 70
+          },
+          feedback: "New content idea created."
+        }
       };
       
       setContentIdeas([...contentIdeas, newIdea]);
