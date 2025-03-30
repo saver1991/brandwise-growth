@@ -98,11 +98,18 @@ const Dashboard = () => {
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
-      // Create a new idea that combines the currentEditIdea with the form data
+      // Ensure updated idea has required score properties
+      const updatedScore: ContentScore = {
+        overall: data.score?.overall || currentEditIdea.score.overall,
+        breakdown: data.score?.breakdown || currentEditIdea.score.breakdown,
+        feedback: data.score?.feedback || currentEditIdea.score.feedback
+      };
+      
       const updatedIdea: ContentIdea = {
         ...currentEditIdea,
         ...data,
-        id: currentEditIdea.id
+        id: currentEditIdea.id,
+        score: updatedScore
       };
       
       const updatedIdeas = contentIdeas.map(idea => 
