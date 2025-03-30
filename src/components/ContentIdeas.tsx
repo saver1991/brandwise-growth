@@ -2,7 +2,7 @@
 import { ContentIdea } from "@/types/ContentIdea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, Linkedin, MessageSquare, Twitter } from "lucide-react";
 
 interface ContentIdeasProps {
   ideas: ContentIdea[];
@@ -11,6 +11,19 @@ interface ContentIdeasProps {
 }
 
 const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore, onEditIdea }) => {
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'linkedin':
+        return <Linkedin className="h-4 w-4 text-[#0077B5]" />;
+      case 'medium':
+        return <MessageSquare className="h-4 w-4 text-[#00AB6C]" />;
+      case 'twitter':
+        return <Twitter className="h-4 w-4 text-[#1DA1F2]" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="col-span-full md:col-span-1 card-hover">
       <CardHeader>
@@ -20,7 +33,10 @@ const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore, onEd
         {ideas.map((idea) => (
           <div key={idea.id} className="border rounded-lg p-3">
             <div className="flex justify-between">
-              <h3 className="font-medium text-sm">{idea.title}</h3>
+              <div className="flex items-center gap-2">
+                {getPlatformIcon(idea.platform)}
+                <h3 className="font-medium text-sm">{idea.title}</h3>
+              </div>
               {onEditIdea && (
                 <Button
                   variant="ghost"

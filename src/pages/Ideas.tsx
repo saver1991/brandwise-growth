@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog
 import { useToast } from "@/hooks/use-toast";
 import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 const trendingTopics = [
   { id: 1, name: "AI in Design", count: 120, trending: "up" },
@@ -20,6 +20,14 @@ const trendingTopics = [
   { id: 3, name: "Product Strategy", count: 87, trending: "down" },
   { id: 4, name: "UX Research", count: 76, trending: "up" },
   { id: 5, name: "Design Leadership", count: 65, trending: "down" },
+];
+
+const additionalTrendingTopics = [
+  { id: 6, name: "User Testing", count: 110, trending: "up" },
+  { id: 7, name: "Responsive Design", count: 88, trending: "down" },
+  { id: 8, name: "Accessibility", count: 95, trending: "up" },
+  { id: 9, name: "Design Tokens", count: 72, trending: "up" },
+  { id: 10, name: "Design Ethics", count: 63, trending: "down" },
 ];
 
 const sampleContentIdeas: ContentIdea[] = [
@@ -106,11 +114,11 @@ const Ideas = () => {
   const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
   const [showMoreInspiration, setShowMoreInspiration] = useState(false);
   const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
+  const [currentTopicsPage, setCurrentTopicsPage] = useState(1);
   const { toast } = useToast();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
-      // Ensure updated idea has required score properties
       const updatedScore: ContentScore = {
         overall: data.score?.overall || currentEditIdea.score.overall,
         breakdown: data.score?.breakdown || currentEditIdea.score.breakdown,
@@ -136,7 +144,6 @@ const Ideas = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
-      // Ensure score has required fields
       const defaultScore: ContentScore = {
         overall: data.score?.overall || 70,
         breakdown: data.score?.breakdown || { "Content Quality": 70 },
@@ -216,6 +223,8 @@ const Ideas = () => {
   const displayedInspiration = showMoreInspiration 
     ? [...inspirationArticles, ...additionalInspirationArticles]
     : inspirationArticles;
+    
+  const displayedTopics = currentTopicsPage === 1 ? trendingTopics : additionalTrendingTopics;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -254,7 +263,7 @@ const Ideas = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {trendingTopics.map((topic) => (
+                    {displayedTopics.map((topic) => (
                       <div key={topic.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
                           <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -271,6 +280,27 @@ const Ideas = () => {
                       </div>
                     ))}
                   </div>
+                  
+                  <Pagination className="mt-4">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationLink 
+                          isActive={currentTopicsPage === 1} 
+                          onClick={() => setCurrentTopicsPage(1)}
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink 
+                          isActive={currentTopicsPage === 2} 
+                          onClick={() => setCurrentTopicsPage(2)}
+                        >
+                          2
+                        </PaginationLink>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </CardContent>
               </Card>
               
