@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Users, TrendingUp, ArrowUpRight, UserCircle, Globe, Share2, Wordpress } from "lucide-react";
+import { Users, TrendingUp, ArrowUpRight, UserCircle, Globe, Share2, FileText } from "lucide-react";
 
 const demographicData = [
   { name: "25-34", value: 40 },
@@ -194,7 +193,7 @@ const Audience = () => {
                         }`}>
                           {source.source.includes("LinkedIn") ? <UserCircle className="h-3 w-3 text-[#0077B5]" /> : 
                            source.source.includes("Medium") ? <Share2 className="h-3 w-3 text-[#00AB6C]" /> :
-                           source.source.includes("WordPress") ? <Wordpress className="h-3 w-3 text-[#21759b]" /> :
+                           source.source.includes("WordPress") ? <FileText className="h-3 w-3 text-[#21759b]" /> :
                            source.source.includes("Newsletter") ? <Globe className="h-3 w-3 text-purple-800" /> :
                            <Globe className="h-3 w-3 text-gray-500" />}
                         </div>
