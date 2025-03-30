@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { UseFormReturn } from "react-hook-form";
 import { ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 
-interface TwitterEditorProps {
+interface WordPressEditorProps {
   form: UseFormReturn<ContentIdeaFormValues>;
 }
 
-const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
+const WordPressEditor: React.FC<WordPressEditorProps> = ({ form }) => {
   const [characterCount, setCharacterCount] = React.useState(0);
-  const maxCharCount = 280;
+  const maxCharCount = 1500;
   
   React.useEffect(() => {
     const description = form.watch("description");
@@ -27,12 +27,12 @@ const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tweet Topic</FormLabel>
+            <FormLabel>Post Title</FormLabel>
             <FormControl>
-              <Input placeholder="What's your tweet about? (for your reference only)" {...field} />
+              <Input placeholder="Write an engaging title for your WordPress post" {...field} />
             </FormControl>
             <FormDescription>
-              This is for your reference and won't be part of the actual tweet.
+              Make your title SEO-friendly and compelling for readers.
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -46,7 +46,7 @@ const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
           <FormItem>
             <FormLabel>
               <div className="flex items-center justify-between">
-                <span>Tweet Content</span>
+                <span>Post Content</span>
                 <Badge variant={characterCount > maxCharCount ? "destructive" : "outline"} className="ml-2">
                   {characterCount}/{maxCharCount}
                 </Badge>
@@ -54,8 +54,8 @@ const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
             </FormLabel>
             <FormControl>
               <Textarea
-                placeholder="What's happening? Compose your tweet here..."
-                className="min-h-[100px] font-sans"
+                placeholder="Write your WordPress post content here..."
+                className="min-h-[200px] font-sans"
                 onChange={(e) => {
                   field.onChange(e);
                   setCharacterCount(e.target.value.length);
@@ -64,7 +64,7 @@ const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
               />
             </FormControl>
             <FormDescription>
-              Twitter has a {maxCharCount} character limit. Make it concise but impactful.
+              Optimal WordPress content is around {maxCharCount} characters for reader engagement.
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -72,17 +72,17 @@ const TwitterEditor: React.FC<TwitterEditorProps> = ({ form }) => {
       />
 
       <div className="bg-muted/40 p-3 rounded-md">
-        <h4 className="text-sm font-medium mb-2">Twitter Best Practices:</h4>
+        <h4 className="text-sm font-medium mb-2">WordPress Best Practices:</h4>
         <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• Use hashtags sparingly (1-2 is ideal)</li>
-          <li>• Include media like images or videos when possible</li>
-          <li>• Ask questions to increase engagement</li>
-          <li>• Consider starting a thread for longer content</li>
-          <li>• Tag relevant accounts when appropriate</li>
+          <li>• Use proper headings (H2, H3) for structure</li>
+          <li>• Include relevant categories and tags</li>
+          <li>• Add featured images for better engagement</li>
+          <li>• Optimize for SEO with keywords in first paragraph</li>
+          <li>• Use short paragraphs and include lists where appropriate</li>
         </ul>
       </div>
     </div>
   );
 };
 
-export default TwitterEditor;
+export default WordPressEditor;

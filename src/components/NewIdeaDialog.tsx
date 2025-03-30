@@ -15,7 +15,7 @@ import aiGenerationService, { ContentScore } from "@/services/aiGenerationServic
 import { generateImagePromptFromContent } from "@/utils/aiTemplates";
 import LinkedInEditor from "./platform-editors/LinkedInEditor";
 import MediumEditor from "./platform-editors/MediumEditor";
-import TwitterEditor from "./platform-editors/TwitterEditor";
+import WordPressEditor from "./platform-editors/WordPressEditor";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,7 @@ import { ContentIdea } from "@/types/ContentIdea";
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  platform: z.enum(["linkedin", "medium", "twitter"]),
+  platform: z.enum(["linkedin", "medium", "wordpress"]),
   topics: z.array(z.string()).min(1, { message: "Please add at least one topic" }),
   imagePrompt: z.string().optional(),
   imageUrl: z.string().optional(),
@@ -274,7 +274,7 @@ export function NewIdeaDialog({
   const platformOptions = [
     { value: "linkedin", label: "LinkedIn" },
     { value: "medium", label: "Medium" },
-    { value: "twitter", label: "Twitter" },
+    { value: "wordpress", label: "WordPress" },
   ];
 
   const getScoreColor = (score: number) => {
@@ -297,8 +297,8 @@ export function NewIdeaDialog({
         return <LinkedInEditor form={form} />;
       case "medium":
         return <MediumEditor form={form} />;
-      case "twitter":
-        return <TwitterEditor form={form} />;
+      case "wordpress":
+        return <WordPressEditor form={form} />;
       default:
         return <LinkedInEditor form={form} />;
     }

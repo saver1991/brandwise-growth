@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Users, TrendingUp, ArrowUpRight, UserCircle, Globe, Share2 } from "lucide-react";
+import { Users, TrendingUp, ArrowUpRight, UserCircle, Globe, Share2, Wordpress } from "lucide-react";
 
 const demographicData = [
   { name: "25-34", value: 40 },
@@ -18,18 +18,18 @@ const demographicData = [
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 const growthData = [
-  { month: "Jan", linkedin: 2200, medium: 950, twitter: 450 },
-  { month: "Feb", linkedin: 2350, medium: 1050, twitter: 500 },
-  { month: "Mar", linkedin: 2500, medium: 1150, twitter: 580 },
-  { month: "Apr", linkedin: 2630, medium: 1200, twitter: 620 },
-  { month: "May", linkedin: 2750, medium: 1250, twitter: 680 },
-  { month: "Jun", linkedin: 2845, medium: 1249, twitter: 710 },
+  { month: "Jan", linkedin: 2200, medium: 950, wordpress: 450 },
+  { month: "Feb", linkedin: 2350, medium: 1050, wordpress: 500 },
+  { month: "Mar", linkedin: 2500, medium: 1150, wordpress: 580 },
+  { month: "Apr", linkedin: 2630, medium: 1200, wordpress: 620 },
+  { month: "May", linkedin: 2750, medium: 1250, wordpress: 680 },
+  { month: "Jun", linkedin: 2845, medium: 1249, wordpress: 710 },
 ];
 
 const topReferrers = [
   { source: "LinkedIn Posts", count: 842, change: "+12%" },
   { source: "Medium Articles", count: 536, change: "+8%" },
-  { source: "Twitter Shares", count: 324, change: "+5%" },
+  { source: "WordPress Blogs", count: 324, change: "+5%" },
   { source: "Newsletter Mentions", count: 218, change: "+15%" },
   { source: "Industry Forums", count: 185, change: "-3%" },
 ];
@@ -134,7 +134,7 @@ const Audience = () => {
                     <Legend />
                     <Line type="monotone" name="LinkedIn" dataKey="linkedin" stroke="#0077B5" strokeWidth={2} activeDot={{ r: 8 }} />
                     <Line type="monotone" name="Medium" dataKey="medium" stroke="#00AB6C" strokeWidth={2} activeDot={{ r: 8 }} />
-                    <Line type="monotone" name="Twitter" dataKey="twitter" stroke="#1DA1F2" strokeWidth={2} activeDot={{ r: 8 }} />
+                    <Line type="monotone" name="WordPress" dataKey="wordpress" stroke="#21759b" strokeWidth={2} activeDot={{ r: 8 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -188,13 +188,13 @@ const Audience = () => {
                         <div className={`rounded-full p-1.5 ${
                           source.source.includes("LinkedIn") ? "bg-[#0077B5]/10" : 
                           source.source.includes("Medium") ? "bg-[#00AB6C]/10" :
-                          source.source.includes("Twitter") ? "bg-[#1DA1F2]/10" :
+                          source.source.includes("WordPress") ? "bg-[#21759b]/10" :
                           source.source.includes("Newsletter") ? "bg-purple-100" :
                           "bg-gray-100"
                         }`}>
                           {source.source.includes("LinkedIn") ? <UserCircle className="h-3 w-3 text-[#0077B5]" /> : 
                            source.source.includes("Medium") ? <Share2 className="h-3 w-3 text-[#00AB6C]" /> :
-                           source.source.includes("Twitter") ? <ArrowUpRight className="h-3 w-3 text-[#1DA1F2]" /> :
+                           source.source.includes("WordPress") ? <Wordpress className="h-3 w-3 text-[#21759b]" /> :
                            source.source.includes("Newsletter") ? <Globe className="h-3 w-3 text-purple-800" /> :
                            <Globe className="h-3 w-3 text-gray-500" />}
                         </div>
@@ -467,7 +467,7 @@ const Audience = () => {
                           
                           <div className="space-y-1">
                             <div className="flex justify-between">
-                              <span>Twitter</span>
+                              <span>WordPress</span>
                               <span>10%</span>
                             </div>
                             <Progress value={10} className="h-1" />

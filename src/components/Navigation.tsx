@@ -12,7 +12,8 @@ import {
   Users,
   TrendingUp,
   Menu,
-  X
+  X,
+  Wordpress
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileSwitcher from "./ProfileSwitcher";
@@ -57,6 +58,11 @@ const Navigation = () => {
       title: "Medium Content",
       href: "/medium",
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      title: "WordPress",
+      href: "/wordpress",
+      icon: <Wordpress className="h-5 w-5" />,
     },
     {
       title: "Growth Analytics",

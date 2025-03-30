@@ -1,7 +1,7 @@
 
 // AI content generation templates for different platforms and content types
 
-type TemplateCategory = 'linkedin' | 'medium' | 'twitter';
+type TemplateCategory = 'linkedin' | 'medium' | 'wordpress';
 
 interface Template {
   id: string;
@@ -66,30 +66,30 @@ export const contentTemplates: Record<TemplateCategory, Template[]> = {
       suggestedTopics: ['Opinion', 'Perspective', 'Industry Debate', 'Alternative Approach']
     }
   ],
-  twitter: [
+  wordpress: [
     {
-      id: 'twitter-thread',
-      name: 'Thread',
-      description: 'Connected tweets that tell a compelling story',
-      titleTemplate: '[Number] Things I Learned About [Topic] After [Experience]',
-      contentTemplate: '1/ After [experience with topic], I discovered some surprising insights that changed how I approach [related area]. Here\'s what I learned: [continue in thread]',
-      suggestedTopics: ['Insights', 'Lessons Learned', 'Quick Tips', 'Personal Story']
+      id: 'wordpress-blog-post',
+      name: 'Blog Post',
+      description: 'Create engaging and SEO-friendly blog content',
+      titleTemplate: '[Number] Ways to [Achieve Goal] in [Timeframe/Industry]',
+      contentTemplate: 'In this detailed blog post, I explore practical strategies for [goal] that you can implement right away. Based on my experience with [relevant experience]...',
+      suggestedTopics: ['How-To', 'Tips & Tricks', 'Industry Insights', 'Best Practices']
     },
     {
-      id: 'twitter-hot-take',
-      name: 'Hot Take',
-      description: 'Bold, attention-grabbing statement with supporting points',
-      titleTemplate: 'Unpopular Opinion: [Controversial Statement about Industry]',
-      contentTemplate: 'Most people in [industry] believe [common belief], but based on my experience, I\'ve found that [alternative perspective] actually works better because...',
-      suggestedTopics: ['Perspective', 'Debate', 'Industry Trends', 'Contrarian View']
+      id: 'wordpress-seo-article',
+      name: 'SEO Article',
+      description: 'Optimized content to rank well in search engines',
+      titleTemplate: 'The Complete Guide to [Topic]: Everything You Need to Know in [Year]',
+      contentTemplate: 'In this comprehensive guide to [topic], I\'ll cover everything from the basics to advanced strategies, including [subtopic1], [subtopic2], and [subtopic3]...',
+      suggestedTopics: ['Complete Guide', 'SEO Optimization', 'Industry Expertise', 'Current Trends']
     },
     {
-      id: 'twitter-tips',
-      name: 'Quick Tips',
-      description: 'Bite-sized, actionable advice',
-      titleTemplate: '[Number] [Topic] Tips That Will Immediately Make You Better at [Skill]',
-      contentTemplate: 'Want to improve your [skill]? Here are [number] tips I\'ve learned from [experience] that you can implement today: 1. [tip] 2. [tip] 3. [tip]...',
-      suggestedTopics: ['Quick Tips', 'Skills', 'Actionable Advice', 'Professional Development']
+      id: 'wordpress-listicle',
+      name: 'Listicle',
+      description: 'Easy-to-scan content with valuable points',
+      titleTemplate: '[Number] Essential [Resources/Tips/Strategies] for [Target Audience]',
+      contentTemplate: 'Looking to improve your [skill/area]? Here are [number] proven [resources/tips/strategies] that will help you [achieve goal] faster and more effectively...',
+      suggestedTopics: ['Resources', 'Tools', 'Strategies', 'Best Practices']
     }
   ]
 };
@@ -144,8 +144,8 @@ export const generateImagePromptFromContent = (title: string, description: strin
     case 'medium':
       template = 'Conceptual illustration for an article titled "[title]", editorial style, clean design, intellectual, thought-provoking, suitable for Medium';
       break;
-    case 'twitter':
-      template = 'Eye-catching social media graphic about "[title]", vibrant, attention-grabbing, modern design, suitable for Twitter';
+    case 'wordpress':
+      template = 'Featured image for a blog post titled "[title]", professional, clean design, web-friendly, suitable for WordPress';
       break;
     default:
       template = 'Conceptual illustration representing "[title]", minimalist design, professional, clean lines';
