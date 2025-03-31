@@ -9,8 +9,8 @@ import {
   Linkedin, 
   Twitter, 
   Youtube,
-  Pinterest, 
-  TikTok, 
+  Share2, // Replaced Pinterest
+  Video, // Replaced TikTok
   AtSign, 
   Slack,
   Mail,
@@ -52,13 +52,13 @@ const SOCIAL_INTEGRATIONS = [
   },
   { 
     name: "Pinterest", 
-    icon: <Pinterest className="h-10 w-10 text-red-700" />, 
+    icon: <Share2 className="h-10 w-10 text-red-700" />, // Replaced Pinterest icon
     description: "Create and schedule pins to boost your visual marketing.", 
     category: "social" 
   },
   { 
     name: "TikTok", 
-    icon: <TikTok className="h-10 w-10 text-black" />, 
+    icon: <Video className="h-10 w-10 text-black" />, // Replaced TikTok icon
     description: "Plan your TikTok content strategy and analyze performance.", 
     category: "social" 
   }

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Users, TrendingUp, Calendar, Youtube } from "lucide-react";
+import { BookOpen, FileText, Users, TrendingUp, Calendar, Youtube, Linkedin } from "lucide-react";
 
 const guideCategories = [
   {
