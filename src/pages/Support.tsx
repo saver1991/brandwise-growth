@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
@@ -360,6 +361,8 @@ export default function Support() {
   const [openFAQs, setOpenFAQs] = useState<number[]>([]);
   const [activeIntegration, setActiveIntegration] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("faq");
+  const [activeDocCategory, setActiveDocCategory] = useState("integrations");
   
   useEffect(() => {
     document.title = "Support | BrandWise";
@@ -369,11 +372,8 @@ export default function Support() {
     const integrationId = urlParams.get('integration');
     if (integrationId) {
       setActiveIntegration(integrationId);
-      // Set the tab to documentation when coming from integration links
-      const documentationTab = document.getElementById("documentation-tab");
-      if (documentationTab) {
-        (documentationTab as HTMLButtonElement).click();
-      }
+      setActiveTab("documentation");
+      setActiveDocCategory("integrations");
       
       // Scroll to the integration section
       setTimeout(() => {
@@ -399,6 +399,14 @@ export default function Support() {
         integration => integration.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : integrationHelp;
+
+  const documentationCategories = [
+    { id: "getting-started", title: "Getting Started", icon: <FileText className="h-5 w-5" /> },
+    { id: "integrations", title: "Platform Integrations", icon: <Share2 className="h-5 w-5" /> },
+    { id: "content-creation", title: "Content Creation", icon: <FileText className="h-5 w-5" /> },
+    { id: "analytics", title: "Analytics", icon: <BarChart4 className="h-5 w-5" /> },
+    { id: "account", title: "Account Management", icon: <HelpCircle className="h-5 w-5" /> },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -426,7 +434,7 @@ export default function Support() {
           </div>
         </div>
         
-        <Tabs defaultValue="faq" className="mb-16">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-16">
           <TabsList className="grid grid-cols-3 max-w-lg mx-auto mb-8">
             <TabsTrigger value="faq">FAQs</TabsTrigger>
             <TabsTrigger value="documentation" id="documentation-tab">Documentation</TabsTrigger>
@@ -457,60 +465,146 @@ export default function Support() {
           </TabsContent>
           
           <TabsContent value="documentation">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <FileText className="h-6 w-6 text-primary" />
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Documentation Sidebar */}
+              <div className="md:w-1/4">
+                <div className="sticky top-24 border rounded-lg overflow-hidden">
+                  <div className="p-4 bg-muted/50">
+                    <h3 className="font-medium">Categories</h3>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Getting Started</h3>
-                  <p className="text-muted-foreground mb-4">Set up your account and learn the basics of BrandWise.</p>
-                  <Button variant="outline" className="w-full">Read Guide</Button>
-                </CardContent>
-              </Card>
-              
-              {/* Keep other documentation cards */}
-              {/* ... keep existing code (documentation cards) */}
-            </div>
-            
-            <h2 className="text-2xl font-bold mb-6">Platform Integrations Help</h2>
-            <div className="mb-8">
-              {filteredIntegrations.length > 0 ? (
-                filteredIntegrations.map((integration) => (
-                  <Card key={integration.id} id={`integration-${integration.id}`} className="mb-8">
-                    <CardContent className="p-6">
-                      <div className="flex items-start mb-6">
-                        <div className="mr-4">{integration.icon}</div>
-                        <div>
-                          <h3 className="text-2xl font-bold">{integration.title}</h3>
-                          <p className="text-muted-foreground">{integration.description}</p>
-                        </div>
-                      </div>
-                      
-                      {integration.sections.map((section, index) => (
-                        <div key={index} className="mb-6">
-                          <h4 className="text-xl font-semibold mb-2">{section.title}</h4>
-                          <p className="text-muted-foreground">{section.content}</p>
-                        </div>
-                      ))}
-                      
-                      <div className="mt-6 pt-6 border-t">
-                        <h4 className="text-lg font-semibold mb-2">Need more help?</h4>
-                        <p className="text-muted-foreground mb-4">
-                          If you're still having issues with this integration, our support team is here to help.
-                        </p>
-                        <Button className="mr-2">Contact Support</Button>
-                        <Button variant="outline">View API Documentation</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center p-8 bg-muted rounded-lg">
-                  <p className="text-lg mb-4">No integration guides match your search.</p>
-                  <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
+                  <div className="p-2">
+                    {documentationCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        className={`w-full flex items-center gap-2 p-3 text-left rounded-md transition-colors ${
+                          activeDocCategory === category.id
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-accent"
+                        }`}
+                        onClick={() => setActiveDocCategory(category.id)}
+                      >
+                        {category.icon}
+                        <span>{category.title}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
+              
+              {/* Documentation Content */}
+              <div className="md:w-3/4">
+                {activeDocCategory === "getting-started" && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Getting Started with BrandWise</h2>
+                    <Card className="mb-8">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">Setting Up Your Account</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Learn how to create your account, set up your profile, and get started with BrandWise.
+                        </p>
+                        <Button>View Guide</Button>
+                      </CardContent>
+                    </Card>
+                    <Card className="mb-8">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">Creating Your First Campaign</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Learn how to create, schedule, and publish your first content campaign.
+                        </p>
+                        <Button>View Guide</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                
+                {activeDocCategory === "integrations" && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Platform Integrations</h2>
+                    
+                    {filteredIntegrations.length > 0 ? (
+                      filteredIntegrations.map((integration) => (
+                        <Card key={integration.id} id={`integration-${integration.id}`} className="mb-8">
+                          <CardContent className="p-6">
+                            <div className="flex items-start mb-6">
+                              <div className="mr-4">{integration.icon}</div>
+                              <div>
+                                <h3 className="text-2xl font-bold">{integration.title}</h3>
+                                <p className="text-muted-foreground">{integration.description}</p>
+                              </div>
+                            </div>
+                            
+                            {integration.sections.map((section, index) => (
+                              <div key={index} className="mb-6">
+                                <h4 className="text-xl font-semibold mb-2">{section.title}</h4>
+                                <p className="text-muted-foreground">{section.content}</p>
+                              </div>
+                            ))}
+                            
+                            <div className="mt-6 pt-6 border-t">
+                              <h4 className="text-lg font-semibold mb-2">Need more help?</h4>
+                              <p className="text-muted-foreground mb-4">
+                                If you're still having issues with this integration, our support team is here to help.
+                              </p>
+                              <Button className="mr-2">Contact Support</Button>
+                              <Button variant="outline">View API Documentation</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center p-8 bg-muted rounded-lg">
+                        <p className="text-lg mb-4">No integration guides match your search.</p>
+                        <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {activeDocCategory === "content-creation" && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Content Creation Guides</h2>
+                    <Card className="mb-8">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">Creating Effective Social Media Content</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Learn how to create engaging content that resonates with your audience.
+                        </p>
+                        <Button>View Guide</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                
+                {activeDocCategory === "analytics" && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Analytics Guides</h2>
+                    <Card className="mb-8">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">Understanding Your Analytics Dashboard</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Learn how to interpret and use the analytics data to improve your content strategy.
+                        </p>
+                        <Button>View Guide</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                
+                {activeDocCategory === "account" && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Account Management</h2>
+                    <Card className="mb-8">
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">Managing Your Subscription</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Learn how to update your subscription, billing information, and account details.
+                        </p>
+                        <Button>View Guide</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
           

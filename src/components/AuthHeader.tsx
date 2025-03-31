@@ -77,7 +77,7 @@ const AuthHeader = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - now vertically stacked */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t">
           <div className="container mx-auto px-4 py-3 space-y-1 flex flex-col">
@@ -85,7 +85,7 @@ const AuthHeader = () => {
               <Link
                 key={link.name}
                 to={link.href}
-                className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10"
+                className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10 w-full"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.name}
@@ -94,13 +94,13 @@ const AuthHeader = () => {
             <div className="border-t my-2 pt-2">
               <Link
                 to="/support"
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10 w-full"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <LifeBuoy className="h-4 w-4" />
                 <span>Support</span>
               </Link>
-              <div className="flex flex-col gap-2 mt-2 px-3">
+              <div className="flex flex-col gap-2 mt-2">
                 <Link to="/register" className="w-full">
                   <Button variant="outline" size="sm" className="w-full">Register</Button>
                 </Link>
