@@ -25,7 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const ProfileSwitcher = () => {
   const { currentProfile, setCurrentProfile, availableProfiles } = useProfile();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,7 +48,7 @@ const ProfileSwitcher = () => {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{currentProfile.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              example@brandwise.com
+              {user?.email || "example@brandwise.com"}
             </p>
           </div>
         </DropdownMenuLabel>

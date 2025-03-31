@@ -1,6 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,21 +19,113 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import AccountSidebar from "@/components/account/AccountSidebar";
+import { Tables } from "@/integrations/supabase/types";
+
+type Profile = Tables<"profiles"> | null;
 
 const ProfilePage = () => {
   const { currentProfile } = useProfile();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [name, setName] = useState(currentProfile.name);
-  const [email, setEmail] = useState("example@brandwise.com");
-  const [description, setDescription] = useState(currentProfile.description);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<Profile>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [description, setDescription] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function getProfile() {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setProfile(data);
+          setName(data.full_name || "");
+          setUsername(data.username || "");
+          setAvatarUrl(data.avatar_url || "");
+        }
+        
+        // Get email from auth user
+        setEmail(user.email || "");
+        
+        // Use description from currentProfile as it's not stored in Supabase profiles table
+        setDescription(currentProfile.description);
+        
+      } catch (error: any) {
+        console.error("Error loading profile: ", error);
+        toast({
+          title: "Error loading profile",
+          description: error.message,
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    getProfile();
+  }, [user, toast, currentProfile.description]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically save to API
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been updated successfully.",
-    });
+    
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: name,
+          username: username,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error updating profile: ", error);
+      toast({
+        title: "Error updating profile",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getAvatarFallback = (name: string) => {
+    return name.split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
@@ -53,11 +147,13 @@ const ProfilePage = () => {
                 <CardContent className="space-y-6">
                   <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
                     <Avatar className="h-24 w-24">
-                      <AvatarFallback className="text-xl">{currentProfile.fallback}</AvatarFallback>
-                      <AvatarImage src={currentProfile.avatar} alt={currentProfile.name} />
+                      <AvatarFallback className="text-xl">
+                        {avatarUrl ? getAvatarFallback(name) : currentProfile.fallback}
+                      </AvatarFallback>
+                      <AvatarImage src={avatarUrl || currentProfile.avatar} alt={name || currentProfile.name} />
                     </Avatar>
                     <div className="flex flex-col gap-2 w-full">
-                      <Button type="button" variant="outline" className="w-full sm:w-auto">
+                      <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={isLoading}>
                         Change Avatar
                       </Button>
                       <span className="text-xs text-muted-foreground">
@@ -74,6 +170,7 @@ const ProfilePage = () => {
                           id="name" 
                           value={name} 
                           onChange={(e) => setName(e.target.value)}
+                          disabled={isLoading}
                         />
                       </div>
                       <div className="space-y-2">
@@ -82,9 +179,23 @@ const ProfilePage = () => {
                           id="email" 
                           type="email" 
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={true}
+                          className="bg-muted"
                         />
+                        <p className="text-xs text-muted-foreground">
+                          Email cannot be changed
+                        </p>
                       </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username</Label>
+                      <Input 
+                        id="username" 
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        disabled={isLoading}
+                      />
                     </div>
                     
                     <div className="space-y-2">
@@ -93,7 +204,8 @@ const ProfilePage = () => {
                         id="bio" 
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        rows={4} 
+                        rows={4}
+                        disabled={isLoading}
                       />
                       <p className="text-xs text-muted-foreground">
                         Brief description for your profile.
@@ -102,7 +214,9 @@ const ProfilePage = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit">Save Changes</Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </Button>
                 </CardFooter>
               </form>
             </Card>

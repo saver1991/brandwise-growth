@@ -3,22 +3,69 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 const ProfileSummary = () => {
   const { currentProfile } = useProfile();
+  const { user } = useAuth();
+  const [dbProfile, setDbProfile] = useState<Tables<"profiles"> | null>(null);
+
+  useEffect(() => {
+    async function getProfile() {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error loading profile:", error);
+          return;
+        }
+        
+        if (data) {
+          setDbProfile(data);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+    
+    getProfile();
+  }, [user]);
+
+  // Display name in order of preference: database profile name, auth user name, then fallback to context
+  const displayName = dbProfile?.full_name || user?.user_metadata?.full_name || currentProfile.name;
+  
+  // Use avatar from database if available, otherwise use the one from context
+  const avatarUrl = dbProfile?.avatar_url || currentProfile.avatar;
+  
+  // Calculate avatar fallback text based on display name
+  const avatarFallback = displayName
+    .split(" ")
+    .map(part => part[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
 
   return (
     <Card className="bg-gradient-to-br from-card via-card to-accent/10 card-hover">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <Avatar className="h-24 w-24 border-2 border-accent">
-            <AvatarFallback className="text-xl">{currentProfile.fallback}</AvatarFallback>
-            <AvatarImage src={currentProfile.avatar} alt={currentProfile.name} />
+            <AvatarFallback className="text-xl">{avatarFallback}</AvatarFallback>
+            <AvatarImage src={avatarUrl} alt={displayName} />
           </Avatar>
           
           <div className="space-y-3 text-center md:text-left">
             <div>
-              <h2 className="text-2xl font-bold">{currentProfile.name}</h2>
+              <h2 className="text-2xl font-bold">{displayName}</h2>
               <p className="text-muted-foreground">{currentProfile.role}</p>
             </div>
             
