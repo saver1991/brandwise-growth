@@ -293,7 +293,7 @@ export function NewIdeaDialog({
           feedback: "No score has been generated yet."
         };
         data.score = contentScore;
-      } else if (data.score) {
+      } else {
         data.score = {
           overall: data.score.overall || 70,
           breakdown: data.score.breakdown || { "Content Quality": 70 },

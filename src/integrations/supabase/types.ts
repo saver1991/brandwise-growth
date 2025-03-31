@@ -146,6 +146,39 @@ export type Database = {
           },
         ]
       }
+      platform_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          platform: string
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform?: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_integrations: {
         Row: {
           created_at: string
@@ -272,6 +305,7 @@ export type Database = {
         | "youtube"
         | "tiktok"
         | "pinterest"
+        | "platform_tokens"
     }
     CompositeTypes: {
       [_ in never]: never
