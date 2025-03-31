@@ -74,7 +74,7 @@ const Navigation = () => {
   ];
 
   // Check if we're on a marketing page
-  const isMarketingPage = ["/home", "/features", "/about", "/pricing", "/support", "/affiliate"].includes(location.pathname);
+  const isMarketingPage = ["/home", "/features", "/about", "/pricing", "/support", "/affiliate", "/register", "/login", "/forgot-password"].includes(location.pathname);
 
   const marketingNavItems: NavItem[] = [
     {
@@ -153,7 +153,7 @@ const Navigation = () => {
                       <Link
                         key={item.href}
                         to={item.href}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="flex items-center gap-2 rounded-md px-3 py-3 text-sm font-medium hover:bg-accent"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.icon}
@@ -165,7 +165,7 @@ const Navigation = () => {
                         <div className="h-px my-2 bg-border" />
                         <Link
                           to="/login"
-                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                          className="flex items-center gap-2 rounded-md px-3 py-3 text-sm font-medium hover:bg-accent"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Login

@@ -8,4 +8,5 @@ if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
+// Create a DOM element to render the app
 createRoot(document.getElementById("root")!).render(<App />);

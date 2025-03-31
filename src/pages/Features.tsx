@@ -3,7 +3,7 @@ import AuthHeader from "@/components/AuthHeader";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, BarChart2, Calendar, BookOpen, Users, Linkedin, MessageSquare, FileText, TrendingUp } from "lucide-react";
+import { CheckCircle, BarChart2, Calendar, BookOpen, Users, Linkedin, MessageSquare, FileText, TrendingUp, ExternalLink } from "lucide-react";
 
 export default function Features() {
   return (
@@ -120,10 +120,13 @@ export default function Features() {
         {/* Platform Integration Grid */}
         <section className="py-20 bg-white dark:bg-slate-950">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Platform Integrations</h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
                 BrandWise seamlessly connects with your favorite content platforms, allowing you to manage everything from one place.
+              </p>
+              <p className="text-md text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+                We support a wide range of integrations across social media, email marketing, analytics, and productivity tools to help streamline your workflow.
               </p>
             </div>
             
@@ -163,6 +166,16 @@ export default function Features() {
                   </p>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-lg mb-4">
+                And many more integrations including Facebook, Instagram, Twitter, YouTube, Pinterest, TikTok, 
+                Mailchimp, HubSpot, Google Analytics, Slack, and Zapier.
+              </p>
+              <Link to="/integrations" className="inline-flex items-center gap-2 text-brand-blue hover:underline font-medium">
+                View all integrations <ExternalLink className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>

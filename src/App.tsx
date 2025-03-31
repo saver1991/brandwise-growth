@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
 import Ideas from "./pages/Ideas";
@@ -32,6 +33,17 @@ import BlogPost from "./pages/BlogPost";
 import CookieConsent from "./components/CookieConsent";
 import ForgotPassword from "./pages/ForgotPassword";
 
+// Component to handle scroll restoration
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -42,6 +54,7 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/dashboard" element={<Index />} />
