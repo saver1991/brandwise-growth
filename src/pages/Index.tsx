@@ -97,7 +97,6 @@ const Dashboard = () => {
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
-      // Ensure updated idea has required score properties
       const updatedScore: ContentScore = {
         overall: data.score?.overall || currentEditIdea.score.overall,
         breakdown: data.score?.breakdown || currentEditIdea.score.breakdown,
@@ -123,18 +122,19 @@ const Dashboard = () => {
         description: "Your content idea has been successfully updated.",
       });
     } else {
-      // Ensure score has required fields
       const defaultScore: ContentScore = {
         overall: data.score?.overall || 70,
         breakdown: data.score?.breakdown || { "Content Quality": 70 },
         feedback: data.score?.feedback || "New content idea created."
       };
       
+      const platform = data.platform as "linkedin" | "medium" | "wordpress" | "twitter" | "instagram" | "pinterest";
+      
       const newIdea: ContentIdea = {
         id: Date.now(),
         title: data.title,
         description: data.description,
-        platform: data.platform,
+        platform: platform,
         topics: data.topics,
         imageUrl: data.imageUrl || "",
         score: defaultScore

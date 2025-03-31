@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -237,11 +238,14 @@ const Ideas = () => {
         feedback: data.score?.feedback || "New content idea created."
       };
       
+      // Ensure platform is one of the allowed types
+      const platform = data.platform as "linkedin" | "medium" | "wordpress" | "twitter" | "instagram" | "pinterest";
+      
       const newIdea: ContentIdea = {
         id: Date.now(),
         title: data.title,
         description: data.description,
-        platform: data.platform,
+        platform: platform,
         topics: data.topics,
         imageUrl: data.imageUrl || "",
         score: defaultScore

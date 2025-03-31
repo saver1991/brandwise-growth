@@ -2,7 +2,7 @@
 import { ContentIdea } from "@/types/ContentIdea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Linkedin, MessageSquare, Twitter } from "lucide-react";
+import { Plus, Edit, Linkedin, MessageSquare, Twitter, Instagram, Globe, Pinterest } from "lucide-react";
 
 interface ContentIdeasProps {
   ideas: ContentIdea[];
@@ -19,6 +19,12 @@ const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore, onEd
         return <MessageSquare className="h-4 w-4 text-[#00AB6C]" />;
       case 'twitter':
         return <Twitter className="h-4 w-4 text-[#1DA1F2]" />;
+      case 'instagram':
+        return <Instagram className="h-4 w-4 text-[#C13584]" />;
+      case 'wordpress':
+        return <Globe className="h-4 w-4 text-[#21759B]" />;
+      case 'pinterest':
+        return <Pinterest className="h-4 w-4 text-[#E60023]" />;
       default:
         return null;
     }
