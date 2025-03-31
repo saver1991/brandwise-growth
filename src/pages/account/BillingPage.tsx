@@ -326,7 +326,7 @@ const BillingPage = () => {
               <CardContent>
                 <div className="space-y-4">
                   {invoices.map((invoice, index) => (
-                    <React.Fragment key={invoice.id}>
+                    <div key={invoice.id}>
                       <div className="flex items-center justify-between py-2">
                         <div>
                           <p className="font-medium">Invoice #{invoice.id}</p>
@@ -338,7 +338,7 @@ const BillingPage = () => {
                         </div>
                       </div>
                       {index < invoices.length - 1 && <Separator />}
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
               </CardContent>
@@ -351,3 +351,4 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
+

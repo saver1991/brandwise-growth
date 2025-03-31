@@ -14,6 +14,9 @@ export type Database = {
           avatar_url: string | null
           full_name: string | null
           id: string
+          settings: Json | null
+          subscription_data: Json | null
+          two_factor_enabled: boolean | null
           updated_at: string | null
           username: string | null
         }
@@ -21,6 +24,9 @@ export type Database = {
           avatar_url?: string | null
           full_name?: string | null
           id: string
+          settings?: Json | null
+          subscription_data?: Json | null
+          two_factor_enabled?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
@@ -28,6 +34,9 @@ export type Database = {
           avatar_url?: string | null
           full_name?: string | null
           id?: string
+          settings?: Json | null
+          subscription_data?: Json | null
+          two_factor_enabled?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
