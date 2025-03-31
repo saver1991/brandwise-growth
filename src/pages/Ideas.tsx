@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, ArrowUpRight } from "lucide-react";
+import { Plus, Search, Filter, ArrowUpRight, Book } from "lucide-react";
 import ContentIdeas from "@/components/ContentIdeas";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
 import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
-import { Pagination } from "@/components/ui/pagination";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink 
+} from "@/components/ui/pagination";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { contentService } from "@/services/contentService";
@@ -179,9 +185,13 @@ const Ideas = () => {
           const data = await contentService.getContentIdeas(user.id);
           const mappedIdeas = data.map(record => mapDbRecordToContentIdea(record));
           setContentIdeas(mappedIdeas);
-        } catch (error) {
-          console.error("Error fetching content ideas:", error);
-          toast.error("Failed to load your content ideas");
+        } catch (err) {
+          console.error("Error fetching content ideas:", err);
+          toast({
+            variant: "destructive",
+            title: "Failed to load content",
+            description: "Failed to load your content ideas"
+          });
         } finally {
           setLoading(false);
         }
@@ -340,7 +350,7 @@ const Ideas = () => {
                     {displayedTopics.map((topic) => (
                       <div key={topic.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                          <Book className="h-4 w-4 text-muted-foreground" />
                           <span>{topic.name}</span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -423,7 +433,7 @@ const Ideas = () => {
         onOpenChange={handleDialogOpenChange} 
         initialData={currentEditIdea || undefined}
         editMode={!!currentEditIdea}
-        availablePlatforms={currentProfile.integrations || []}
+        availablePlatforms={currentProfile?.integrations || []}
       />
     </div>
   );

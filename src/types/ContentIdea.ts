@@ -18,5 +18,5 @@ export interface ContentIdea {
   imagePrompt?: string;
 }
 
-// Update the ContentScore export to be more consistent with our new types
-export { ContentScore };
+// Fix the re-export using export type
+export type { ContentScore };

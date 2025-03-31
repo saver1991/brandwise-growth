@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Linkedin, Users, TrendingUp, Award, MessageSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
@@ -34,9 +35,13 @@ const Dashboard = () => {
             .map(record => mapDbRecordToContentIdea(record))
             .slice(0, 2);
           setContentIdeas(mappedIdeas);
-        } catch (error) {
-          console.error("Error fetching content ideas:", error);
-          toast.error("Failed to load your content ideas");
+        } catch (err) {
+          console.error("Error fetching content ideas:", err);
+          toast({
+            variant: "destructive",
+            title: "Failed to load content",
+            description: "Failed to load your content ideas"
+          });
         } finally {
           setLoading(false);
         }

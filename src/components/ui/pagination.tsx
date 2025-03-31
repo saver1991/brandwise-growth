@@ -1,10 +1,14 @@
+
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { ButtonProps, buttonVariants } from "@/components/ui/button"
 
-const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
+const Pagination = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement>) => (
   <nav
     role="navigation"
     aria-label="pagination"
@@ -16,7 +20,7 @@ Pagination.displayName = "Pagination"
 
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
-  React.ComponentProps<"ul">
+  React.HTMLAttributes<HTMLUListElement>
 >(({ className, ...props }, ref) => (
   <ul
     ref={ref}
@@ -28,7 +32,7 @@ PaginationContent.displayName = "PaginationContent"
 
 const PaginationItem = React.forwardRef<
   HTMLLIElement,
-  React.ComponentProps<"li">
+  React.HTMLAttributes<HTMLLIElement>
 >(({ className, ...props }, ref) => (
   <li ref={ref} className={cn("", className)} {...props} />
 ))
@@ -36,16 +40,19 @@ PaginationItem.displayName = "PaginationItem"
 
 type PaginationLinkProps = {
   isActive?: boolean
+  onClick?: () => void
 } & Pick<ButtonProps, "size"> &
-  React.ComponentProps<"a">
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const PaginationLink = ({
   className,
   isActive,
   size = "icon",
+  onClick,
   ...props
 }: PaginationLinkProps) => (
-  <a
+  <button
+    type="button"
     aria-current={isActive ? "page" : undefined}
     className={cn(
       buttonVariants({
@@ -54,6 +61,7 @@ const PaginationLink = ({
       }),
       className
     )}
+    onClick={onClick}
     {...props}
   />
 )
@@ -94,7 +102,7 @@ PaginationNext.displayName = "PaginationNext"
 const PaginationEllipsis = ({
   className,
   ...props
-}: React.ComponentProps<"span">) => (
+}: React.HTMLAttributes<HTMLSpanElement>) => (
   <span
     aria-hidden
     className={cn("flex h-9 w-9 items-center justify-center", className)}

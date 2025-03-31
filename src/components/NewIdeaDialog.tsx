@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
@@ -207,7 +208,7 @@ export function NewIdeaDialog({
       setTimeout(() => {
         setActiveTab("visuals");
       }, 1000);
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: "destructive",
         title: "Generation failed",
@@ -255,7 +256,7 @@ export function NewIdeaDialog({
         title: "Image generated!",
         description: "The AI has created an image based on your content.",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: "destructive",
         title: "Image generation failed",
@@ -268,16 +269,32 @@ export function NewIdeaDialog({
 
   const handleSubmitForm = async (data: ContentIdeaFormValues) => {
     if (!user) {
-      toast.error("You must be logged in to save content ideas");
+      toast({
+        variant: "destructive",
+        title: "Authentication required", 
+        description: "You must be logged in to save content ideas"
+      });
       return;
     }
 
     try {
       setIsSaving(true);
 
+      // Ensure score is a complete object with all required fields
       if (!data.score) {
-        const contentScore = aiGenerationService.scoreContent(data.description, data.platform);
+        const contentScore: ContentScore = {
+          overall: 70,
+          breakdown: { "Content Quality": 70 },
+          feedback: "No score has been generated yet."
+        };
         data.score = contentScore;
+      } else if (data.score && (!data.score.overall || !data.score.breakdown || !data.score.feedback)) {
+        // Fix incomplete score object
+        data.score = {
+          overall: data.score.overall || 70,
+          breakdown: data.score.breakdown || { "Content Quality": 70 },
+          feedback: data.score.feedback || "Score partially calculated."
+        };
       }
       
       if (onSubmit) {
@@ -326,9 +343,13 @@ export function NewIdeaDialog({
       setGeneratedImage(null);
       setActiveTab("content");
       
-    } catch (error) {
-      console.error("Error saving content idea:", error);
-      toast.error("Failed to save content idea");
+    } catch (err) {
+      console.error("Error saving content idea:", err);
+      toast({
+        variant: "destructive",
+        title: "Save failed",
+        description: "Failed to save content idea"
+      });
     } finally {
       setIsSaving(false);
     }

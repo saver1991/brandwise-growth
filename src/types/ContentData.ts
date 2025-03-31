@@ -2,7 +2,8 @@
 import { ContentIdea, ContentScore } from "@/types/ContentIdea";
 import { Database } from "@/types/supabase";
 
-export type ContentPlatform = Database['public']['Enums']['content_platform'];
+// Define the content platform type manually since the Database.Enums might not be available
+export type ContentPlatform = "linkedin" | "medium" | "wordpress" | "twitter" | "facebook" | "instagram" | "youtube" | "tiktok" | "pinterest";
 
 export interface ContentIdeaData {
   id?: string;
