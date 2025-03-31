@@ -10,6 +10,7 @@ import EditProfilePage from "@/pages/profiles/EditProfilePage";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
+import PrivateRoute from "@/components/PrivateRoute";
 
 function App() {
   return (
@@ -17,10 +18,16 @@ function App() {
       <AuthProvider>
         <ProfileProvider>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profiles" element={<ProfilesPage />} />
-            <Route path="/profiles/new" element={<NewProfilePage />} />
-            <Route path="/profiles/edit/:id" element={<EditProfilePage />} />
+            {/* Dashboard routes - both root and /dashboard point to the same component */}
+            <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            
+            {/* Profile routes */}
+            <Route path="/profiles" element={<PrivateRoute><ProfilesPage /></PrivateRoute>} />
+            <Route path="/profiles/new" element={<PrivateRoute><NewProfilePage /></PrivateRoute>} />
+            <Route path="/profiles/edit/:id" element={<PrivateRoute><EditProfilePage /></PrivateRoute>} />
+            
+            {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
