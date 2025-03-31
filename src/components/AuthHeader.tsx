@@ -20,8 +20,8 @@ const AuthHeader = () => {
     <header className="border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          {/* Logo - fixed to point to /home instead of / */}
+          <Link to="/home" className="flex items-center gap-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-teal to-brand-orange bg-clip-text text-transparent">
               BrandWise
             </span>

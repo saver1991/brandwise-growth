@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, BarChart2, CreditCard, TriangleAlert, Lightbulb, Linkedin, MessageSquare, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AuthHeader from "@/components/AuthHeader";
 
 type SupportCategory = {
   id: string;
@@ -620,7 +621,7 @@ const Support = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <AuthHeader />
 
       {/* Hero Section */}
       <section className="py-12 bg-muted/30">
@@ -681,7 +682,10 @@ const Support = () => {
                     {filteredCategories.find((c) => c.id === activeCategory)?.title || "Support"}
                   </h2>
 
-                  <Tabs defaultValue={filteredCategories.find((c) => c.id === activeCategory)?.topics[0]?.id} className="w-full">
+                  <Tabs 
+                    defaultValue={filteredCategories.find((c) => c.id === activeCategory)?.topics[0]?.id} 
+                    className="w-full"
+                  >
                     <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-6">
                       {filteredCategories
                         .find((c) => c.id === activeCategory)
