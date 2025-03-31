@@ -18,36 +18,39 @@ serve(async (req) => {
     console.log("Starting checkout session creation");
     
     // Get request body
-    const { priceId, successUrl, cancelUrl } = await req.json();
+    const requestData = await req.json();
+    const { priceId, successUrl, cancelUrl, email } = requestData;
     
     if (!priceId) {
       throw new Error('Price ID is required');
     }
 
     console.log("Price ID:", priceId);
+    console.log("Request data:", { ...requestData, email: email ? "REDACTED" : undefined });
     
     // Get authorization header
-    const authHeader = req.headers.get('Authorization')!
+    const authHeader = req.headers.get('Authorization');
     
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
-    })
+    });
     
     let userId = null;
-    let email = null;
+    let userEmail = email; // Use provided email as fallback
 
     // If there's an auth header, get the user from it
     if (authHeader) {
+      console.log("Auth header found, extracting user data");
       // Initialize Supabase client
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      )
+      );
 
       // Get user from token
-      const token = authHeader.replace('Bearer ', '')
-      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token)
+      const token = authHeader.replace('Bearer ', '');
+      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
       
       if (userError) {
         console.error("Error getting user:", userError);
@@ -57,35 +60,31 @@ serve(async (req) => {
         throw new Error("Authentication failed: No user found");
       } else {
         userId = userData.user.id;
-        email = userData.user.email;
-        console.log("User email from auth:", email);
+        userEmail = userData.user.email;
+        console.log("User email from auth:", userEmail);
       }
+    } else {
+      console.log("No auth header, using provided email:", email ? "REDACTED" : undefined);
     }
     
-    // Get customer email from request body if not from auth
-    if (!email && req.body) {
-      const body = await req.json();
-      email = body.email;
-      if (email) {
-        console.log("User email from request body:", email);
-      } else {
-        throw new Error("No email provided. Cannot create checkout session.");
-      }
+    if (!userEmail) {
+      throw new Error("No email provided. Cannot create checkout session.");
     }
     
-    // Check if customer already exists if we have an email
-    let customerId = undefined;
+    // Check if customer already exists
+    console.log("Checking if customer exists for email:", userEmail ? "REDACTED" : undefined);
+    let customerId: string | undefined = undefined;
     
-    if (email) {
-      const customers = await stripe.customers.list({
-        email: email,
-        limit: 1
-      });
-      
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-        console.log('Found existing customer:', customerId);
-      }
+    const customers = await stripe.customers.list({
+      email: userEmail,
+      limit: 1
+    });
+    
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+      console.log('Found existing customer:', customerId);
+    } else {
+      console.log('No existing customer found, will create one during checkout');
     }
     
     // Get the origin or use the provided URLs
@@ -99,7 +98,7 @@ serve(async (req) => {
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : email,
+      customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
           price: priceId,

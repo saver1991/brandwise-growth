@@ -1,4 +1,3 @@
-
 import { RegistrationFormData } from "@/types/registration";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -8,28 +7,21 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
   try {
     console.log("Checking if email exists:", email);
     
-    // Make an auth API call to check if the user exists
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      }
-    });
+    // Instead of using OTP, we'll use a more reliable method to check if email exists
+    const { data, error } = await supabase.auth.admin.getUserByEmail(email);
     
-    console.log("Check email response:", { error });
-    
-    // If there's an error with message containing "User not found", 
-    // then the email doesn't exist in the system
-    if (error && error.message.includes("User not found")) {
-      return false; // Email doesn't exist, good for registration
+    // If there's no error and we got user data, the email exists
+    if (!error && data) {
+      return true;
     }
     
-    // If we don't get a "User not found" error, 
-    // then the email likely exists in the system
-    return true; // Email exists, can't use for registration
+    // If the error is about the user not being found, or there's no data, the email doesn't exist
+    return false;
   } catch (err) {
     console.error("Error checking email:", err);
     // On error, assume email doesn't exist to not block registration flow
+    // But we'll show a warning to the user
+    toast.warning("Could not verify email uniqueness. If you already have an account, try logging in instead.");
     return false;
   }
 };

@@ -23,10 +23,6 @@ const initialFormData: RegistrationFormData = {
   },
   billing: {
     paymentMethod: "creditCard",
-    cardholderName: "",
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
     country: "",
     address: "",
     city: "",
@@ -67,6 +63,18 @@ export const useRegistration = () => {
 
   const validateEmail = async (email: string): Promise<boolean> => {
     try {
+      if (!email || email.trim() === '') {
+        setEmailError("Email is required");
+        return false;
+      }
+      
+      // Basic email validation regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setEmailError("Please enter a valid email address");
+        return false;
+      }
+      
       const emailExists = await checkEmailExists(email);
       if (emailExists) {
         setEmailError("This email is already registered. Please login instead.");
@@ -92,6 +100,7 @@ export const useRegistration = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Starting registration submission...");
       console.log("Starting registration process");
       
       // Validate email one more time before submission
