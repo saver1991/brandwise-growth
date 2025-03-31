@@ -45,6 +45,107 @@ export type Database = {
         }
         Relationships: []
       }
+      content_ideas: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_prompt: string | null
+          image_url: string | null
+          platform: Database["public"]["Enums"]["content_platform"]
+          score: Json | null
+          title: string
+          topics: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          platform: Database["public"]["Enums"]["content_platform"]
+          score?: Json | null
+          title: string
+          topics?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          platform?: Database["public"]["Enums"]["content_platform"]
+          score?: Json | null
+          title?: string
+          topics?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_content_fields: {
+        Row: {
+          body: string | null
+          call_to_action: string | null
+          carousel_images: Json | null
+          content_id: string
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          link_url: string | null
+          metadata: Json | null
+          platform: Database["public"]["Enums"]["content_platform"]
+          updated_at: string
+          video_duration: number | null
+          video_thumbnail: string | null
+          video_url: string | null
+        }
+        Insert: {
+          body?: string | null
+          call_to_action?: string | null
+          carousel_images?: Json | null
+          content_id: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          link_url?: string | null
+          metadata?: Json | null
+          platform: Database["public"]["Enums"]["content_platform"]
+          updated_at?: string
+          video_duration?: number | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          body?: string | null
+          call_to_action?: string | null
+          carousel_images?: Json | null
+          content_id?: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          link_url?: string | null
+          metadata?: Json | null
+          platform?: Database["public"]["Enums"]["content_platform"]
+          updated_at?: string
+          video_duration?: number | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_content_fields_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_integrations: {
         Row: {
           created_at: string
@@ -161,7 +262,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      content_platform:
+        | "linkedin"
+        | "medium"
+        | "wordpress"
+        | "twitter"
+        | "facebook"
+        | "instagram"
+        | "youtube"
+        | "tiktok"
+        | "pinterest"
     }
     CompositeTypes: {
       [_ in never]: never

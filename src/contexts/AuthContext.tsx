@@ -12,6 +12,7 @@ interface AuthContextProps {
   signUp: (email: string, password: string, metadata?: { full_name?: string }) => Promise<{ data: any; error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  getUser: () => User | null; // Added getter method for user
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -102,6 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/login');
   };
 
+  // Simple getter function to access the user object
+  const getUser = () => user;
+
   const value = {
     user,
     session,
@@ -109,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
+    getUser, // Add the getter to the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

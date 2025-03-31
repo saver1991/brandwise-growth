@@ -1,19 +1,21 @@
+import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, MessageSquare, Linkedin, Twitter, BookOpen, ArrowUpRight } from "lucide-react";
+import { Plus, Search, Filter, ArrowUpRight } from "lucide-react";
 import ContentIdeas from "@/components/ContentIdeas";
-import { useState } from "react";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { useToast } from "@/hooks/use-toast";
 import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Pagination } from "@/components/ui/pagination";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { contentService } from "@/services/contentService";
+import { mapDbRecordToContentIdea } from "@/types/ContentData";
 
 const trendingTopicsData = [
   [
@@ -158,108 +160,42 @@ const inspirationArticlesData = [
   ],
 ];
 
-const sampleContentIdeas: ContentIdea[] = [
-  {
-    id: 1,
-    title: "The Future of UX Design in 2023",
-    description: "Exploring emerging trends and technologies shaping the future of user experience design.",
-    platform: "medium",
-    topics: ["UX Design", "Technology", "Future Trends"],
-    imageUrl: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800",
-    score: {
-      overall: 85,
-      breakdown: {
-        "Depth of Content": 90,
-        "Formatting": 80,
-        "Estimated Read Time": 85
-      },
-      feedback: "Great depth and structure for a Medium article."
-    }
-  },
-  {
-    id: 2,
-    title: "5 Design System Tips for Growing Teams",
-    description: "Learn how to scale your design system as your team and product portfolio expands.",
-    platform: "linkedin",
-    topics: ["Design Systems", "Team Growth", "Product Design"],
-    imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
-    score: {
-      overall: 78,
-      breakdown: {
-        "Professional Tone": 85,
-        "Call to Action": 70,
-        "Strategic Hashtags": 80
-      },
-      feedback: "Good professional content, consider adding more specific call to action."
-    }
-  }
-];
-
 const Ideas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
+  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
   const [currentTopicsPage, setCurrentTopicsPage] = useState(1);
   const [currentInspirationPage, setCurrentInspirationPage] = useState(1);
   const { toast } = useToast();
   const { currentProfile } = useProfile();
+  const { user } = useAuth();
 
-  const handleCreateIdea = (data: ContentIdeaFormValues) => {
-    if (currentEditIdea) {
-      const updatedScore: ContentScore = {
-        overall: data.score?.overall || currentEditIdea.score.overall,
-        breakdown: data.score?.breakdown || currentEditIdea.score.breakdown,
-        feedback: data.score?.feedback || currentEditIdea.score.feedback
-      };
-      
-      const updatedIdea: ContentIdea = {
-        ...currentEditIdea,
-        ...data,
-        id: currentEditIdea.id,
-        platform: data.platform as ContentIdea["platform"],
-        score: updatedScore
-      };
-      
-      const updatedIdeas = contentIdeas.map(idea => 
-        idea.id === currentEditIdea.id ? updatedIdea : idea
-      );
-      
-      setContentIdeas(updatedIdeas);
-      setCurrentEditIdea(null);
-      
-      toast({
-        title: "Idea Updated!",
-        description: "Your content idea has been successfully updated.",
-      });
-    } else {
-      const defaultScore: ContentScore = {
-        overall: data.score?.overall || 70,
-        breakdown: data.score?.breakdown || { "Content Quality": 70 },
-        feedback: data.score?.feedback || "New content idea created."
-      };
-      
-      const platform = data.platform as ContentIdea["platform"];
-      
-      const newIdea: ContentIdea = {
-        id: Date.now(),
-        title: data.title,
-        description: data.description,
-        platform: platform,
-        topics: data.topics,
-        imageUrl: data.imageUrl || "",
-        score: defaultScore
-      };
-      
-      if (data.imagePrompt) {
-        newIdea.imagePrompt = data.imagePrompt;
+  useEffect(() => {
+    const fetchContentIdeas = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const data = await contentService.getContentIdeas(user.id);
+          const mappedIdeas = data.map(record => mapDbRecordToContentIdea(record));
+          setContentIdeas(mappedIdeas);
+        } catch (error) {
+          console.error("Error fetching content ideas:", error);
+          toast.error("Failed to load your content ideas");
+        } finally {
+          setLoading(false);
+        }
       }
-      
-      setContentIdeas([...contentIdeas, newIdea]);
-      
-      toast({
-        title: "Idea Created!",
-        description: "Your new content idea has been added to the list.",
-      });
+    };
+
+    fetchContentIdeas();
+  }, [user]);
+
+  const handleCreateIdea = async (data: ContentIdeaFormValues) => {
+    if (user) {
+      const data = await contentService.getContentIdeas(user.id);
+      const mappedIdeas = data.map(record => mapDbRecordToContentIdea(record));
+      setContentIdeas(mappedIdeas);
     }
   };
 
@@ -272,6 +208,12 @@ const Ideas = () => {
     setDialogOpen(open);
     if (!open) {
       setCurrentEditIdea(null);
+      if (user) {
+        contentService.getContentIdeas(user.id).then(data => {
+          const mappedIdeas = data.map(record => mapDbRecordToContentIdea(record));
+          setContentIdeas(mappedIdeas);
+        });
+      }
     }
   };
 
@@ -330,13 +272,62 @@ const Ideas = () => {
             </Button>
           </div>
           
+          <div className="flex items-center mb-4 space-x-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search content ideas..." 
+                className="pl-8"
+              />
+            </div>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Platform" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Platforms</SelectItem>
+                <SelectItem value="linkedin">LinkedIn</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="wordpress">WordPress</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <ContentIdeas 
-                ideas={contentIdeas} 
-                onGenerateMore={handleGenerateMoreIdeas}
-                onEditIdea={handleEditIdea}
-              />
+              {loading ? (
+                <Card className="w-full h-64 flex items-center justify-center">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="h-8 w-8 border-4 border-t-brand-teal border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
+                    <p className="text-muted-foreground">Loading your content ideas...</p>
+                  </div>
+                </Card>
+              ) : contentIdeas.length === 0 ? (
+                <Card className="w-full p-8 flex flex-col items-center justify-center">
+                  <div className="text-center space-y-4">
+                    <h3 className="text-xl font-medium">No content ideas yet</h3>
+                    <p className="text-muted-foreground">
+                      Create your first content idea to get started.
+                    </p>
+                    <Button 
+                      onClick={() => setDialogOpen(true)}
+                      className="bg-brand-teal hover:bg-brand-teal/90 mt-2"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create New Idea
+                    </Button>
+                  </div>
+                </Card>
+              ) : (
+                <ContentIdeas 
+                  ideas={contentIdeas} 
+                  onGenerateMore={handleGenerateMoreIdeas}
+                  onEditIdea={handleEditIdea}
+                />
+              )}
             </div>
             
             <div className="space-y-6">
@@ -430,7 +421,6 @@ const Ideas = () => {
       <NewIdeaDialog 
         open={dialogOpen} 
         onOpenChange={handleDialogOpenChange} 
-        onSubmit={handleCreateIdea}
         initialData={currentEditIdea || undefined}
         editMode={!!currentEditIdea}
         availablePlatforms={currentProfile.integrations || []}

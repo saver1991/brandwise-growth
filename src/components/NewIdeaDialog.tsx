@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,6 +20,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContentIdea } from "@/types/ContentIdea";
+import { useAuth } from "@/contexts/AuthContext";
+import { contentService } from "@/services/contentService";
+import { ContentPlatform, PLATFORM_FIELDS, PlatformContentFields } from "@/types/ContentData";
+import { DynamicPlatformFields } from "./DynamicPlatformFields";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -33,6 +37,7 @@ const formSchema = z.object({
     breakdown: z.record(z.string(), z.number()),
     feedback: z.string()
   }).optional(),
+  platformData: z.record(z.string(), z.any()).optional(),
 });
 
 export type ContentIdeaFormValues = z.infer<typeof formSchema>;
@@ -40,7 +45,7 @@ export type ContentIdeaFormValues = z.infer<typeof formSchema>;
 interface NewIdeaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: ContentIdeaFormValues) => void;
+  onSubmit?: (data: ContentIdeaFormValues) => void;
   initialData?: ContentIdea;
   editMode?: boolean;
   availablePlatforms?: string[];
@@ -49,7 +54,7 @@ interface NewIdeaDialogProps {
 export function NewIdeaDialog({ 
   open, 
   onOpenChange, 
-  onSubmit, 
+  onSubmit,
   initialData, 
   editMode = false,
   availablePlatforms = ["linkedin", "medium", "wordpress"]
@@ -57,11 +62,14 @@ export function NewIdeaDialog({
   const [topicInput, setTopicInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("content");
   const [autoGenerateImage, setAutoGenerateImage] = useState(true);
   const [isScoring, setIsScoring] = useState(false);
+  const [platformSpecificData, setPlatformSpecificData] = useState<PlatformContentFields | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const defaultPlatform = availablePlatforms.length > 0 ? availablePlatforms[0] : "linkedin";
 
@@ -75,6 +83,7 @@ export function NewIdeaDialog({
       imagePrompt: "",
       imageUrl: initialData.imageUrl || "",
       score: initialData.score,
+      platformData: {},
     } : {
       title: "",
       description: "",
@@ -82,19 +91,20 @@ export function NewIdeaDialog({
       topics: [],
       imagePrompt: "",
       imageUrl: "",
+      platformData: {},
     },
   });
 
   useEffect(() => {
-    const currentPlatform = form.getValues("platform");
+    const currentPlatform = form.getValues("platform") as ContentPlatform;
     if (!availablePlatforms.includes(currentPlatform)) {
-      form.setValue("platform", defaultPlatform);
+      form.setValue("platform", defaultPlatform as ContentPlatform);
     }
   }, [availablePlatforms, defaultPlatform]);
 
   const title = form.watch("title");
   const description = form.watch("description");
-  const platform = form.watch("platform");
+  const platform = form.watch("platform") as ContentPlatform;
   const score = form.watch("score");
 
   useEffect(() => {
@@ -119,6 +129,11 @@ export function NewIdeaDialog({
       scoreContent();
     }
   }, [description, platform]);
+
+  useEffect(() => {
+    form.setValue('platformData', {}); // Clear platform data when platform changes
+    setPlatformSpecificData(null);
+  }, [platform]);
 
   const handleAddTopic = () => {
     if (topicInput.trim() !== "") {
@@ -251,27 +266,78 @@ export function NewIdeaDialog({
     }
   };
 
-  const handleSubmitForm = (data: ContentIdeaFormValues) => {
-    if (!data.score) {
-      const contentScore = aiGenerationService.scoreContent(data.description, data.platform);
-      data.score = contentScore;
+  const handleSubmitForm = async (data: ContentIdeaFormValues) => {
+    if (!user) {
+      toast.error("You must be logged in to save content ideas");
+      return;
     }
-    
-    onSubmit(data);
-    onOpenChange(false);
-    form.reset();
-    setGeneratedImage(null);
-    setActiveTab("content");
+
+    try {
+      setIsSaving(true);
+
+      if (!data.score) {
+        const contentScore = aiGenerationService.scoreContent(data.description, data.platform);
+        data.score = contentScore;
+      }
+      
+      if (onSubmit) {
+        onSubmit(data);
+        onOpenChange(false);
+        return;
+      }
+      
+      const platformData = data.platformData || {};
+      const userId = user.id;
+      
+      if (editMode && initialData) {
+        const stringId = initialData.id.toString();
+        
+        await contentService.updateContentIdea(
+          stringId,
+          {
+            title: data.title,
+            description: data.description,
+            platform: data.platform as ContentPlatform,
+            topics: data.topics,
+            image_url: data.imageUrl,
+            image_prompt: data.imagePrompt,
+            score: data.score
+          },
+          platformData as PlatformContentFields
+        );
+      } else {
+        await contentService.createContentIdea(
+          {
+            user_id: userId,
+            title: data.title,
+            description: data.description,
+            platform: data.platform as ContentPlatform,
+            topics: data.topics,
+            image_url: data.imageUrl,
+            image_prompt: data.imagePrompt,
+            score: data.score
+          },
+          platformData as PlatformContentFields
+        );
+      }
+
+      onOpenChange(false);
+      form.reset();
+      setGeneratedImage(null);
+      setActiveTab("content");
+      
+    } catch (error) {
+      console.error("Error saving content idea:", error);
+      toast.error("Failed to save content idea");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const platformDisplayNames: Record<string, string> = {
-    "linkedin": "LinkedIn",
-    "medium": "Medium",
-    "wordpress": "WordPress",
-    "twitter": "Twitter",
-    "instagram": "Instagram",
-    "pinterest": "Pinterest"
-  };
+  const platformDisplayNames: Record<string, string> = {};
+  for (const [key, value] of Object.entries(PLATFORM_FIELDS)) {
+    platformDisplayNames[key] = value.name;
+  }
 
   const platformOptions = availablePlatforms
     .filter(platform => platformDisplayNames[platform])
@@ -370,7 +436,7 @@ export function NewIdeaDialog({
             </Button>
           </div>
         ) : (
-          <Form {...form}>
+          <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmitForm)} className="space-y-6">
               <Tabs 
                 defaultValue="content" 
@@ -417,7 +483,10 @@ export function NewIdeaDialog({
                       <FormItem>
                         <FormLabel>Platform</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue('platformData', {});
+                          }}
                           defaultValue={field.value}
                           value={field.value}
                         >
@@ -489,6 +558,13 @@ export function NewIdeaDialog({
                       </FormItem>
                     )}
                   />
+
+                  <div className="mt-6 border-t pt-4">
+                    <DynamicPlatformFields 
+                      platform={platform} 
+                      initialData={platformSpecificData || undefined} 
+                    />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="visuals" className="space-y-4 pt-4">
@@ -658,14 +734,21 @@ export function NewIdeaDialog({
                   type="button" 
                   variant="outline" 
                   onClick={() => onOpenChange(false)}
+                  disabled={isSaving}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-brand-teal hover:bg-brand-teal/90"
+                  disabled={isSaving}
                 >
-                  {editMode ? (
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : editMode ? (
                     <>
                       <Edit className="mr-2 h-4 w-4" />
                       Update Idea
@@ -679,7 +762,7 @@ export function NewIdeaDialog({
                 </Button>
               </DialogFooter>
             </form>
-          </Form>
+          </FormProvider>
         )}
       </DialogContent>
     </Dialog>

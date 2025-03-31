@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Linkedin, Users, TrendingUp, Award, MessageSquare } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ProfileSummary from "@/components/ProfileSummary";
@@ -7,54 +8,43 @@ import ContentPerformance from "@/components/ContentPerformance";
 import ContentIdeas from "@/components/ContentIdeas";
 import UpcomingContent from "@/components/UpcomingContent";
 import RecentActivity from "@/components/RecentActivity";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewIdeaDialog, ContentIdeaFormValues } from "@/components/NewIdeaDialog";
 import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
-
-const sampleContentIdeas: ContentIdea[] = [
-  {
-    id: 1,
-    title: "10 AI Tools Every Content Creator Should Know",
-    description: "A roundup of the best AI tools that can help streamline your content creation process.",
-    platform: "medium",
-    topics: ["AI Tools", "Content Creation", "Productivity"],
-    imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
-    score: {
-      overall: 88,
-      breakdown: {
-        "Depth of Content": 90,
-        "Formatting": 85,
-        "Estimated Read Time": 90
-      },
-      feedback: "Well-structured content with good depth for Medium readers."
-    }
-  },
-  {
-    id: 2,
-    title: "How I Grew My LinkedIn Network by 500% in 6 Months",
-    description: "The exact strategy I used to exponentially grow my professional network and increase engagement.",
-    platform: "linkedin",
-    topics: ["LinkedIn Growth", "Networking", "Personal Branding"],
-    imageUrl: "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=800",
-    score: {
-      overall: 92,
-      breakdown: {
-        "Professional Tone": 95,
-        "Call to Action": 90,
-        "Strategic Hashtags": 90
-      },
-      feedback: "Excellent professional content with strong calls to action."
-    }
-  }
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { contentService } from "@/services/contentService";
+import { mapDbRecordToContentIdea } from "@/types/ContentData";
 
 const Dashboard = () => {
-  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>(sampleContentIdeas);
+  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentEditIdea, setCurrentEditIdea] = useState<ContentIdea | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchContentIdeas = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const data = await contentService.getContentIdeas(user.id);
+          const mappedIdeas = data
+            .map(record => mapDbRecordToContentIdea(record))
+            .slice(0, 2);
+          setContentIdeas(mappedIdeas);
+        } catch (error) {
+          console.error("Error fetching content ideas:", error);
+          toast.error("Failed to load your content ideas");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchContentIdeas();
+  }, [user]);
 
   const handleGenerateMoreIdeas = () => {
     const newIdea: ContentIdea = {
@@ -92,65 +82,24 @@ const Dashboard = () => {
     setDialogOpen(open);
     if (!open) {
       setCurrentEditIdea(null);
+      if (user) {
+        contentService.getContentIdeas(user.id).then(data => {
+          const mappedIdeas = data
+            .map(record => mapDbRecordToContentIdea(record))
+            .slice(0, 2);
+          setContentIdeas(mappedIdeas);
+        });
+      }
     }
   };
 
-  const handleCreateIdea = (data: ContentIdeaFormValues) => {
-    if (currentEditIdea) {
-      const updatedScore: ContentScore = {
-        overall: data.score?.overall || currentEditIdea.score.overall,
-        breakdown: data.score?.breakdown || currentEditIdea.score.breakdown,
-        feedback: data.score?.feedback || currentEditIdea.score.feedback
-      };
-      
-      const updatedIdea: ContentIdea = {
-        ...currentEditIdea,
-        ...data,
-        id: currentEditIdea.id,
-        platform: data.platform as ContentIdea["platform"],
-        score: updatedScore
-      };
-      
-      const updatedIdeas = contentIdeas.map(idea => 
-        idea.id === currentEditIdea.id ? updatedIdea : idea
-      );
-      
-      setContentIdeas(updatedIdeas);
-      setCurrentEditIdea(null);
-      
-      toast({
-        title: "Idea Updated!",
-        description: "Your content idea has been successfully updated.",
-      });
-    } else {
-      const defaultScore: ContentScore = {
-        overall: data.score?.overall || 70,
-        breakdown: data.score?.breakdown || { "Content Quality": 70 },
-        feedback: data.score?.feedback || "New content idea created."
-      };
-      
-      const platform = data.platform as ContentIdea["platform"];
-      
-      const newIdea: ContentIdea = {
-        id: Date.now(),
-        title: data.title,
-        description: data.description,
-        platform: platform,
-        topics: data.topics,
-        imageUrl: data.imageUrl || "",
-        score: defaultScore
-      };
-      
-      if (data.imagePrompt) {
-        newIdea.imagePrompt = data.imagePrompt;
-      }
-      
-      setContentIdeas([...contentIdeas, newIdea]);
-      
-      toast({
-        title: "Idea Created!",
-        description: "Your new content idea has been added to the list.",
-      });
+  const handleCreateIdea = async (data: ContentIdeaFormValues) => {
+    if (user) {
+      const data = await contentService.getContentIdeas(user.id);
+      const mappedIdeas = data
+        .map(record => mapDbRecordToContentIdea(record))
+        .slice(0, 2);
+      setContentIdeas(mappedIdeas);
     }
   };
 
@@ -207,11 +156,19 @@ const Dashboard = () => {
             <RecentActivity />
           </div>
           
-          <ContentIdeas 
-            ideas={contentIdeas} 
-            onGenerateMore={handleGenerateMoreIdeas}
-            onEditIdea={handleEditIdea}
-          />
+          <div>
+            {loading ? (
+              <div className="flex justify-center my-8">
+                <div className="h-8 w-8 border-4 border-t-brand-teal border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <ContentIdeas 
+                ideas={contentIdeas} 
+                onGenerateMore={handleGenerateMoreIdeas}
+                onEditIdea={handleEditIdea}
+              />
+            )}
+          </div>
         </div>
       </main>
 
