@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { toast } from "sonner";
 
 export interface Profile {
   id: string;
@@ -13,6 +14,7 @@ export interface Profile {
     textColor: string;
   }[];
   description: string;
+  integrations?: string[];
 }
 
 export const profiles: Profile[] = [
@@ -28,7 +30,8 @@ export const profiles: Profile[] = [
       { label: "UX Leadership", bgColor: "bg-brand-orange/10", textColor: "text-brand-orange" },
       { label: "Thought Leader", bgColor: "bg-muted", textColor: "text-foreground" }
     ],
-    description: "Building a strong personal brand to establish authority in product design and strategy, drive audience growth, and increase industry recognition."
+    description: "Building a strong personal brand to establish authority in product design and strategy, drive audience growth, and increase industry recognition.",
+    integrations: ["linkedin", "medium", "twitter"]
   },
   {
     id: "hanako",
@@ -42,7 +45,8 @@ export const profiles: Profile[] = [
       { label: "Culinary Trends", bgColor: "bg-green-500/10", textColor: "text-green-600" },
       { label: "Recipe Creator", bgColor: "bg-muted", textColor: "text-foreground" }
     ],
-    description: "Sharing authentic culinary experiences and food photography to inspire foodies and build a community of passionate dining enthusiasts."
+    description: "Sharing authentic culinary experiences and food photography to inspire foodies and build a community of passionate dining enthusiasts.",
+    integrations: ["instagram", "wordpress", "pinterest"]
   }
 ];
 
@@ -50,19 +54,27 @@ interface ProfileContextType {
   currentProfile: Profile;
   setCurrentProfile: (profile: Profile) => void;
   availableProfiles: Profile[];
+  addProfile: (profile: Profile) => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
+  const [profilesList, setProfilesList] = useState<Profile[]>(profiles);
   const [currentProfile, setCurrentProfile] = useState<Profile>(profiles[0]);
+
+  const addProfile = (profile: Profile) => {
+    setProfilesList((prevProfiles) => [...prevProfiles, profile]);
+    toast.success("New profile created successfully!");
+  };
 
   return (
     <ProfileContext.Provider
       value={{
         currentProfile,
         setCurrentProfile,
-        availableProfiles: profiles
+        availableProfiles: profilesList,
+        addProfile
       }}
     >
       {children}

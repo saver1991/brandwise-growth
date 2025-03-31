@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,6 +37,8 @@ import ProfilePage from "./pages/account/ProfilePage";
 import SecurityPage from "./pages/account/SecurityPage";
 import BillingPage from "./pages/account/BillingPage";
 import SettingsPage from "./pages/account/SettingsPage";
+import NewProfilePage from "./pages/profiles/NewProfilePage";
+import ProfilesPage from "./pages/profiles/ProfilesPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -90,6 +93,9 @@ function App() {
                 <Route path="/account/security" element={<SecurityPage />} />
                 <Route path="/account/billing" element={<BillingPage />} />
                 <Route path="/account/settings" element={<SettingsPage />} />
+                
+                <Route path="/profiles/new" element={<NewProfilePage />} />
+                <Route path="/profiles" element={<ProfilesPage />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

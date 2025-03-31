@@ -15,7 +15,9 @@ import {
   Settings, 
   CreditCard, 
   Lock, 
-  User 
+  User,
+  UserPlus,
+  Users
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,6 +70,21 @@ const ProfileSwitcher = () => {
             </div>
           </DropdownMenuItem>
         ))}
+        
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profiles/new')}>
+          <div className="flex items-center gap-2 text-primary">
+            <UserPlus className="h-4 w-4" />
+            <span>Create New Profile</span>
+          </div>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profiles')}>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>Manage All Profiles</span>
+          </div>
+        </DropdownMenuItem>
+        
         <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/profile")}>
           <User className="mr-2 h-4 w-4" />
