@@ -2,7 +2,7 @@
 import { ContentIdea } from "@/types/ContentIdea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Linkedin, MessageSquare, Twitter, Instagram, Globe, Pinterest } from "lucide-react";
+import { Plus, Edit, Linkedin, MessageSquare, Twitter, Instagram, Globe, Share2 } from "lucide-react";
 
 interface ContentIdeasProps {
   ideas: ContentIdea[];
@@ -24,7 +24,7 @@ const ContentIdeas: React.FC<ContentIdeasProps> = ({ ideas, onGenerateMore, onEd
       case 'wordpress':
         return <Globe className="h-4 w-4 text-[#21759B]" />;
       case 'pinterest':
-        return <Pinterest className="h-4 w-4 text-[#E60023]" />;
+        return <Share2 className="h-4 w-4 text-[#E60023]" />;
       default:
         return null;
     }

@@ -107,6 +107,7 @@ const Dashboard = () => {
         ...currentEditIdea,
         ...data,
         id: currentEditIdea.id,
+        platform: data.platform as ContentIdea["platform"],
         score: updatedScore
       };
       
@@ -128,7 +129,7 @@ const Dashboard = () => {
         feedback: data.score?.feedback || "New content idea created."
       };
       
-      const platform = data.platform as "linkedin" | "medium" | "wordpress" | "twitter" | "instagram" | "pinterest";
+      const platform = data.platform as ContentIdea["platform"];
       
       const newIdea: ContentIdea = {
         id: Date.now(),
