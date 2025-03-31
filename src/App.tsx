@@ -20,6 +20,7 @@ import Calendar from "@/pages/Calendar";
 import Audience from "@/pages/Audience";
 import Analytics from "@/pages/Analytics";
 import Ideas from "@/pages/Ideas";
+import Onboarding from "@/pages/Onboarding"; // Add this import
 
 // Account pages
 import ProfilePage from "@/pages/account/ProfilePage";
@@ -48,6 +49,9 @@ function App() {
               {/* Dashboard routes - both root and /dashboard point to the same component */}
               <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
               <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              
+              {/* Onboarding route */}
+              <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
               
               {/* Profile routes */}
               <Route path="/profiles" element={<PrivateRoute><ProfilesPage /></PrivateRoute>} />

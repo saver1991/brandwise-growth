@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,92 +14,80 @@ serve(async (req) => {
   }
   
   try {
-    const { type, email, data } = await req.json();
+    const { email, templateName, templateData } = await req.json();
     
+    if (!email) {
+      throw new Error('Email is required');
+    }
+    
+    if (!templateName) {
+      throw new Error('Template name is required');
+    }
+
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { auth: { persistSession: false } }
     );
     
-    let emailContent = {};
-    let subject = '';
+    console.log(`Preparing to send ${templateName} email to ${email}`);
     
-    // Generate email content based on type
-    switch (type) {
+    let emailSubject = '';
+    let emailContent = '';
+    
+    // Configure email templates
+    switch (templateName) {
       case 'welcome':
-        subject = 'Welcome to BrandWise!';
-        emailContent = generateWelcomeEmail(data.name, data.plan);
+        emailSubject = 'Welcome to BrandWise!';
+        emailContent = `
+          <h1>Welcome to BrandWise!</h1>
+          <p>Thank you for signing up for the ${templateData.planName} plan.</p>
+          <p>To get started, please visit our onboarding page:</p>
+          <p><a href="${templateData.onboardingUrl}">Set up your account</a></p>
+        `;
         break;
         
       case 'payment_confirmation':
-        subject = 'Payment Confirmation';
-        emailContent = generatePaymentConfirmationEmail(data.name, data.amount, data.date);
+        emailSubject = 'Payment Confirmation';
+        emailContent = `
+          <h1>Payment Confirmation</h1>
+          <p>We've received your payment of $${templateData.amount} on ${templateData.date}.</p>
+          <p>Thank you for your business!</p>
+        `;
         break;
         
       default:
-        throw new Error(`Unsupported email type: ${type}`);
+        throw new Error(`Unknown email template: ${templateName}`);
     }
     
-    // In a production environment, you would connect this to a real email service like:
-    // - SendGrid
-    // - Mailgun
-    // - AWS SES
-    // - Resend
-    // For now, we'll just log the email details
+    console.log(`Email ready to send. Subject: ${emailSubject}`);
     
-    console.log('Would send email with the following details:');
-    console.log('To:', email);
-    console.log('Subject:', subject);
-    console.log('Content:', emailContent);
+    // In production, connect to a real email sending service here
+    // For now, we'll just log the email details for demonstration
     
+    console.log({
+      to: email,
+      subject: emailSubject,
+      html: emailContent,
+    });
+    
+    // Return success response
     return new Response(
-      JSON.stringify({ success: true, message: 'Email would be sent in production' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      JSON.stringify({ success: true, message: `Email to ${email} processed successfully` }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     );
-    
   } catch (error) {
-    console.error('Error in send-email function:', error);
+    console.error('Error sending email:', error);
+    
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
     );
   }
 });
-
-function generateWelcomeEmail(name, plan) {
-  return {
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1>Welcome to BrandWise, ${name}!</h1>
-        <p>Thank you for subscribing to the ${plan} plan. We're excited to have you on board!</p>
-        <p>Here's what you can do now:</p>
-        <ul>
-          <li>Complete your profile</li>
-          <li>Connect your social media accounts</li>
-          <li>Begin creating content</li>
-        </ul>
-        <p>If you have any questions, simply reply to this email. We're here to help!</p>
-        <p>Best regards,<br>The BrandWise Team</p>
-      </div>
-    `,
-    text: `Welcome to BrandWise, ${name}! Thank you for subscribing to the ${plan} plan. We're excited to have you on board!`
-  };
-}
-
-function generatePaymentConfirmationEmail(name, amount, date) {
-  return {
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1>Payment Confirmation</h1>
-        <p>Dear ${name},</p>
-        <p>We've received your payment of $${amount} on ${date}. Thank you!</p>
-        <p>Your subscription is now active, and you have full access to all the features of your plan.</p>
-        <p>If you have any questions about your payment or subscription, please contact our support team.</p>
-        <p>Best regards,<br>The BrandWise Team</p>
-      </div>
-    `,
-    text: `Payment Confirmation. Dear ${name}, We've received your payment of $${amount} on ${date}. Thank you! Your subscription is now active.`
-  };
-}

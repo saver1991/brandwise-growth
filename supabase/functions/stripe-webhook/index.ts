@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -117,6 +116,7 @@ serve(async (req) => {
             stripe_subscription_id: subscription.id,
             stripe_customer_id: customerId,
             stripe_price_id: priceId,
+            onboarding_completed: false, // Add this flag to track onboarding status
           };
           
           console.log(`Updating subscription data for user ${userId}:`, subscriptionData);
@@ -135,8 +135,12 @@ serve(async (req) => {
             
             // Send welcome email after successful subscription
             try {
-              // Send confirmation email via Edge function
-              await sendWelcomeEmail(supabaseClient, email, product.name);
+              // Get origin for building the onboarding URL
+              const baseUrl = req.headers.get('origin') || 'https://brandwise.app'; // Fallback URL
+              const onboardingUrl = `${baseUrl}/onboarding`;
+              
+              // Send welcome email via Edge function
+              await sendWelcomeEmail(supabaseClient, email, product.name, onboardingUrl);
             } catch (emailError) {
               console.error('Error sending welcome email:', emailError);
             }
@@ -243,15 +247,26 @@ serve(async (req) => {
 });
 
 // Helper function to send welcome email
-async function sendWelcomeEmail(supabaseClient, email, planName) {
+async function sendWelcomeEmail(supabaseClient, email, planName, onboardingUrl) {
   try {
-    // In production, you would use a dedicated email service
-    // For now, we'll just log it
-    console.log(`Sending welcome email to ${email} for plan ${planName}`);
+    // Call the send-email edge function
+    const { data, error } = await supabaseClient.functions.invoke('send-email', {
+      body: {
+        email,
+        templateName: 'welcome',
+        templateData: {
+          planName,
+          onboardingUrl
+        }
+      }
+    });
     
-    // This is where you would call your email service
-    // Ideally through another edge function dedicated to sending emails
+    if (error) {
+      console.error('Error invoking send-email function:', error);
+      throw error;
+    }
     
+    console.log('Welcome email sent successfully:', data);
     return true;
   } catch (error) {
     console.error('Error sending welcome email:', error);

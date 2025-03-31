@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
@@ -75,8 +74,7 @@ const Register = () => {
     try {
       console.log("Checking if email exists:", email);
       
-      // Use the signInWithOtp method to check if email exists
-      // This method will return User not found error for non-existent emails
+      // First try to get user by email to check if it exists
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -86,19 +84,21 @@ const Register = () => {
       
       console.log("Check email response:", { data, error });
       
-      // If there's an error with message "User not found", the email doesn't exist
-      if (error && error.message === "User not found") {
-        // Clear any existing email error
-        setEmailError("");
-        return false;
+      // If there's an error with message containing "User not found", 
+      // then the email doesn't exist in the system
+      if (error && error.message.includes("User not found")) {
+        setEmailError(""); // Clear any existing email error
+        return false; // Email doesn't exist, good for registration
       }
       
-      // If there's no error or the error is not "User not found",
-      // then the email already exists
+      // If we don't get a "User not found" error, 
+      // then the email already exists in the system
       setEmailError("This email is already registered. Please login instead.");
-      return true;
+      return true; // Email exists, can't use for registration
     } catch (err) {
       console.error("Error checking email:", err);
+      // On error, assume email doesn't exist to not block registration flow
+      setEmailError("");
       return false;
     }
   };
@@ -153,7 +153,10 @@ const Register = () => {
       
       // Call our Supabase Edge Function to create a checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId }
+        body: { 
+          priceId,
+          successUrl: `${window.location.origin}/onboarding` // Direct to onboarding after successful payment
+        }
       });
       
       if (error) {
@@ -175,8 +178,8 @@ const Register = () => {
         variant: "destructive",
       });
       
-      // Navigate to dashboard anyway so they're not stuck
-      navigate("/dashboard");
+      // Navigate to onboarding anyway so they're not stuck
+      navigate("/onboarding");
     }
   };
 

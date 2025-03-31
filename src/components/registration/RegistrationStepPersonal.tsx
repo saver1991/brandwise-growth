@@ -56,12 +56,12 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // If email validation is required, run it first
+    // If email validation is required and an email was provided
     if (checkEmailExists && values.email) {
       const exists = await checkEmailExists(values.email);
+      // Only stop submission if email exists (true)
       if (exists) {
-        // Email validation will be handled by parent component showing error
-        return;
+        return; // Stop form submission if email exists
       }
     }
     
