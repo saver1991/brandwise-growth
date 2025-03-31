@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Linkedin, TrendingUp, Users, MessageSquare, Award, Calendar } from "lucide-react";
+import { Linkedin, TrendingUp, Users, MessageSquare, Award, Calendar, Link2, ExternalLink } from "lucide-react";
+import { linkedinService } from "@/services/linkedinService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const performanceData = [
   { date: "Jun 1", followers: 2450, engagement: 3.2, posts: 2 },
@@ -48,6 +53,102 @@ const topPerformingPosts = [
 ];
 
 const LinkedInPage = () => {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string>("");
+  
+  useEffect(() => {
+    const checkLinkedInConnection = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setUserId(user.id);
+          
+          // Check if LinkedIn is connected
+          const connected = await linkedinService.isConnected(user.id);
+          setIsConnected(connected);
+          
+          if (connected) {
+            // Get tokens to fetch profile
+            const tokens = await linkedinService.getTokens(user.id);
+            
+            if (tokens) {
+              const profile = await linkedinService.getProfile(tokens.access_token);
+              
+              if (profile) {
+                setProfileName(`${profile.localizedFirstName} ${profile.localizedLastName}`);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking LinkedIn connection:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkLinkedInConnection();
+  }, []);
+  
+  const handleConnect = () => {
+    // Redirect to LinkedIn authorization
+    window.location.href = linkedinService.getAuthUrl();
+  };
+  
+  const handleDisconnect = async () => {
+    if (!userId) return;
+    
+    try {
+      setIsLoading(true);
+      const disconnected = await linkedinService.disconnect(userId);
+      
+      if (disconnected) {
+        setIsConnected(false);
+        setProfileName("");
+      }
+    } catch (error) {
+      console.error("Error disconnecting LinkedIn:", error);
+      toast.error("Failed to disconnect LinkedIn account");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handlePostToLinkedIn = async () => {
+    if (!userId) return;
+    
+    try {
+      const tokens = await linkedinService.getTokens(userId);
+      
+      if (!tokens) {
+        toast.error("LinkedIn connection not found");
+        return;
+      }
+      
+      // For demonstration, we'll create a simple post
+      // In a real implementation, this would show a dialog to compose content or use existing content
+      const success = await linkedinService.sharePost(
+        tokens.access_token,
+        "your-linkedin-id", // This would come from the profile info
+        "Excited to share insights on design systems and product development! Check out my latest thoughts on this evolving field. #DesignSystems #ProductDevelopment #UX",
+        "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=800&auto=format&fit=crop&q=80"
+      );
+      
+      if (success) {
+        toast.success("Post shared to LinkedIn successfully!");
+      }
+    } catch (error) {
+      console.error("Error posting to LinkedIn:", error);
+      toast.error("Failed to share post to LinkedIn");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -61,10 +162,62 @@ const LinkedInPage = () => {
                 Optimize your LinkedIn presence and engagement
               </p>
             </div>
-            <Button className="bg-[#0077B5] hover:bg-[#0077B5]/90">
-              <Linkedin className="mr-1 h-4 w-4" /> Post to LinkedIn
-            </Button>
+            
+            {isConnected ? (
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleDisconnect}
+                  disabled={isLoading}
+                >
+                  <Link2 className="mr-1 h-4 w-4" /> Disconnect
+                </Button>
+                <Button 
+                  className="bg-[#0077B5] hover:bg-[#0077B5]/90"
+                  onClick={handlePostToLinkedIn}
+                  disabled={isLoading}
+                >
+                  <Linkedin className="mr-1 h-4 w-4" /> Post to LinkedIn
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                className="bg-[#0077B5] hover:bg-[#0077B5]/90"
+                onClick={handleConnect}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>Loading...</>
+                ) : (
+                  <>
+                    <Linkedin className="mr-1 h-4 w-4" /> Connect LinkedIn
+                  </>
+                )}
+              </Button>
+            )}
           </div>
+          
+          {isConnected && profileName && (
+            <Alert className="bg-[#0077B5]/10 border-[#0077B5]/20">
+              <div className="flex items-center">
+                <Linkedin className="h-5 w-5 text-[#0077B5] mr-2" />
+                <AlertDescription>
+                  Connected as <strong>{profileName}</strong>
+                </AlertDescription>
+              </div>
+            </Alert>
+          )}
+          
+          {!isConnected && !isLoading && (
+            <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/30">
+              <div className="flex items-center">
+                <ExternalLink className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
+                <AlertDescription>
+                  Connect your LinkedIn account to enable direct posting and analytics tracking
+                </AlertDescription>
+              </div>
+            </Alert>
+          )}
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="bg-gradient-to-br from-card to-[#0077B5]/5 card-hover">
