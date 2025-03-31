@@ -1,9 +1,10 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RegistrationFormData } from "@/types/registration";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface RegistrationStepConfirmationProps {
   formData: RegistrationFormData;
@@ -18,6 +19,8 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
   onSubmit,
   isSubmitting
 }) => {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  
   const renderSection = (title: string, items: { label: string; value: string }[]) => (
     <div className="mb-6">
       <h3 className="font-medium text-sm text-muted-foreground mb-2">{title}</h3>
@@ -44,9 +47,21 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
   };
 
   const handleSubmit = async () => {
-    // This returns the user ID if registration is successful
-    const userId = await onSubmit();
-    // The onSubmit function handles the redirect to Stripe checkout
+    try {
+      setSubmitError(null);
+      // This returns the user ID if registration is successful
+      const userId = await onSubmit();
+      
+      // If userId is null, registration failed and onSubmit would have shown an error already
+      if (!userId) {
+        console.error("Registration failed - no userId returned");
+      }
+      // The redirect to Stripe checkout is handled in the onSubmit function
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setSubmitError("An unexpected error occurred. Please try again.");
+      toast.error("Failed to complete registration");
+    }
   };
 
   return (
@@ -66,17 +81,19 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
       ])}
       
       {renderSection("Billing Information", [
-        { label: "Payment Method", value: formData.billing.paymentMethod === "creditCard" 
-          ? "Credit Card" 
-          : formData.billing.paymentMethod === "paypal" 
-            ? "PayPal" 
-            : formData.billing.paymentMethod },
+        { label: "Payment Method", value: "Credit Card (via Stripe)" },
         { label: "Country", value: formData.billing.country },
         { label: "Address", value: formData.billing.address },
         { label: "City", value: formData.billing.city },
         { label: "State/Province", value: formData.billing.state },
         { label: "ZIP/Postal Code", value: formData.billing.zipCode },
       ])}
+      
+      {submitError && (
+        <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
+          {submitError}
+        </div>
+      )}
       
       <div className="flex justify-between mt-6">
         <Button type="button" variant="outline" onClick={onBack}>

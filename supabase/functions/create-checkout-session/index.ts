@@ -55,6 +55,8 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
+    console.log('Creating checkout session with price ID:', priceId);
+    
     // Check if customer already exists
     const customers = await stripe.customers.list({
       email: email,
@@ -65,6 +67,7 @@ serve(async (req) => {
     
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      console.log('Found existing customer:', customerId);
       
       // Check if already subscribed
       const subscriptions = await stripe.subscriptions.list({
@@ -78,8 +81,6 @@ serve(async (req) => {
         throw new Error("Customer already has an active subscription for this plan");
       }
     }
-
-    console.log('Creating checkout session with price ID:', priceId);
     
     // Get the origin or use the provided URLs
     const origin = req.headers.get('origin') || 'https://brandwise.app';

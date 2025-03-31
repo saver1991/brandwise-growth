@@ -4,7 +4,8 @@ import { RegistrationFormData } from "@/types/registration";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { checkEmailExists, saveUserProfile, createStripeCheckout } from "@/services/registrationService";
+import { checkEmailExists, saveUserProfile, createStripeCheckout, sendWelcomeEmail } from "@/services/registrationService";
+import { toast } from "sonner";
 
 const initialFormData: RegistrationFormData = {
   personal: {
@@ -37,7 +38,7 @@ const initialFormData: RegistrationFormData = {
 export const useRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegistrationFormData>(initialFormData);
-  const { toast } = useToast();
+  const { toast: hookToast } = useToast();
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,6 +92,8 @@ export const useRegistration = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Starting registration process");
+      
       // Validate email one more time before submission
       const isEmailUnique = !(await checkEmailExists(formData.personal.email));
       if (!isEmailUnique) {
@@ -98,6 +101,8 @@ export const useRegistration = () => {
         setIsSubmitting(false);
         return null;
       }
+      
+      console.log("Email validation passed, creating user account");
       
       // Sign up the user
       const { data, error } = await signUp(
@@ -109,35 +114,41 @@ export const useRegistration = () => {
       );
       
       if (error) {
-        toast({
-          title: "Registration failed",
-          description: error.message || "Something went wrong during registration",
-          variant: "destructive",
-        });
+        toast.error("Registration failed: " + (error.message || "Something went wrong"));
+        console.error("Registration error:", error);
         setIsSubmitting(false);
         return null;
       }
       
       if (data?.user) {
+        console.log("User created successfully, saving profile data");
+        
+        // Save additional user profile information
         await saveUserProfile(data.user.id, formData);
         
-        toast({
-          title: "Account created successfully!",
-          description: "Redirecting to payment...",
-        });
+        toast.success("Account created! Redirecting to payment...");
+        
+        // Send welcome email (don't await this, let it happen in the background)
+        sendWelcomeEmail(formData.personal.email, formData.plan.selectedPlan)
+          .then(() => console.log("Welcome email sent"))
+          .catch(err => console.error("Error sending welcome email:", err));
+        
+        console.log("Proceeding to Stripe checkout");
         
         // Proceed to Stripe checkout
-        await createStripeCheckout(data.user.id, formData.plan.selectedPlan, formData.plan.billingCycle);
+        await createStripeCheckout(
+          data.user.id, 
+          formData.plan.selectedPlan, 
+          formData.plan.billingCycle
+        );
+        
         return data.user.id;
       }
       
       return null;
     } catch (error: any) {
-      toast({
-        title: "Registration failed",
-        description: error?.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
+      console.error("Registration process error:", error);
+      toast.error(error?.message || "An unexpected error occurred");
       setIsSubmitting(false);
       return null;
     }
