@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfile, Profile } from "@/contexts/ProfileContext";
@@ -34,7 +33,6 @@ import {
 } from "lucide-react";
 import { aiGenerationService } from "@/services/aiGenerationService";
 
-// Define all available integrations
 const AVAILABLE_INTEGRATIONS = [
   { 
     id: "facebook",
@@ -108,7 +106,6 @@ const AVAILABLE_INTEGRATIONS = [
   }
 ];
 
-// Base tag suggestions
 const BASE_TAG_SUGGESTIONS = [
   { label: "Business", bgColor: "bg-blue-500/10", textColor: "text-blue-500" },
   { label: "Marketing", bgColor: "bg-green-500/10", textColor: "text-green-500" },
@@ -122,7 +119,6 @@ const BASE_TAG_SUGGESTIONS = [
   { label: "Photography", bgColor: "bg-emerald-500/10", textColor: "text-emerald-500" },
 ];
 
-// Additional tags that might be suggested based on user input
 const ADDITIONAL_TAGS = [
   { label: "Social Media", bgColor: "bg-blue-500/10", textColor: "text-blue-500" },
   { label: "Content Creation", bgColor: "bg-green-500/10", textColor: "text-green-500" },
@@ -155,7 +151,6 @@ const NewProfilePage = () => {
   const [customTagInput, setCustomTagInput] = useState("");
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
   
-  // Profile form state
   const [profileForm, setProfileForm] = useState({
     name: "",
     role: "",
@@ -163,24 +158,17 @@ const NewProfilePage = () => {
     selectedTags: [] as string[]
   });
   
-  // Integration state
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
 
-  // Suggested tags state based on profile data
   const [suggestedTags, setSuggestedTags] = useState(BASE_TAG_SUGGESTIONS);
 
-  // Generate tag suggestions based on profile information
   useEffect(() => {
     if (profileForm.name || profileForm.role || profileForm.description) {
-      // Simulate AI analyzing the content and suggesting relevant tags
       const combinedText = `${profileForm.name} ${profileForm.role} ${profileForm.description}`.toLowerCase();
       
-      // Add base tags first
       const newSuggestions = [...BASE_TAG_SUGGESTIONS];
       
-      // Add relevant additional tags based on keywords found in the profile text
       ADDITIONAL_TAGS.forEach(tag => {
-        // Only add tags that aren't already in the suggestions
         if (!newSuggestions.some(t => t.label === tag.label)) {
           const shouldAdd = matchTagToContent(tag.label, combinedText);
           if (shouldAdd) {
@@ -193,7 +181,6 @@ const NewProfilePage = () => {
     }
   }, [profileForm.name, profileForm.role, profileForm.description]);
 
-  // Simple keyword matching function
   const matchTagToContent = (tagLabel: string, content: string): boolean => {
     const keywords = {
       'Social Media': ['social', 'media', 'content', 'post', 'engagement', 'followers'],
@@ -255,12 +242,9 @@ const NewProfilePage = () => {
     
     setIsEnhancingDescription(true);
     
-    // Simulate AI enhancing the description
     setTimeout(() => {
-      // Create a more professional version of the description
       const enhancedDescription = improveDescription(profileForm.description, profileForm.role);
       
-      // Update the form with enhanced description
       setProfileForm(prev => ({
         ...prev,
         description: enhancedDescription
@@ -270,17 +254,12 @@ const NewProfilePage = () => {
       toast.success("Profile description enhanced!");
     }, 1500);
   };
-  
-  // Function to improve description with AI
+
   const improveDescription = (description: string, role: string): string => {
-    // This is a simple simulation of AI enhancement
-    // In a real implementation, this would call an API like OpenAI
     if (!description) return "";
     
-    // Add professional tone and language
     let enhanced = description;
     
-    // Add industry-specific terminology based on role
     if (role.toLowerCase().includes("market")) {
       enhanced = `With extensive experience in strategic marketing and brand development, ${enhanced} Specializing in data-driven approaches to maximize ROI and brand visibility.`;
     } else if (role.toLowerCase().includes("tech") || role.toLowerCase().includes("develop")) {
@@ -293,7 +272,6 @@ const NewProfilePage = () => {
       enhanced = `As an accomplished ${role}, ${enhanced} Committed to delivering exceptional results and driving continuous improvement.`;
     }
     
-    // Make sure it's not too long
     if (enhanced.length > 500) {
       enhanced = enhanced.substring(0, 497) + "...";
     }
@@ -301,22 +279,59 @@ const NewProfilePage = () => {
     return enhanced;
   };
 
+  const suggestTags = () => {
+    const prevTags = [...profileForm.selectedTags];
+    setProfileForm(prev => ({
+      ...prev,
+      selectedTags: []
+    }));
+    
+    setTimeout(() => {
+      const combinedText = `${profileForm.name} ${profileForm.role} ${profileForm.description}`.toLowerCase();
+      
+      const aiSuggestedTags: string[] = [];
+      
+      BASE_TAG_SUGGESTIONS.forEach(tag => {
+        if (matchTagToContent(tag.label, combinedText)) {
+          aiSuggestedTags.push(tag.label);
+        }
+      });
+      
+      ADDITIONAL_TAGS.forEach(tag => {
+        if (!aiSuggestedTags.includes(tag.label) && matchTagToContent(tag.label, combinedText)) {
+          aiSuggestedTags.push(tag.label);
+        }
+      });
+      
+      while (aiSuggestedTags.length < 3) {
+        const randomIndex = Math.floor(Math.random() * BASE_TAG_SUGGESTIONS.length);
+        const randomTag = BASE_TAG_SUGGESTIONS[randomIndex].label;
+        if (!aiSuggestedTags.includes(randomTag)) {
+          aiSuggestedTags.push(randomTag);
+        }
+      }
+      
+      setProfileForm(prev => ({
+        ...prev,
+        selectedTags: aiSuggestedTags.slice(0, 5)
+      }));
+      
+      toast.success("AI has suggested relevant tags for your profile!");
+    }, 1500);
+  };
+
   const connectIntegration = (integrationId: string) => {
-    // Set to connecting state
     setConnectionStates(prev => ({
       ...prev,
       [integrationId]: "connecting"
     }));
 
-    // Simulate connection process
     setTimeout(() => {
-      // Update to connected state
       setConnectionStates(prev => ({
         ...prev,
         [integrationId]: "connected"
       }));
       
-      // Add to selected integrations
       setSelectedIntegrations(prev => {
         if (!prev.includes(integrationId)) {
           toast.success(`Connected to ${AVAILABLE_INTEGRATIONS.find(i => i.id === integrationId)?.name}`);
@@ -324,7 +339,7 @@ const NewProfilePage = () => {
         }
         return prev;
       });
-    }, 1500); // Simulate a 1.5 second connection time
+    }, 1500);
   };
 
   const nextStep = () => {
@@ -351,13 +366,11 @@ const NewProfilePage = () => {
     setIsSubmitting(true);
     
     try {
-      // Generate initials for the fallback
       const nameParts = profileForm.name.split(" ");
       const fallback = nameParts.length > 1 
         ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}` 
         : profileForm.name.substring(0, 2);
       
-      // Create the new profile object
       const newProfile: Profile = {
         id: `profile-${Date.now()}`,
         name: profileForm.name,
@@ -383,7 +396,6 @@ const NewProfilePage = () => {
     }
   };
 
-  // Render different steps based on currentStep
   const renderStepContent = () => {
     switch(currentStep) {
       case "profile":
@@ -415,19 +427,19 @@ const NewProfilePage = () => {
             
             <div className="space-y-2">
               <Label htmlFor="description" className="text-base font-medium">Profile Description</Label>
-              <div className="relative">
-                <Textarea 
-                  id="description" 
-                  name="description"
-                  placeholder="Describe the purpose and goals of this profile" 
-                  value={profileForm.description}
-                  onChange={handleProfileChange}
-                  className="text-base h-32"
-                />
+              <Textarea 
+                id="description" 
+                name="description"
+                placeholder="Describe the purpose and goals of this profile" 
+                value={profileForm.description}
+                onChange={handleProfileChange}
+                className="text-base h-32"
+              />
+              <div className="flex justify-end">
                 <Button 
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 gap-1"
+                  className="gap-1"
                   onClick={enhanceProfileDescription}
                   disabled={isEnhancingDescription || !profileForm.description}
                 >
@@ -444,9 +456,15 @@ const NewProfilePage = () => {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label className="text-base font-medium">Tags</Label>
-                <div className="text-sm text-muted-foreground italic">
-                  AI-suggested based on your profile
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  onClick={suggestTags}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Suggest Tags with AI
+                </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {suggestedTags.map((tag) => (
