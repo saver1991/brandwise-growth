@@ -1,6 +1,6 @@
-
 import { useEffect } from "react";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 
 const Terms = () => {
   useEffect(() => {
@@ -11,7 +11,7 @@ const Terms = () => {
     <div className="flex min-h-screen flex-col">
       <AuthHeader />
       
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8 gradient-heading text-center">Terms and Conditions</h1>
         <div className="prose prose-lg max-w-none">
           <p className="text-muted-foreground mb-6">
@@ -116,6 +116,8 @@ const Terms = () => {
           </section>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

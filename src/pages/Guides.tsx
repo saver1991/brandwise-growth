@@ -1,7 +1,7 @@
-
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, FileText, Users, TrendingUp, Calendar, Youtube, Linkedin } from "lucide-react";
@@ -216,6 +216,8 @@ const Guides = () => {
           </div>
         </section>
       </div>
+      
+      <Footer />
     </div>
   );
 };

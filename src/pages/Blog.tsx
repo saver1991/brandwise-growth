@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, Calendar, User, Tag } from "lucide-react";
@@ -178,6 +179,8 @@ const Blog = () => {
           </div>
         </section>
       </div>
+      
+      <Footer />
     </div>
   );
 };

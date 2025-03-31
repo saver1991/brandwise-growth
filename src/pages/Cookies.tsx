@@ -1,17 +1,17 @@
-
 import { useEffect } from "react";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 
 const Cookies = () => {
   useEffect(() => {
-    document.title = "Cookie Policy | BrandWise";
+    document.title = "Cookies Policy | BrandWise";
   }, []);
 
   return (
     <div className="flex min-h-screen flex-col">
       <AuthHeader />
       
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8 gradient-heading text-center">Cookie Policy</h1>
         <div className="prose prose-lg max-w-none">
           <p className="text-muted-foreground mb-6">
@@ -108,6 +108,8 @@ const Cookies = () => {
           </section>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

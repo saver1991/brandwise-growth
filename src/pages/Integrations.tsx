@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -221,6 +222,8 @@ const Integrations = () => {
           <Button size="lg">Contact Us</Button>
         </section>
       </div>
+
+      <Footer />
     </div>
   );
 };
