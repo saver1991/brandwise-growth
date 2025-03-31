@@ -1,4 +1,3 @@
-
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BillingInfo } from "@/types/registration";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Wallet, Building, ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 interface RegistrationStepBillingProps {
   data: BillingInfo;
@@ -19,7 +17,6 @@ interface RegistrationStepBillingProps {
 }
 
 const formSchema = z.object({
-  paymentMethod: z.enum(["creditCard", "paypal", "bankTransfer", "googlePay", "applePay", "amazonPay"]),
   country: z.string().min(2, "Country is required"),
   address: z.string().min(5, "Address is required"),
   city: z.string().min(2, "City is required"),
@@ -59,6 +56,21 @@ const countries = [
   { code: "PL", name: "Poland" },
   { code: "PT", name: "Portugal" },
   { code: "GR", name: "Greece" },
+  { code: "IE", name: "Ireland" },
+  { code: "HU", name: "Hungary" },
+  { code: "CZ", name: "Czech Republic" },
+  { code: "RO", name: "Romania" },
+  { code: "BG", name: "Bulgaria" },
+  { code: "HR", name: "Croatia" },
+  { code: "SK", name: "Slovakia" },
+  { code: "SI", name: "Slovenia" },
+  { code: "LT", name: "Lithuania" },
+  { code: "LV", name: "Latvia" },
+  { code: "EE", name: "Estonia" },
+  { code: "CY", name: "Cyprus" },
+  { code: "MT", name: "Malta" },
+  { code: "LU", name: "Luxembourg" },
+  { code: "IS", name: "Iceland" },
 ];
 
 const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
@@ -70,7 +82,6 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      paymentMethod: data.paymentMethod,
       country: data.country,
       address: data.address,
       city: data.city,
@@ -79,59 +90,23 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
     },
   });
 
-  const watchPaymentMethod = form.watch("paymentMethod");
-
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    updateData(values);
+    updateData({
+      ...values,
+      paymentMethod: "creditCard"
+    });
     onNext();
   };
-
-  const paymentMethods = [
-    { id: "creditCard", name: "Credit Card", icon: <CreditCard className="h-5 w-5" /> },
-    { id: "paypal", name: "PayPal", icon: <Wallet className="h-5 w-5" /> },
-    { id: "bankTransfer", name: "Bank Transfer", icon: <Building className="h-5 w-5" /> },
-  ];
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium mb-3">Payment Method</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            Select your preferred payment method. You'll enter your payment details securely on the Stripe checkout page after completing registration.
-          </p>
-          <FormField
-            control={form.control}
-            name="paymentMethod"
-            render={() => (
-              <FormItem>
-                <FormControl>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {paymentMethods.map((method) => (
-                      <Card
-                        key={method.id}
-                        className={`cursor-pointer transition-all hover:border-primary/50 ${
-                          watchPaymentMethod === method.id
-                            ? "border-primary ring-1 ring-primary"
-                            : ""
-                        }`}
-                        onClick={() => form.setValue("paymentMethod", method.id as any)}
-                      >
-                        <CardContent className="flex items-center space-x-2 p-4">
-                          <div className="flex-shrink-0">{method.icon}</div>
-                          <span>{method.name}</span>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
-
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Billing Address</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Please enter your billing address. You'll enter your payment details securely on the Stripe checkout page after completing registration.
+          </p>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}

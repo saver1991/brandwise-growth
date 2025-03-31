@@ -16,10 +16,6 @@ export interface PlanInfo {
 
 export interface BillingInfo {
   paymentMethod: "creditCard" | "paypal" | "bankTransfer" | "googlePay" | "applePay" | "amazonPay";
-  cardholderName: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
   country: string;
   address: string;
   city: string;

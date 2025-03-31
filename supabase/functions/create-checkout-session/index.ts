@@ -51,21 +51,25 @@ serve(async (req) => {
       
       if (userError) {
         console.error("Error getting user:", userError);
+        throw new Error(`Authentication error: ${userError.message}`);
+      } else if (!userData.user) {
+        console.error("No user found with the provided token");
+        throw new Error("Authentication failed: No user found");
       } else {
-        userId = userData.user?.id;
-        email = userData.user?.email;
+        userId = userData.user.id;
+        email = userData.user.email;
         console.log("User email from auth:", email);
       }
     }
     
     // Get customer email from request body if not from auth
     if (!email && req.body) {
-      try {
-        const body = await req.json();
-        email = body.email;
+      const body = await req.json();
+      email = body.email;
+      if (email) {
         console.log("User email from request body:", email);
-      } catch (e) {
-        // No email in body, continue without it
+      } else {
+        throw new Error("No email provided. Cannot create checkout session.");
       }
     }
     

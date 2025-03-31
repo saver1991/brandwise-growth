@@ -92,16 +92,14 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
       }
     });
     
-    console.log("Stripe checkout response:", { data, error });
-    
     if (error) {
       console.error("Error invoking create-checkout-session:", error);
-      throw error;
+      throw new Error(`Failed to create checkout: ${error.message || 'Unknown error'}`);
     }
     
     if (!data?.url) {
       console.error("No checkout URL returned");
-      throw new Error('No checkout URL returned');
+      throw new Error('No checkout URL returned from Stripe');
     }
     
     console.log("Redirecting to Stripe checkout:", data.url);
