@@ -7,15 +7,24 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
   try {
     console.log("Checking if email exists:", email);
     
-    // Instead of using OTP, we'll use a more reliable method to check if email exists
-    const { data, error } = await supabase.auth.admin.getUserByEmail(email);
+    // Use signUp with a dummy password to check if the email exists
+    // If it returns an error about the email already being in use, the email exists
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: `${crypto.randomUUID()}Aa1!`, // Random secure password that won't be used
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
     
-    // If there's no error and we got user data, the email exists
-    if (!error && data) {
+    // If the error message indicates the account already exists, return true
+    if (error && error.message.toLowerCase().includes('already')) {
+      console.log("Email exists:", email);
       return true;
     }
     
-    // If the error is about the user not being found, or there's no data, the email doesn't exist
+    // If there's no error about existing account, the email doesn't exist
+    console.log("Email doesn't exist:", email);
     return false;
   } catch (err) {
     console.error("Error checking email:", err);
