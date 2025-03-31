@@ -1,9 +1,9 @@
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Facebook, 
   Instagram, 
@@ -17,8 +17,12 @@ import {
   Mail,
   BarChart4,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
+import { linkedinService } from "@/services/linkedinService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SOCIAL_INTEGRATIONS = [
   { 
@@ -235,12 +239,99 @@ const ALL_INTEGRATIONS = [
 ];
 
 const Integrations = () => {
+  const [linkedinStatus, setLinkedinStatus] = useState<{
+    isChecking: boolean;
+    isConnected: boolean;
+  }>({
+    isChecking: true,
+    isConnected: false
+  });
+  const navigate = useNavigate();
+  
   useEffect(() => {
     document.title = "Integrations | BrandWise";
+    checkLinkedInConnection();
   }, []);
+  
+  const checkLinkedInConnection = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLinkedinStatus({ isChecking: false, isConnected: false });
+        return;
+      }
+      
+      const isConnected = await linkedinService.isConnected(user.id);
+      setLinkedinStatus({ isChecking: false, isConnected });
+    } catch (error) {
+      console.error("Error checking LinkedIn connection:", error);
+      setLinkedinStatus({ isChecking: false, isConnected: false });
+    }
+  };
+  
+  const handleLinkedInConnect = async () => {
+    try {
+      const authUrl = await linkedinService.getAuthUrl();
+      if (authUrl) {
+        window.location.href = authUrl;
+      } else {
+        toast.error("Failed to initialize LinkedIn connection");
+      }
+    } catch (error) {
+      console.error("Error connecting to LinkedIn:", error);
+      toast.error("Failed to connect to LinkedIn");
+    }
+  };
+  
+  const handleViewLinkedIn = () => {
+    navigate("/linkedin");
+  };
 
-  // Integration Card Component
   const IntegrationCard = ({ integration }: { integration: typeof SOCIAL_INTEGRATIONS[0] }) => {
+    if (integration.id === "linkedin") {
+      return (
+        <Card key={integration.name} className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center mb-4">
+              <div className="mr-4">{integration.icon}</div>
+              <h3 className="text-xl font-bold">{integration.name}</h3>
+            </div>
+            <p className="text-muted-foreground mb-4">{integration.description}</p>
+            <h4 className="font-semibold mb-2">Key Features:</h4>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground mb-4">
+              {integration.features.map((feature, index) => (
+                <li key={index}>{feature}</li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              {linkedinStatus.isChecking ? (
+                <Button disabled className="w-full">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking connection...
+                </Button>
+              ) : linkedinStatus.isConnected ? (
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleViewLinkedIn} 
+                    className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90"
+                  >
+                    <Linkedin className="mr-2 h-4 w-4" /> View LinkedIn Dashboard
+                  </Button>
+                  <p className="text-xs text-center text-green-600">✓ Connected</p>
+                </div>
+              ) : (
+                <Button 
+                  onClick={handleLinkedInConnect} 
+                  className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90"
+                >
+                  <Linkedin className="mr-2 h-4 w-4" /> Connect LinkedIn
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Card key={integration.name} className="card-hover">
         <CardContent className="p-6">
