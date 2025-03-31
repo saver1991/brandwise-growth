@@ -19,7 +19,7 @@ import WordPressEditor from "./platform-editors/WordPressEditor";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ContentIdea } from "@/types/ContentIdea";
+import { ContentIdea, ContentScore as ContentScoreType } from "@/types/ContentIdea";
 import { useAuth } from "@/contexts/AuthContext";
 import { contentService } from "@/services/contentService";
 import { ContentPlatform, PLATFORM_FIELDS, PlatformContentFields } from "@/types/ContentData";
@@ -171,7 +171,7 @@ export function NewIdeaDialog({
       if (description && description.length > 10) {
         const contentScore = aiGenerationService.scoreContent(description, platform);
         
-        const validatedScore: ContentScore = {
+        const validatedScore: ContentScoreType = {
           overall: contentScore.overall || 70,
           breakdown: contentScore.breakdown || { "Content Quality": 70 },
           feedback: contentScore.feedback || "No feedback available"
@@ -287,7 +287,7 @@ export function NewIdeaDialog({
       setIsSaving(true);
 
       if (!data.score) {
-        const contentScore: ContentScore = {
+        const contentScore: ContentScoreType = {
           overall: 70,
           breakdown: { "Content Quality": 70 },
           feedback: "No score has been generated yet."
