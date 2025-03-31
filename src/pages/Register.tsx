@@ -74,6 +74,9 @@ const Register = () => {
   const checkEmailExists = async (email: string): Promise<boolean> => {
     try {
       console.log("Checking if email exists:", email);
+      
+      // Use the signInWithOtp method to check if email exists
+      // This method will return User not found error for non-existent emails
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -83,17 +86,17 @@ const Register = () => {
       
       console.log("Check email response:", { data, error });
       
-      // If there's no error or the error is not "User not found",
-      // then the email already exists
-      if (!error || (error && error.message !== "User not found")) {
-        console.log("Email exists, showing error");
-        setEmailError("This email is already registered. Please login instead.");
-        return true;
+      // If there's an error with message "User not found", the email doesn't exist
+      if (error && error.message === "User not found") {
+        // Clear any existing email error
+        setEmailError("");
+        return false;
       }
       
-      // Clear any existing email error
-      setEmailError("");
-      return false;
+      // If there's no error or the error is not "User not found",
+      // then the email already exists
+      setEmailError("This email is already registered. Please login instead.");
+      return true;
     } catch (err) {
       console.error("Error checking email:", err);
       return false;
