@@ -15,12 +15,16 @@ serve(async (req) => {
   }
   
   try {
+    console.log('Create checkout session request received');
+    
     // Get request body
     const { priceId } = await req.json();
     
     if (!priceId) {
       throw new Error('Price ID is required');
     }
+
+    console.log(`Creating checkout session for price ID: ${priceId}`);
 
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -31,18 +35,38 @@ serve(async (req) => {
     // Get the user from the request
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
+    
+    console.log('Authenticating user');
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
+      console.error('Authentication error:', userError);
       throw new Error('Unauthorized');
     }
     
     const user = userData.user;
-    const email = user.email;
+    
+    // Get user email from Supabase profile
+    console.log(`Looking up profile data for user: ${user.id}`);
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('email')
+      .eq('id', user.id)
+      .single();
+      
+    let email = user.email;
+    
+    // Use profile email if available, otherwise use auth email
+    if (!profileError && profileData?.email) {
+      email = profileData.email;
+    }
 
     if (!email) {
+      console.error('No email found for user');
       throw new Error('User email is required');
     }
+
+    console.log(`Using email for checkout: ${email}`);
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -50,6 +74,7 @@ serve(async (req) => {
     });
 
     // Check if the customer already exists
+    console.log(`Checking if customer exists with email: ${email}`);
     const customers = await stripe.customers.list({
       email,
       limit: 1
@@ -58,8 +83,10 @@ serve(async (req) => {
     let customer_id;
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id;
+      console.log(`Found existing customer: ${customer_id}`);
       
       // Check if customer is already subscribed to this price
+      console.log('Checking for active subscriptions');
       const subscriptions = await stripe.subscriptions.list({
         customer: customer_id,
         status: 'active',
@@ -68,11 +95,15 @@ serve(async (req) => {
       });
 
       if (subscriptions.data.length > 0) {
+        console.log('Customer already has an active subscription for this price');
         throw new Error('You already have an active subscription for this plan');
       }
+    } else {
+      console.log('No existing customer found, will create new one during checkout');
     }
 
     // Create Stripe checkout session
+    console.log('Creating checkout session');
     const session = await stripe.checkout.sessions.create({
       customer: customer_id,
       customer_email: customer_id ? undefined : email,
@@ -90,6 +121,8 @@ serve(async (req) => {
       },
     });
 
+    console.log(`Checkout session created: ${session.id}`);
+    
     return new Response(
       JSON.stringify({ url: session.url }),
       { 

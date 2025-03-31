@@ -48,6 +48,14 @@ const BillingPage = () => {
     
     // Fetch invoice history when component mounts
     fetchInvoiceHistory();
+    
+    // Log current subscription status for debugging
+    console.log('Current subscription state:', {
+      subscription,
+      isLoading,
+      error,
+      user
+    });
   }, [refreshSubscription, fetchInvoiceHistory]);
 
   const updatePaymentMethod = (newPaymentMethod: { type: "card"; last4: string; expiry: string }) => {

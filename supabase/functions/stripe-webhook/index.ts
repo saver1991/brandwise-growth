@@ -15,12 +15,14 @@ serve(async (req) => {
   }
   
   try {
+    console.log('Stripe webhook received');
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
     const signature = req.headers.get('stripe-signature');
     if (!signature) {
+      console.error('No Stripe signature found');
       throw new Error('No signature found');
     }
 
@@ -29,11 +31,15 @@ serve(async (req) => {
 
     try {
       // Verify webhook signature
+      const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
+      console.log(`Verifying webhook signature with secret: ${webhookSecret.substring(0, 3)}...`);
+      
       event = stripe.webhooks.constructEvent(
         body,
         signature,
-        Deno.env.get('STRIPE_WEBHOOK_SECRET') || ''
+        webhookSecret
       );
+      console.log(`Webhook verified: ${event.type}`);
     } catch (err) {
       console.error(`Webhook signature verification failed: ${err.message}`);
       return new Response(
@@ -49,11 +55,15 @@ serve(async (req) => {
     );
 
     // Handle the event
+    console.log(`Processing event type: ${event.type}`);
+    
     switch (event.type) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
         const subscription = event.data.object;
         const customerId = subscription.customer;
+        
+        console.log(`Processing subscription for customer: ${customerId}`);
         
         // Get customer details to find user email
         const customer = await stripe.customers.retrieve(customerId as string);
@@ -66,6 +76,8 @@ serve(async (req) => {
         const priceId = subscriptionItems[0].price.id;
         const productId = subscriptionItems[0].price.product;
         
+        console.log(`Subscription price ID: ${priceId}, product ID: ${productId}`);
+        
         const product = await stripe.products.retrieve(productId as string);
         
         // Find user by email or metadata
@@ -74,18 +86,23 @@ serve(async (req) => {
         
         if (subscription.metadata?.user_id) {
           userId = subscription.metadata.user_id;
-        } else {
+          console.log(`Found user ID in metadata: ${userId}`);
+        } else if (email) {
           // Try to find user by email
+          console.log(`Looking up user by email: ${email}`);
           const { data: userData, error: userError } = await supabaseClient
             .from('profiles')
             .select('id')
             .eq('email', email)
-            .single();
+            .maybeSingle();
             
-          if (userError || !userData) {
-            console.error('User not found with email:', email);
-          } else {
+          if (userError) {
+            console.error('Error finding user:', userError);
+          } else if (userData) {
             userId = userData.id;
+            console.log(`Found user by email: ${userId}`);
+          } else {
+            console.log('No user found with email:', email);
           }
         }
         
@@ -102,6 +119,8 @@ serve(async (req) => {
             stripe_price_id: priceId,
           };
           
+          console.log(`Updating subscription data for user ${userId}:`, subscriptionData);
+          
           const { error: updateError } = await supabaseClient
             .from('profiles')
             .update({
@@ -111,13 +130,19 @@ serve(async (req) => {
             
           if (updateError) {
             console.error('Error updating user subscription data:', updateError);
+          } else {
+            console.log('Successfully updated subscription data');
           }
+        } else {
+          console.error('Could not find a user to associate with this subscription');
         }
         break;
         
       case 'customer.subscription.deleted':
         const deletedSubscription = event.data.object;
         const deletedCustomerId = deletedSubscription.customer;
+        
+        console.log(`Processing deleted subscription for customer: ${deletedCustomerId}`);
         
         // Get customer details
         const deletedCustomer = await stripe.customers.retrieve(deletedCustomerId as string);
@@ -126,31 +151,52 @@ serve(async (req) => {
         }
         
         // Find user by customer ID
-        const { data: users, error: usersError } = await supabaseClient
+        console.log(`Looking for user with customer ID: ${deletedCustomerId}`);
+        const { data: usersByCustomerId, error: usersError } = await supabaseClient
           .from('profiles')
-          .select('id')
-          .eq('subscription_data->stripe_customer_id', deletedCustomerId)
-          .single();
+          .select('id, subscription_data')
+          .filter('subscription_data->stripe_customer_id', 'eq', deletedCustomerId)
+          .maybeSingle();
           
-        if (usersError || !users) {
-          console.error('User not found with customer ID:', deletedCustomerId);
-        } else {
+        if (usersError) {
+          console.error('Error finding user:', usersError);
+        } else if (usersByCustomerId) {
+          console.log(`Found user: ${usersByCustomerId.id}`);
           // Update user's subscription data
+          const updatedSubscriptionData = {
+            ...(usersByCustomerId.subscription_data || {}),
+            status: 'canceled',
+            stripe_subscription_id: deletedSubscription.id
+          };
+          
+          console.log(`Marking subscription as canceled for user ${usersByCustomerId.id}`);
+          
           const { error: updateError } = await supabaseClient
             .from('profiles')
             .update({
-              subscription_data: {
-                status: 'canceled',
-                stripe_subscription_id: deletedSubscription.id
-              }
+              subscription_data: updatedSubscriptionData
             })
-            .eq('id', users.id);
+            .eq('id', usersByCustomerId.id);
             
           if (updateError) {
             console.error('Error updating user subscription data:', updateError);
+          } else {
+            console.log('Successfully marked subscription as canceled');
           }
+        } else {
+          console.log('No user found with customer ID:', deletedCustomerId);
         }
         break;
+        
+      case 'invoice.created':
+      case 'invoice.paid':
+      case 'invoice.payment_failed':
+        console.log(`Received invoice event: ${event.type}`);
+        // These events could be handled to update payment history
+        break;
+        
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {

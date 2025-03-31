@@ -46,14 +46,17 @@ export function useSubscription() {
 
     try {
       setIsLoading(true);
+      console.log('Fetching subscription data for user:', user.id);
       
       // Check subscription status using edge function
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
+        console.error('Error from check-subscription function:', error);
         throw new Error(error.message);
       }
       
+      console.log('Subscription data received:', data);
       setHasActiveSubscription(data.hasActiveSubscription);
       setSubscription(data.subscriptionData);
     } catch (err) {
@@ -62,13 +65,19 @@ export function useSubscription() {
       
       // Fall back to local profile data if the edge function fails
       try {
+        console.log('Falling back to profile data');
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('subscription_data')
+          .select('subscription_data, email')
           .eq('id', user.id)
           .single();
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          throw profileError;
+        }
+        
+        console.log('Profile data:', profile);
         
         if (profile?.subscription_data) {
           // Type assertion with proper validation
@@ -102,11 +111,16 @@ export function useSubscription() {
     
     try {
       setIsLoadingInvoices(true);
+      console.log('Fetching invoice history');
       
       const { data, error } = await supabase.functions.invoke('get-invoice-history');
       
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error('Error from get-invoice-history function:', error);
+        throw new Error(error.message);
+      }
       
+      console.log('Invoice data received:', data);
       setInvoices(data.invoices || []);
     } catch (err) {
       console.error('Error fetching invoice history:', err);
@@ -124,11 +138,15 @@ export function useSubscription() {
     }
     
     try {
+      console.log(`Creating checkout session for price ID: ${priceId}`);
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { priceId }
       });
       
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error('Error from create-checkout-session function:', error);
+        throw new Error(error.message);
+      }
       
       if (data?.url) {
         window.location.href = data.url;

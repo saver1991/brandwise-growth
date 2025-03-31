@@ -15,6 +15,8 @@ serve(async (req) => {
   }
   
   try {
+    console.log('Invoice history request received');
+    
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,27 +26,34 @@ serve(async (req) => {
     // Get the user from the request
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
+    
+    console.log('Authenticating user with token');
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
+      console.error('Authentication error:', userError);
       throw new Error('Unauthorized');
     }
     
     const userId = userData.user.id;
+    console.log(`User authenticated: ${userId}`);
 
     // Get user's subscription data from Supabase
+    console.log('Fetching profile data');
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('subscription_data')
+      .select('subscription_data, email')
       .eq('id', userId)
       .single();
       
     if (profileError) {
+      console.error('Error fetching profile:', profileError);
       throw new Error('Failed to fetch subscription data');
     }
     
     // If there's no subscription data or customer ID, return empty invoices
     if (!profile?.subscription_data?.stripe_customer_id) {
+      console.log('No subscription data found, returning empty invoices');
       return new Response(
         JSON.stringify({ 
           invoices: []
@@ -56,16 +65,22 @@ serve(async (req) => {
       );
     }
     
+    const customerId = profile.subscription_data.stripe_customer_id;
+    console.log(`Found Stripe customer ID: ${customerId}`);
+    
     // Initialize Stripe to fetch invoice history
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
     
     // Get invoices for the customer
+    console.log('Fetching invoices from Stripe');
     const invoices = await stripe.invoices.list({
-      customer: profile.subscription_data.stripe_customer_id,
+      customer: customerId,
       limit: 10, // Limit to the 10 most recent invoices
     });
+    
+    console.log(`Found ${invoices.data.length} invoices`);
     
     // Transform invoice data for the frontend
     const invoiceData = invoices.data.map(invoice => ({
