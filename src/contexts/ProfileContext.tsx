@@ -61,6 +61,7 @@ interface ProfileContextType {
   availableIntegrations: string[];
   isLoading: boolean;
   hasProfiles: boolean;
+  setHasProfiles: (hasProfiles: boolean) => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -446,7 +447,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         deleteProfile,
         availableIntegrations,
         isLoading,
-        hasProfiles
+        hasProfiles,
+        setHasProfiles
       }}
     >
       {children}

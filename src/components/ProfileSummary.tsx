@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProfilesRow } from "@/types/supabaseCustomTypes";
 import { UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ProfileSummary = () => {
-  const { currentProfile, isLoading, hasProfiles } = useProfile();
+  const { currentProfile, isLoading, hasProfiles, setHasProfiles } = useProfile();
   const { user } = useAuth();
   const [dbProfile, setDbProfile] = useState<ProfilesRow | null>(null);
   const [isDbProfileLoading, setIsDbProfileLoading] = useState(false);
@@ -25,6 +26,26 @@ const ProfileSummary = () => {
       
       try {
         setIsDbProfileLoading(true);
+        
+        // First, check if there are any brand profiles for this user
+        const { data: brandProfiles, error: brandProfilesError } = await supabase
+          .from("brand_profiles")
+          .select("id")
+          .eq("user_id", user.id);
+          
+        if (brandProfilesError) {
+          console.error("Error checking brand profiles:", brandProfilesError);
+          return;
+        }
+        
+        // Update the hasProfiles state based on actual database data
+        if (brandProfiles && brandProfiles.length > 0) {
+          setHasProfiles(true);
+        } else {
+          setHasProfiles(false);
+        }
+        
+        // Then get the user profile
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -41,13 +62,14 @@ const ProfileSummary = () => {
         }
       } catch (error) {
         console.error("Error:", error);
+        toast.error("Failed to load profile data");
       } finally {
         setIsDbProfileLoading(false);
       }
     }
     
     getProfile();
-  }, [user]);
+  }, [user, setHasProfiles]);
 
   // Display name in order of preference: database profile name, auth user name, then fallback to context
   const displayName = dbProfile?.full_name || user?.user_metadata?.full_name || currentProfile.name;
