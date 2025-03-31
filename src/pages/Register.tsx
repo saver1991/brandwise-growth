@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import RegistrationStepPersonal from "@/components/registration/RegistrationStepPersonal";
 import RegistrationStepPlan from "@/components/registration/RegistrationStepPlan";
 import RegistrationStepBilling from "@/components/registration/RegistrationStepBilling";
@@ -69,7 +69,6 @@ const Register = () => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  // Check if email is already registered
   const checkEmailExists = async (email: string): Promise<boolean> => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -79,8 +78,6 @@ const Register = () => {
         }
       });
       
-      // If there's no error or error code is not 'user_not_found', 
-      // the email exists in the system
       if (!error || (error && error.message !== "User not found")) {
         return true;
       }
@@ -124,14 +121,12 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      // First check if email exists
       const emailIsUnique = await handleEmailCheck(formData.personal.email);
       if (!emailIsUnique) {
         setIsSubmitting(false);
         return;
       }
       
-      // Register the user with Supabase
       const { data, error } = await signUp(
         formData.personal.email, 
         formData.personal.password,
@@ -150,7 +145,6 @@ const Register = () => {
         return;
       }
       
-      // Save additional user data to profiles table
       if (data?.user) {
         await saveUserProfile(data.user.id);
       }
@@ -160,7 +154,6 @@ const Register = () => {
         description: "Please check your email to verify your account.",
       });
       
-      // Navigate to login after successful registration
       setTimeout(() => {
         navigate("/login");
       }, 2000);

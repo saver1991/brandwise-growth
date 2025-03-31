@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PersonalInfo } from "@/types/registration";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RegistrationStepPersonalProps {
@@ -70,7 +70,7 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {emailError && (
           <Alert variant="destructive" className="mb-4">
-            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{emailError}</AlertDescription>
           </Alert>
         )}
