@@ -1,5 +1,6 @@
 import { ContentIdea, ContentScore } from "@/types/ContentIdea";
 import { Database } from "@/types/supabase";
+import { PlatformFieldConfig, FieldConfig } from "./PlatformFieldConfig";
 
 // Define the content platform type manually since the Database.Enums might not be available
 export type ContentPlatform = "linkedin" | "medium" | "wordpress" | "twitter" | "facebook" | "instagram" | "youtube" | "tiktok" | "pinterest";
@@ -58,7 +59,6 @@ export interface ContentWithPlatformData extends ContentIdeaRecord {
   platformData?: PlatformContentFields;
 }
 
-// Map the database records to our application types
 export function mapDbRecordToContentIdea(record: ContentIdeaRecord): ContentIdea {
   return {
     id: parseInt(record.id.split('-')[0], 16), // Convert UUID to number for compatibility

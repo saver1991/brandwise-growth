@@ -170,7 +170,14 @@ export function NewIdeaDialog({
       
       if (description && description.length > 10) {
         const contentScore = aiGenerationService.scoreContent(description, platform);
-        form.setValue("score", contentScore);
+        
+        const validatedScore: ContentScore = {
+          overall: contentScore.overall || 70,
+          breakdown: contentScore.breakdown || { "Content Quality": 70 },
+          feedback: contentScore.feedback || "No feedback available"
+        };
+        
+        form.setValue("score", validatedScore);
       }
     } catch (error) {
       console.error("Error scoring content:", error);
@@ -279,7 +286,6 @@ export function NewIdeaDialog({
     try {
       setIsSaving(true);
 
-      // Ensure score is a complete object with all required fields
       if (!data.score) {
         const contentScore: ContentScore = {
           overall: 70,
@@ -287,8 +293,7 @@ export function NewIdeaDialog({
           feedback: "No score has been generated yet."
         };
         data.score = contentScore;
-      } else if (data.score && (!data.score.overall || !data.score.breakdown || !data.score.feedback)) {
-        // Fix incomplete score object
+      } else if (data.score) {
         data.score = {
           overall: data.score.overall || 70,
           breakdown: data.score.breakdown || { "Content Quality": 70 },
