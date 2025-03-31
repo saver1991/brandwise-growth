@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/contexts/ProfileContext';
-import AuthHeader from '@/components/AuthHeader';
+import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ProfileCard from '@/components/ProfileCard';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ const ProfilesPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <AuthHeader />
+      <Navigation />
       
       <div className="container mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-8">

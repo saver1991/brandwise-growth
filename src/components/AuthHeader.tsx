@@ -1,12 +1,21 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { LifeBuoy, Menu, X } from "lucide-react";
+import ProfileSwitcher from "./ProfileSwitcher";
 
 const AuthHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  
+  // Check if user is logged in by checking if the path includes dashboard or other authenticated routes
+  const isLoggedIn = location.pathname.includes('/dashboard') || 
+                     location.pathname.includes('/calendar') || 
+                     location.pathname.includes('/ideas') ||
+                     location.pathname.includes('/profiles') ||
+                     location.pathname.includes('/account');
 
   const navLinks = [
     { name: "Home", href: "/home" },
@@ -21,7 +30,7 @@ const AuthHeader = () => {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo - fixed to point to /home instead of / */}
-          <Link to="/home" className="flex items-center gap-2">
+          <Link to={isLoggedIn ? "/dashboard" : "/home"} className="flex items-center gap-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-teal to-brand-orange bg-clip-text text-transparent">
               BrandWise
             </span>
@@ -67,12 +76,19 @@ const AuthHeader = () => {
               <span>Support</span>
             </Link>
             <div className="h-6 border-l mx-2"></div>
-            <Link to="/register">
-              <Button variant="ghost" size="sm">Register</Button>
-            </Link>
-            <Link to="/login">
-              <Button size="sm">Login</Button>
-            </Link>
+            
+            {isLoggedIn ? (
+              <ProfileSwitcher />
+            ) : (
+              <>
+                <Link to="/register">
+                  <Button variant="ghost" size="sm">Register</Button>
+                </Link>
+                <Link to="/login">
+                  <Button size="sm">Login</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -100,12 +116,21 @@ const AuthHeader = () => {
                 <LifeBuoy className="h-4 w-4" />
                 <span>Support</span>
               </Link>
-              <Link to="/register" className="block w-full" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" size="sm" className="w-full">Register</Button>
-              </Link>
-              <Link to="/login" className="block w-full" onClick={() => setMobileMenuOpen(false)}>
-                <Button size="sm" className="w-full">Login</Button>
-              </Link>
+              
+              {isLoggedIn ? (
+                <Link to="/dashboard" className="block w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <Button size="sm" className="w-full">Go to Dashboard</Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/register" className="block w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full">Register</Button>
+                  </Link>
+                  <Link to="/login" className="block w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <Button size="sm" className="w-full">Login</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
