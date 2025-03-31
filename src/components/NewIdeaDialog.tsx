@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
@@ -171,8 +172,9 @@ export function NewIdeaDialog({
       if (description && description.length > 10) {
         const contentScore = aiGenerationService.scoreContent(description, platform);
         
+        // Ensure all required fields are present and non-optional
         const validatedScore: ContentScoreType = {
-          overall: contentScore.overall || 70,
+          overall: contentScore.overall !== undefined ? contentScore.overall : 70,
           breakdown: contentScore.breakdown || { "Content Quality": 70 },
           feedback: contentScore.feedback || "No feedback available"
         };
@@ -286,20 +288,21 @@ export function NewIdeaDialog({
     try {
       setIsSaving(true);
 
-      if (!data.score) {
-        const contentScore: ContentScoreType = {
-          overall: 70,
-          breakdown: { "Content Quality": 70 },
-          feedback: "No score has been generated yet."
-        };
-        data.score = contentScore;
-      } else {
-        data.score = {
-          overall: data.score.overall || 70,
-          breakdown: data.score.breakdown || { "Content Quality": 70 },
-          feedback: data.score.feedback || "Score partially calculated."
-        };
-      }
+      // Ensure score is always a complete object with all required fields
+      const ensuredScore: ContentScoreType = data.score 
+        ? {
+            overall: data.score.overall !== undefined ? data.score.overall : 70,
+            breakdown: data.score.breakdown || { "Content Quality": 70 },
+            feedback: data.score.feedback || "Score partially calculated."
+          }
+        : {
+            overall: 70,
+            breakdown: { "Content Quality": 70 },
+            feedback: "No score has been generated yet."
+          };
+      
+      // Replace the possibly incomplete score with the ensured one
+      data.score = ensuredScore;
       
       if (onSubmit) {
         onSubmit(data);
@@ -322,7 +325,7 @@ export function NewIdeaDialog({
             topics: data.topics,
             image_url: data.imageUrl,
             image_prompt: data.imagePrompt,
-            score: data.score
+            score: ensuredScore
           },
           platformData as PlatformContentFields
         );
@@ -336,7 +339,7 @@ export function NewIdeaDialog({
             topics: data.topics,
             image_url: data.imageUrl,
             image_prompt: data.imagePrompt,
-            score: data.score
+            score: ensuredScore
           },
           platformData as PlatformContentFields
         );
