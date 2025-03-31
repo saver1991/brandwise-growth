@@ -7,13 +7,7 @@ import { useSubscription, SubscriptionData } from "@/hooks/useSubscription";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-
-// Predefined plans for upgrading
-const STRIPE_PLANS = {
-  basic: "price_1OĚX8ÂBCĎĚfake", // Replace with actual Stripe price ID
-  professional: "price_1OĚX8ÂBCĎĚfake", // Replace with actual Stripe price ID
-  enterprise: "price_1OĚX8ÂBCĎĚfake"  // Replace with actual Stripe price ID
-};
+import { STRIPE_PLANS, PLAN_FEATURES } from "./PlanConfiguration";
 
 interface CurrentPlanCardProps {
   subscription: SubscriptionData | null;
@@ -42,6 +36,31 @@ const CurrentPlanCard = ({ subscription, isLoading }: CurrentPlanCardProps) => {
       default:
         return "bg-gray-50/50 border-gray-100";
     }
+  };
+  
+  // Helper function to render a plan card
+  const renderPlanCard = (planKey: keyof typeof STRIPE_PLANS) => {
+    const plan = PLAN_FEATURES[planKey];
+    const isProfessional = planKey === 'professional';
+    
+    return (
+      <Card className={`p-4 ${isProfessional ? 'border-2 border-primary' : 'border'} hover:${isProfessional ? 'shadow-md' : 'border-primary hover:shadow-sm'} cursor-pointer`}>
+        <h3 className="font-bold">{plan.name}</h3>
+        <p className="font-semibold text-xl my-2">{plan.price}</p>
+        <ul className="text-sm space-y-1 mb-4">
+          {plan.features.map((feature, i) => (
+            <li key={i}>{feature}</li>
+          ))}
+        </ul>
+        <Button 
+          onClick={() => handleSubscribe(STRIPE_PLANS[planKey])}
+          size="sm"
+          className="w-full"
+        >
+          Select {plan.name}
+        </Button>
+      </Card>
+    );
   };
   
   return (
@@ -118,54 +137,9 @@ const CurrentPlanCard = ({ subscription, isLoading }: CurrentPlanCardProps) => {
                   <DialogTitle>Choose a Plan</DialogTitle>
                 </DialogHeader>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-                  <Card className="p-4 border hover:border-primary hover:shadow-sm cursor-pointer">
-                    <h3 className="font-bold">Basic</h3>
-                    <p className="font-semibold text-xl my-2">$9/month</p>
-                    <ul className="text-sm space-y-1 mb-4">
-                      <li>5,000 words</li>
-                      <li>10 optimizations</li>
-                      <li>1 team member</li>
-                    </ul>
-                    <Button 
-                      onClick={() => handleSubscribe(STRIPE_PLANS.basic)}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Select Basic
-                    </Button>
-                  </Card>
-                  <Card className="p-4 border-2 border-primary hover:shadow-md cursor-pointer">
-                    <h3 className="font-bold">Professional</h3>
-                    <p className="font-semibold text-xl my-2">$29/month</p>
-                    <ul className="text-sm space-y-1 mb-4">
-                      <li>10,000 words</li>
-                      <li>20 optimizations</li>
-                      <li>3 team members</li>
-                    </ul>
-                    <Button 
-                      onClick={() => handleSubscribe(STRIPE_PLANS.professional)}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Select Professional
-                    </Button>
-                  </Card>
-                  <Card className="p-4 border hover:border-primary hover:shadow-sm cursor-pointer">
-                    <h3 className="font-bold">Enterprise</h3>
-                    <p className="font-semibold text-xl my-2">$99/month</p>
-                    <ul className="text-sm space-y-1 mb-4">
-                      <li>Unlimited words</li>
-                      <li>Unlimited optimizations</li>
-                      <li>10 team members</li>
-                    </ul>
-                    <Button 
-                      onClick={() => handleSubscribe(STRIPE_PLANS.enterprise)}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Select Enterprise
-                    </Button>
-                  </Card>
+                  {renderPlanCard('basic')}
+                  {renderPlanCard('professional')}
+                  {renderPlanCard('enterprise')}
                 </div>
               </DialogContent>
             </Dialog>
@@ -190,54 +164,9 @@ const CurrentPlanCard = ({ subscription, isLoading }: CurrentPlanCardProps) => {
                 <DialogTitle>Choose a Plan</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-                <Card className="p-4 border hover:border-primary hover:shadow-sm cursor-pointer">
-                  <h3 className="font-bold">Basic</h3>
-                  <p className="font-semibold text-xl my-2">$9/month</p>
-                  <ul className="text-sm space-y-1 mb-4">
-                    <li>5,000 words</li>
-                    <li>10 optimizations</li>
-                    <li>1 team member</li>
-                  </ul>
-                  <Button 
-                    onClick={() => handleSubscribe(STRIPE_PLANS.basic)}
-                    size="sm"
-                    className="w-full"
-                  >
-                    Select Basic
-                  </Button>
-                </Card>
-                <Card className="p-4 border-2 border-primary hover:shadow-md cursor-pointer">
-                  <h3 className="font-bold">Professional</h3>
-                  <p className="font-semibold text-xl my-2">$29/month</p>
-                  <ul className="text-sm space-y-1 mb-4">
-                    <li>10,000 words</li>
-                    <li>20 optimizations</li>
-                    <li>3 team members</li>
-                  </ul>
-                  <Button 
-                    onClick={() => handleSubscribe(STRIPE_PLANS.professional)}
-                    size="sm"
-                    className="w-full"
-                  >
-                    Select Professional
-                  </Button>
-                </Card>
-                <Card className="p-4 border hover:border-primary hover:shadow-sm cursor-pointer">
-                  <h3 className="font-bold">Enterprise</h3>
-                  <p className="font-semibold text-xl my-2">$99/month</p>
-                  <ul className="text-sm space-y-1 mb-4">
-                    <li>Unlimited words</li>
-                    <li>Unlimited optimizations</li>
-                    <li>10 team members</li>
-                  </ul>
-                  <Button 
-                    onClick={() => handleSubscribe(STRIPE_PLANS.enterprise)}
-                    size="sm"
-                    className="w-full"
-                  >
-                    Select Enterprise
-                  </Button>
-                </Card>
+                {renderPlanCard('basic')}
+                {renderPlanCard('professional')}
+                {renderPlanCard('enterprise')}
               </div>
             </DialogContent>
           </Dialog>

@@ -21,11 +21,21 @@ export interface SubscriptionData {
   stripe_price_id?: string;
 }
 
+export interface InvoiceData {
+  id: string;
+  date: number; // Unix timestamp
+  amount: string;
+  status: string;
+  pdf?: string;
+}
+
 export function useSubscription() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSubscription = async () => {
@@ -87,6 +97,25 @@ export function useSubscription() {
     }
   };
   
+  const fetchInvoiceHistory = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoadingInvoices(true);
+      
+      const { data, error } = await supabase.functions.invoke('get-invoice-history');
+      
+      if (error) throw new Error(error.message);
+      
+      setInvoices(data.invoices || []);
+    } catch (err) {
+      console.error('Error fetching invoice history:', err);
+      toast.error('Failed to load invoice history');
+    } finally {
+      setIsLoadingInvoices(false);
+    }
+  };
+  
   // Create checkout session for subscribing to a plan
   const createCheckoutSession = async (priceId: string) => {
     if (!user) {
@@ -122,6 +151,9 @@ export function useSubscription() {
     error, 
     hasActiveSubscription, 
     refreshSubscription: fetchSubscription,
-    createCheckoutSession
+    createCheckoutSession,
+    invoices,
+    isLoadingInvoices,
+    fetchInvoiceHistory
   };
 }

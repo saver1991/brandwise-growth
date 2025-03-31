@@ -3,37 +3,31 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Download } from "lucide-react";
-
-interface Invoice {
-  id: string;
-  date: string;
-  amount: string;
-  pdf?: string;
-}
+import { InvoiceData } from "@/hooks/useSubscription";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 interface InvoiceHistoryProps {
-  invoices: Invoice[];
+  invoices: InvoiceData[];
   isLoading: boolean;
 }
 
 const InvoiceHistory = ({ invoices, isLoading }: InvoiceHistoryProps) => {
-  const formatDate = (dateString: string) => {
-    // Try to parse the date if it's a timestamp
-    try {
-      if (dateString.match(/^\d+$/)) {
-        return new Date(parseInt(dateString) * 1000).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
-      }
-    } catch (e) {
-      // If parsing fails, return the original string
-    }
-    return dateString;
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const handleDownload = (invoice: Invoice) => {
+  const handleDownload = (invoice: InvoiceData) => {
     if (invoice.pdf) {
       window.open(invoice.pdf, '_blank');
     }
@@ -49,29 +43,45 @@ const InvoiceHistory = ({ invoices, isLoading }: InvoiceHistoryProps) => {
 
   return (
     <div className="space-y-4">
-      {invoices.map((invoice, index) => (
-        <div key={invoice.id}>
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <p className="font-medium">Invoice #{invoice.id}</p>
-              <p className="text-sm text-muted-foreground">{formatDate(invoice.date)}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <p className="font-medium">{invoice.amount}</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={isLoading || !invoice.pdf}
-                onClick={() => handleDownload(invoice)}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-            </div>
-          </div>
-          {index < invoices.length - 1 && <Separator />}
-        </div>
-      ))}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Invoice ID</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead className="text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {invoices.map((invoice) => (
+            <TableRow key={invoice.id}>
+              <TableCell>{formatDate(invoice.date)}</TableCell>
+              <TableCell className="font-mono text-xs">{invoice.id}</TableCell>
+              <TableCell>
+                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium
+                  ${invoice.status === 'paid' ? 'bg-green-50 text-green-700' : 
+                    invoice.status === 'open' ? 'bg-blue-50 text-blue-700' : 
+                    'bg-amber-50 text-amber-700'}`}>
+                  {invoice.status}
+                </span>
+              </TableCell>
+              <TableCell>{invoice.amount}</TableCell>
+              <TableCell className="text-right">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleDownload(invoice)}
+                  disabled={!invoice.pdf}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  PDF
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

@@ -25,15 +25,11 @@ const BillingPage = () => {
     subscription, 
     isLoading, 
     error, 
-    refreshSubscription 
+    refreshSubscription,
+    invoices,
+    isLoadingInvoices,
+    fetchInvoiceHistory
   } = useSubscription();
-
-  // Sample invoice data - in a real app, these would come from Stripe
-  const invoices = [
-    { id: "12345", date: "Aug 1, 2023", amount: "$29.00" },
-    { id: "12344", date: "Jul 1, 2023", amount: "$29.00" },
-    { id: "12343", date: "Jun 1, 2023", amount: "$29.00" }
-  ];
 
   useEffect(() => {
     // Check URL parameters for success/canceled message from Stripe
@@ -49,7 +45,10 @@ const BillingPage = () => {
       // Remove the query parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [refreshSubscription]);
+    
+    // Fetch invoice history when component mounts
+    fetchInvoiceHistory();
+  }, [refreshSubscription, fetchInvoiceHistory]);
 
   const updatePaymentMethod = (newPaymentMethod: { type: "card"; last4: string; expiry: string }) => {
     // In a real application, this would interact with the Stripe API
@@ -133,7 +132,7 @@ const BillingPage = () => {
                 <CardDescription>View your past invoices</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
+                {isLoadingInvoices ? (
                   <div className="space-y-4">
                     {[...Array(3)].map((_, i) => (
                       <div key={i} className="flex items-center justify-between py-2">
@@ -151,7 +150,7 @@ const BillingPage = () => {
                 ) : (
                   <InvoiceHistory 
                     invoices={invoices} 
-                    isLoading={isLoading} 
+                    isLoading={isLoadingInvoices} 
                   />
                 )}
               </CardContent>
