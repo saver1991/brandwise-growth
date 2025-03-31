@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LinkedInTokens } from "./types";
@@ -6,16 +5,29 @@ import { LinkedInTokens } from "./types";
 // LinkedIn API endpoints
 const LINKEDIN_API_BASE_URL = "https://api.linkedin.com/v2";
 
-export const getAuthUrl = (): string => {
-  // Retrieve redirect URL from environment or use a default
-  const redirectUri = window.location.origin + "/linkedin-callback";
-  
-  // For real implementation, you would get this from environment variables or Supabase secrets
-  const LINKEDIN_CLIENT_ID = "your-linkedin-client-id"; // Placeholder - will be replaced by actual client ID
-  
-  const scope = encodeURIComponent("r_liteprofile r_emailaddress w_member_social");
-  
-  return `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${Math.random().toString(36).substring(2, 15)}`;
+export const getAuthUrl = async (): Promise<string> => {
+  try {
+    // Retrieve redirect URL from environment or use a default
+    const redirectUri = window.location.origin + "/linkedin-callback";
+    
+    // Get the client ID from Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('get-linkedin-client-id', {});
+    
+    if (error || !data?.clientId) {
+      console.error("Error retrieving LinkedIn client ID:", error);
+      toast.error("Failed to prepare LinkedIn authentication");
+      return "";
+    }
+    
+    const LINKEDIN_CLIENT_ID = data.clientId;
+    const scope = encodeURIComponent("r_liteprofile r_emailaddress w_member_social");
+    
+    return `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${Math.random().toString(36).substring(2, 15)}`;
+  } catch (error) {
+    console.error("Unexpected error generating LinkedIn auth URL:", error);
+    toast.error("Failed to prepare LinkedIn authentication");
+    return "";
+  }
 };
 
 export const storeTokens = async (userId: string, tokens: LinkedInTokens): Promise<boolean> => {

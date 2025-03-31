@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -52,7 +51,7 @@ const topPerformingPosts = [
   },
 ];
 
-const LinkedInPage = () => {
+const LinkedIn = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -96,9 +95,25 @@ const LinkedInPage = () => {
     checkLinkedInConnection();
   }, []);
   
-  const handleConnect = () => {
-    // Redirect to LinkedIn authorization
-    window.location.href = linkedinService.getAuthUrl();
+  const handleConnect = async () => {
+    try {
+      setIsLoading(true);
+      // Get authorization URL
+      const authUrl = await linkedinService.getAuthUrl();
+      
+      if (!authUrl) {
+        toast.error("Failed to initialize LinkedIn authorization. Please try again later.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Redirect to LinkedIn authorization
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error("Error starting LinkedIn connection:", error);
+      toast.error("Failed to connect to LinkedIn. Please try again later.");
+      setIsLoading(false);
+    }
   };
   
   const handleDisconnect = async () => {
@@ -468,4 +483,4 @@ const LinkedInPage = () => {
   );
 };
 
-export default LinkedInPage;
+export default LinkedIn;
