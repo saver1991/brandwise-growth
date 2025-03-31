@@ -68,7 +68,7 @@ export function useSubscription() {
         console.log('Falling back to profile data');
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('subscription_data, email')
+          .select('subscription_data')
           .eq('id', user.id)
           .single();
           

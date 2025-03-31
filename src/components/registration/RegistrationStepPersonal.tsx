@@ -9,11 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PersonalInfo } from "@/types/registration";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ExclamationTriangleIcon } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RegistrationStepPersonalProps {
   data: PersonalInfo;
   updateData: (data: Partial<PersonalInfo>) => void;
   onNext: () => void;
+  emailError?: string;
+  onEmailChange?: (email: string) => void;
 }
 
 const formSchema = z.object({
@@ -29,7 +33,13 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({ data, updateData, onNext }) => {
+const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({ 
+  data, 
+  updateData, 
+  onNext,
+  emailError,
+  onEmailChange
+}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,9 +58,23 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({ dat
     onNext();
   };
 
+  // Update local state when email changes
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onEmailChange) {
+      onEmailChange(e.target.value);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {emailError && (
+          <Alert variant="destructive" className="mb-4">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertDescription>{emailError}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -73,7 +97,15 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({ dat
               <FormItem>
                 <FormLabel>Email Address</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="john@example.com" {...field} />
+                  <Input 
+                    type="email" 
+                    placeholder="john@example.com" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleEmailChange(e);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

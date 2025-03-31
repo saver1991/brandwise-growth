@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import RegistrationStepPersonal from "@/components/registration/RegistrationStepPersonal";
 import RegistrationStepPlan from "@/components/registration/RegistrationStepPlan";
 import RegistrationStepBilling from "@/components/registration/RegistrationStepBilling";
 import RegistrationStepConfirmation from "@/components/registration/RegistrationStepConfirmation";
 import { RegistrationFormData } from "@/types/registration";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -45,6 +46,7 @@ const Register = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const updateFormData = (
     section: keyof RegistrationFormData,
@@ -67,12 +69,70 @@ const Register = () => {
     setCurrentStep((prev) => prev - 1);
   };
 
+  // Check if email is already registered
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        }
+      });
+      
+      // If there's no error or error code is not 'user_not_found', 
+      // the email exists in the system
+      if (!error || (error && error.message !== "User not found")) {
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Error checking email:", err);
+      return false;
+    }
+  };
+
+  const handleEmailCheck = async (email: string): Promise<boolean> => {
+    setEmailError("");
+    const exists = await checkEmailExists(email);
+    if (exists) {
+      setEmailError("This email is already registered. Please login instead.");
+      return false;
+    }
+    return true;
+  };
+
+  const saveUserProfile = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: formData.personal.fullName,
+          username: formData.personal.username,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", userId);
+      
+      if (error) {
+        console.error("Error updating profile:", error);
+      }
+    } catch (err) {
+      console.error("Error saving profile data:", err);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
     try {
+      // First check if email exists
+      const emailIsUnique = await handleEmailCheck(formData.personal.email);
+      if (!emailIsUnique) {
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Register the user with Supabase
-      const { error } = await signUp(
+      const { data, error } = await signUp(
         formData.personal.email, 
         formData.personal.password,
         { 
@@ -88,6 +148,11 @@ const Register = () => {
         });
         setIsSubmitting(false);
         return;
+      }
+      
+      // Save additional user data to profiles table
+      if (data?.user) {
+        await saveUserProfile(data.user.id);
       }
       
       toast({
@@ -117,6 +182,12 @@ const Register = () => {
             data={formData.personal}
             updateData={(data) => updateFormData("personal", data)}
             onNext={handleNextStep}
+            emailError={emailError}
+            onEmailChange={(email) => {
+              if (email !== formData.personal.email) {
+                setEmailError("");
+              }
+            }}
           />
         );
       case 2:
