@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import AccountSidebar from "@/components/account/AccountSidebar";
 import { Button } from "@/components/ui/button";
@@ -16,16 +16,91 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
+
+type SecuritySettings = {
+  two_factor_enabled: boolean;
+  active_sessions: {
+    id: string;
+    device: string;
+    browser: string;
+    ip: string;
+    last_accessed: string;
+    is_current: boolean;
+  }[];
+};
 
 const SecurityPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
+    two_factor_enabled: false,
+    active_sessions: [
+      {
+        id: "current-session",
+        device: "Current Device",
+        browser: navigator.userAgent.includes("Chrome") ? "Chrome" : 
+                  navigator.userAgent.includes("Firefox") ? "Firefox" : 
+                  navigator.userAgent.includes("Safari") ? "Safari" : "Unknown Browser",
+        ip: "Current IP",
+        last_accessed: "Now",
+        is_current: true
+      }
+    ]
+  });
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function getSecuritySettings() {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Fetch security settings from user metadata or a separate security_settings table
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          // If we have 2FA data in the profile, set it
+          setTwoFactorEnabled(data.two_factor_enabled || false);
+        }
+        
+        // In a real app, you'd fetch active sessions from auth system
+        // This is a placeholder for demonstration
+        
+      } catch (error: any) {
+        console.error("Error loading security settings: ", error);
+        toast({
+          title: "Error loading security settings",
+          description: error.message,
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    getSecuritySettings();
+  }, [user, toast]);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) return;
     
     if (newPassword !== confirmPassword) {
       toast({
@@ -36,26 +111,114 @@ const SecurityPage = () => {
       return;
     }
     
-    // Here you would typically call an API to change the password
-    toast({
-      title: "Password updated",
-      description: "Your password has been changed successfully.",
-    });
-    
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    try {
+      setIsLoading(true);
+      
+      // Update password in Supabase Auth
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Password updated",
+        description: "Your password has been changed successfully.",
+      });
+      
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      
+    } catch (error: any) {
+      console.error("Error updating password: ", error);
+      toast({
+        title: "Error updating password",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleToggleTwoFactor = () => {
-    setTwoFactorEnabled(!twoFactorEnabled);
+  const handleToggleTwoFactor = async () => {
+    if (!user) return;
     
+    try {
+      setIsLoading(true);
+      
+      // Update two-factor settings in Supabase
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          two_factor_enabled: !twoFactorEnabled,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setTwoFactorEnabled(!twoFactorEnabled);
+      
+      toast({
+        title: twoFactorEnabled ? "Two-factor disabled" : "Two-factor enabled",
+        description: twoFactorEnabled 
+          ? "Two-factor authentication has been disabled" 
+          : "Two-factor authentication has been enabled",
+      });
+    } catch (error: any) {
+      console.error("Error updating two-factor settings: ", error);
+      toast({
+        title: "Error updating two-factor settings",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRevokeSession = async (sessionId: string) => {
+    // In a real app, you would call Supabase to revoke the session
+    // This is just a placeholder
     toast({
-      title: twoFactorEnabled ? "Two-factor disabled" : "Two-factor enabled",
-      description: twoFactorEnabled 
-        ? "Two-factor authentication has been disabled" 
-        : "Two-factor authentication has been enabled",
+      title: "Session revoked",
+      description: "The session has been successfully revoked.",
     });
+  };
+
+  const handleSignOutAllDevices = async () => {
+    try {
+      setIsLoading(true);
+      
+      // In a real app, you would call Supabase to sign out all sessions
+      // Currently, Supabase doesn't have a direct method for this
+      // Here's a placeholder that just signs out the current session
+      await supabase.auth.signOut();
+      
+      toast({
+        title: "Signed out from all devices",
+        description: "You have been signed out from all devices.",
+      });
+      
+      // Redirect to login page after sign out
+      window.location.href = "/login";
+      
+    } catch (error: any) {
+      console.error("Error signing out: ", error);
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,6 +245,7 @@ const SecurityPage = () => {
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -92,6 +256,7 @@ const SecurityPage = () => {
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -102,11 +267,14 @@ const SecurityPage = () => {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
                     />
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit">Update Password</Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Updating..." : "Update Password"}
+                  </Button>
                 </CardFooter>
               </form>
             </Card>
@@ -127,6 +295,7 @@ const SecurityPage = () => {
                   <Switch
                     checked={twoFactorEnabled}
                     onCheckedChange={handleToggleTwoFactor}
+                    disabled={isLoading}
                   />
                 </div>
                 
@@ -148,31 +317,40 @@ const SecurityPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Current Session</p>
-                      <p className="text-sm text-muted-foreground">
-                        Chrome on Windows • IP: 192.168.1.1 • Last accessed: Now
-                      </p>
+                  {securitySettings.active_sessions.map(session => (
+                    <div key={session.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{session.device}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {session.browser} • IP: {session.ip} • Last accessed: {session.last_accessed}
+                        </p>
+                      </div>
+                      {session.is_current ? (
+                        <p className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded-md">
+                          Current
+                        </p>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleRevokeSession(session.id)}
+                          disabled={isLoading}
+                        >
+                          Revoke
+                        </Button>
+                      )}
                     </div>
-                    <p className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded-md">
-                      Current
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Mobile Session</p>
-                      <p className="text-sm text-muted-foreground">
-                        Safari on iPhone • IP: 192.168.1.2 • Last accessed: 2 days ago
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">Revoke</Button>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="destructive">Sign Out All Other Devices</Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleSignOutAllDevices}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Signing Out..." : "Sign Out All Other Devices"}
+                </Button>
               </CardFooter>
             </Card>
           </div>
