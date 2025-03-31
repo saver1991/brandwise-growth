@@ -1,162 +1,173 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check } from "lucide-react";
 import { RegistrationFormData } from "@/types/registration";
-import { CheckCircle2, ArrowLeft } from "lucide-react";
+import ProfileFormActions from "@/components/ProfileFormActions";
 
 interface RegistrationStepConfirmationProps {
   formData: RegistrationFormData;
   onBack: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
-const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> = ({
-  formData,
-  onBack,
+const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> = ({ 
+  formData, 
+  onBack, 
   onSubmit,
+  isSubmitting = false
 }) => {
-  const getPlanPrice = (plan: string, cycle: string) => {
-    const prices = {
-      starter: { monthly: "$9.99", yearly: "$7.99" },
-      professional: { monthly: "$19.99", yearly: "$16.99" },
-      enterprise: { monthly: "$29.99", yearly: "$24.99" },
-    };
-    return prices[plan as keyof typeof prices][cycle as keyof typeof prices["starter"]];
-  };
-
-  const capitalize = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
+  const { personal, plan, billing } = formData;
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold">Review Your Information</h2>
-        <p className="text-muted-foreground">Please review your information before completing registration</p>
-      </div>
-
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="size-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-              </span>
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Full Name</dt>
-                <dd>{formData.personal.fullName}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                <dd>{formData.personal.email}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Username</dt>
-                <dd>{formData.personal.username}</dd>
-              </div>
-              {formData.personal.companyName && (
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Company</dt>
-                  <dd>{formData.personal.companyName}</dd>
-                </div>
-              )}
-            </dl>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="size-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-              </span>
-              Plan Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Selected Plan</dt>
-                <dd className="capitalize">{formData.plan.selectedPlan}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Billing Cycle</dt>
-                <dd className="capitalize">{formData.plan.billingCycle}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Price</dt>
-                <dd>
-                  {getPlanPrice(formData.plan.selectedPlan, formData.plan.billingCycle)}
-                  <span className="text-sm text-muted-foreground">
-                    {formData.plan.billingCycle === "monthly" ? "/month" : "/month, billed yearly"}
-                  </span>
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="size-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-              </span>
-              Billing Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Payment Method</dt>
-                <dd>{capitalize(formData.billing.paymentMethod.replace(/([A-Z])/g, ' $1').trim())}</dd>
-              </div>
-              
-              {formData.billing.paymentMethod === "creditCard" && (
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Card Number</dt>
-                  <dd>
-                    •••• •••• •••• 
-                    {formData.billing.cardNumber.slice(-4)}
-                  </dd>
-                </div>
-              )}
-              
-              <div className="md:col-span-2">
-                <dt className="text-sm font-medium text-muted-foreground">Billing Address</dt>
-                <dd>
-                  {formData.billing.address}, {formData.billing.city}, {formData.billing.state} {formData.billing.zipCode}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="pt-4 border-t">
-        <p className="text-sm text-muted-foreground mb-6">
-          By clicking "Complete Registration", you agree to our Terms of Service and Privacy Policy. This is a demo application, so no actual charges will be made.
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Review Your Information</h2>
+        <p className="text-sm text-muted-foreground">
+          Please review your information before completing your registration
         </p>
-        <div className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <Button 
-            type="button" 
-            onClick={onSubmit}
-            // Disabled because this is a dummy registration
-            disabled
-          >
-            Complete Registration
-          </Button>
+      </div>
+
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-medium">Personal Information</h3>
+              </div>
+              <Button variant="ghost" size="sm" type="button" onClick={onBack}>
+                Edit
+              </Button>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-muted-foreground">Full Name</div>
+                <div>{personal.fullName}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-muted-foreground">Email</div>
+                <div>{personal.email}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-muted-foreground">Username</div>
+                <div>{personal.username}</div>
+              </div>
+              {personal.companyName && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-muted-foreground">Company</div>
+                  <div>{personal.companyName}</div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-medium">Plan Selection</h3>
+              </div>
+              <Button variant="ghost" size="sm" type="button" onClick={onBack}>
+                Edit
+              </Button>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-md bg-muted/50">
+              <div className="space-y-1">
+                <div className="font-medium capitalize">{plan.selectedPlan} Plan</div>
+                <div className="text-sm text-muted-foreground capitalize">
+                  Billed {plan.billingCycle}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">
+                  {plan.billingCycle === "monthly" ? "$29" : "$290"}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {plan.billingCycle === "monthly" ? "per month" : "per year"}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-medium">Payment Method</h3>
+              </div>
+              <Button variant="ghost" size="sm" type="button" onClick={onBack}>
+                Edit
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="bg-gray-100 p-1 rounded">
+                {billing.paymentMethod === "creditCard" ? (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <path d="M3 10H21" stroke="currentColor" strokeWidth="2" />
+                    <path d="M7 15H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M15 15H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 14V6C19 4.89543 18.1046 4 17 4H7C5.89543 4 5 4.89543 5 6V14" stroke="currentColor" strokeWidth="2" />
+                    <path d="M3 10H21" stroke="currentColor" strokeWidth="2" />
+                    <rect x="3" y="10" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <circle cx="7.5" cy="14.5" r="1.5" fill="currentColor" />
+                    <circle cx="16.5" cy="14.5" r="1.5" fill="currentColor" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                {billing.paymentMethod === "creditCard" ? (
+                  <div className="flex flex-col">
+                    <span className="font-medium">Credit Card</span>
+                    <span className="text-sm text-muted-foreground">
+                      **** {billing.cardNumber.slice(-4)}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-medium">PayPal</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="border rounded-md p-4 bg-green-50 dark:bg-green-950/20 flex items-start gap-3">
+        <div className="mt-0.5">
+          <div className="bg-green-100 dark:bg-green-900/50 p-1 rounded-full">
+            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+          </div>
+        </div>
+        <div className="text-sm">
+          <p className="font-medium text-green-800 dark:text-green-400">
+            Ready to complete registration
+          </p>
+          <p className="text-green-700 dark:text-green-500 opacity-90 mt-1">
+            By clicking "Complete Registration", you agree to our{" "}
+            <a href="/terms" className="underline hover:text-green-800">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy-policy" className="underline hover:text-green-800">
+              Privacy Policy
+            </a>
+            .
+          </p>
         </div>
       </div>
+
+      <ProfileFormActions
+        onBack={onBack}
+        isLastStep={true}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };

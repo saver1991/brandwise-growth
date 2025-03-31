@@ -10,6 +10,7 @@ import RegistrationStepPlan from "@/components/registration/RegistrationStepPlan
 import RegistrationStepBilling from "@/components/registration/RegistrationStepBilling";
 import RegistrationStepConfirmation from "@/components/registration/RegistrationStepConfirmation";
 import { RegistrationFormData } from "@/types/registration";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -42,6 +43,8 @@ const Register = () => {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateFormData = (
     section: keyof RegistrationFormData,
@@ -64,19 +67,46 @@ const Register = () => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = () => {
-    // This would normally connect to an API
-    console.log("Registration submitted:", formData);
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
     
-    toast({
-      title: "Registration successful!",
-      description: "Thank you for registering with BrandWise.",
-    });
-    
-    // Navigate to home after successful registration
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+    try {
+      // Register the user with Supabase
+      const { error } = await signUp(
+        formData.personal.email, 
+        formData.personal.password,
+        { 
+          full_name: formData.personal.fullName 
+        }
+      );
+      
+      if (error) {
+        toast({
+          title: "Registration failed",
+          description: error.message || "Something went wrong during registration",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      toast({
+        title: "Registration successful!",
+        description: "Please check your email to verify your account.",
+      });
+      
+      // Navigate to login after successful registration
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error?.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -113,6 +143,7 @@ const Register = () => {
             formData={formData}
             onBack={handlePrevStep}
             onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
           />
         );
       default:

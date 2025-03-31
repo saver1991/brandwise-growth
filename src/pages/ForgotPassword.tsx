@@ -9,24 +9,45 @@ import { useToast } from "@/hooks/use-toast";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
 import { CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // In a real application, this would make an API call
-    // to initiate the password reset process
-    
-    toast({
-      title: "Reset link sent",
-      description: "If an account exists with this email, you'll receive a reset link shortly."
-    });
-    
-    setIsSubmitted(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset link sent",
+          description: "If an account exists with this email, you'll receive a reset link shortly."
+        });
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -70,11 +91,18 @@ export default function ForgotPassword() {
                     required 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
-                <Button type="submit" className="w-full">Send reset link</Button>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send reset link"}
+                </Button>
                 <div className="text-center text-sm">
                   <Link to="/login" className="text-primary hover:underline">
                     Back to login

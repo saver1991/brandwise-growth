@@ -20,14 +20,15 @@ import {
   Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ProfileSwitcher = () => {
   const { currentProfile, setCurrentProfile, availableProfiles } = useProfile();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleSignOut = () => {
-    // In a real app, you would clear auth tokens, cookies, etc.
-    navigate("/login");
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
