@@ -55,6 +55,7 @@ interface ProfileContextType {
   setCurrentProfile: (profile: Profile) => void;
   availableProfiles: Profile[];
   addProfile: (profile: Profile) => void;
+  updateProfile: (profile: Profile) => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -65,7 +66,23 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const addProfile = (profile: Profile) => {
     setProfilesList((prevProfiles) => [...prevProfiles, profile]);
+    setCurrentProfile(profile);
     toast.success("New profile created successfully!");
+  };
+
+  const updateProfile = (updatedProfile: Profile) => {
+    setProfilesList(prevProfiles => 
+      prevProfiles.map(profile => 
+        profile.id === updatedProfile.id ? updatedProfile : profile
+      )
+    );
+    
+    // If the current profile was updated, also update the current profile state
+    if (currentProfile.id === updatedProfile.id) {
+      setCurrentProfile(updatedProfile);
+    }
+    
+    toast.success("Profile updated successfully!");
   };
 
   return (
@@ -74,7 +91,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         currentProfile,
         setCurrentProfile,
         availableProfiles: profilesList,
-        addProfile
+        addProfile,
+        updateProfile
       }}
     >
       {children}

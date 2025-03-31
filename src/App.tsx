@@ -38,6 +38,7 @@ import SecurityPage from "./pages/account/SecurityPage";
 import BillingPage from "./pages/account/BillingPage";
 import SettingsPage from "./pages/account/SettingsPage";
 import NewProfilePage from "./pages/profiles/NewProfilePage";
+import EditProfilePage from "./pages/profiles/EditProfilePage";
 import ProfilesPage from "./pages/profiles/ProfilesPage";
 
 function ScrollToTop() {
@@ -95,6 +96,7 @@ function App() {
                 <Route path="/account/settings" element={<SettingsPage />} />
                 
                 <Route path="/profiles/new" element={<NewProfilePage />} />
+                <Route path="/profiles/edit/:id" element={<EditProfilePage />} />
                 <Route path="/profiles" element={<ProfilesPage />} />
                 
                 <Route path="*" element={<NotFound />} />
