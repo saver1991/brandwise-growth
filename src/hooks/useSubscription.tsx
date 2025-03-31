@@ -61,8 +61,23 @@ export function useSubscription() {
         if (profileError) throw profileError;
         
         if (profile?.subscription_data) {
-          setSubscription(profile.subscription_data as SubscriptionData);
-          setHasActiveSubscription(profile.subscription_data.status === 'active');
+          // Type assertion with proper validation
+          const subData = profile.subscription_data as unknown;
+          
+          if (
+            subData && 
+            typeof subData === 'object' && 
+            !Array.isArray(subData) && 
+            'plan' in subData && 
+            'price' in subData && 
+            'renewal_date' in subData && 
+            'status' in subData
+          ) {
+            setSubscription(subData as SubscriptionData);
+            setHasActiveSubscription(
+              (subData as SubscriptionData).status === 'active'
+            );
+          }
         }
       } catch (fallbackError) {
         console.error('Fallback error:', fallbackError);

@@ -101,7 +101,7 @@ const CurrentPlanCard = ({ subscription, isLoading }: CurrentPlanCardProps) => {
       )}
       
       <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
-        {subscription?.status === "active" ? (
+        {subscription && subscription.status === "active" ? (
           <>
             <Dialog>
               <DialogTrigger asChild>
