@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Profile, useProfile } from "@/contexts/ProfileContext";
@@ -42,10 +41,8 @@ const ProfileCard = ({ profile, isActive, onSelect }: ProfileCardProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const handleDeleteProfile = () => {
-    const success = deleteProfile(profile.id);
-    if (success) {
-      setDeleteDialogOpen(false);
-    }
+    deleteProfile(profile.id);
+    setDeleteDialogOpen(false);
   };
   
   return (
