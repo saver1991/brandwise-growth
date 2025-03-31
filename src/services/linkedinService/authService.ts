@@ -3,9 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LinkedInTokens } from "./types";
 
-// LinkedIn API endpoints
-const LINKEDIN_API_BASE_URL = "https://api.linkedin.com/v2";
-
 export const getAuthUrl = async (): Promise<string> => {
   try {
     // Retrieve redirect URL from environment or use a default
@@ -13,30 +10,36 @@ export const getAuthUrl = async (): Promise<string> => {
     
     console.log("Getting LinkedIn Client ID from edge function");
     
-    // Get the client ID from Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke('get-linkedin-client-id', {});
+    // Get the client ID from Supabase Edge Function with detailed error handling
+    const response = await supabase.functions.invoke('get-linkedin-client-id', {});
     
-    console.log("LinkedIn Client ID response:", data, error);
+    console.log("LinkedIn Client ID edge function response:", response);
     
-    if (error || !data?.clientId) {
-      console.error("Error retrieving LinkedIn client ID:", error);
-      toast.error("Failed to prepare LinkedIn authentication");
+    if (response.error) {
+      console.error("Error from edge function:", response.error);
+      toast.error("Failed to prepare LinkedIn authentication: Edge function error");
       return "";
     }
     
-    const LINKEDIN_CLIENT_ID = data.clientId;
-    console.log("Using LinkedIn Client ID:", LINKEDIN_CLIENT_ID);
+    if (!response.data || !response.data.clientId) {
+      console.error("No client ID returned from edge function:", response.data);
+      toast.error("Failed to prepare LinkedIn authentication: Missing client ID");
+      return "";
+    }
+    
+    const LINKEDIN_CLIENT_ID = response.data.clientId;
+    console.log("Using LinkedIn Client ID:", LINKEDIN_CLIENT_ID.substring(0, 4) + "...");
     
     const scope = encodeURIComponent("r_liteprofile r_emailaddress w_member_social");
     
     const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${Math.random().toString(36).substring(2, 15)}`;
     
-    console.log("Generated LinkedIn Auth URL");
+    console.log("Generated LinkedIn Auth URL:", authUrl.substring(0, 50) + "...");
     
     return authUrl;
   } catch (error) {
     console.error("Unexpected error generating LinkedIn auth URL:", error);
-    toast.error("Failed to prepare LinkedIn authentication");
+    toast.error("Failed to prepare LinkedIn authentication: " + error.message);
     return "";
   }
 };

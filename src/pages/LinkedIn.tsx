@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -63,18 +62,15 @@ const LinkedIn = () => {
       try {
         setIsLoading(true);
         
-        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
           setUserId(user.id);
           
-          // Check if LinkedIn is connected
           const connected = await linkedinService.isConnected(user.id);
           setIsConnected(connected);
           
           if (connected) {
-            // Get tokens to fetch profile
             const tokens = await linkedinService.getTokens(user.id);
             
             if (tokens) {
@@ -101,10 +97,9 @@ const LinkedIn = () => {
       setIsLoading(true);
       console.log("Starting LinkedIn connection process");
       
-      // Get authorization URL using the service
       const authUrl = await linkedinService.getAuthUrl();
       
-      console.log("LinkedIn Auth URL:", authUrl ? "URL generated successfully" : "Failed to generate URL");
+      console.log("LinkedIn Auth URL:", authUrl ? `Generated (${authUrl.length} chars)` : "Failed to generate URL");
       
       if (!authUrl) {
         toast.error("Failed to initialize LinkedIn authorization. Please try again later.");
@@ -112,11 +107,12 @@ const LinkedIn = () => {
         return;
       }
       
-      // Redirect to LinkedIn authorization
+      console.log("Full LinkedIn Auth URL:", authUrl);
+      
       window.location.href = authUrl;
     } catch (error) {
       console.error("Error starting LinkedIn connection:", error);
-      toast.error("Failed to connect to LinkedIn. Please try again later.");
+      toast.error("Failed to connect to LinkedIn: " + error.message);
       setIsLoading(false);
     }
   };
@@ -151,11 +147,9 @@ const LinkedIn = () => {
         return;
       }
       
-      // For demonstration, we'll create a simple post
-      // In a real implementation, this would show a dialog to compose content or use existing content
       const success = await linkedinService.sharePost(
         tokens.access_token,
-        "your-linkedin-id", // This would come from the profile info
+        "your-linkedin-id",
         "Excited to share insights on design systems and product development! Check out my latest thoughts on this evolving field. #DesignSystems #ProductDevelopment #UX",
         "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=800&auto=format&fit=crop&q=80"
       );

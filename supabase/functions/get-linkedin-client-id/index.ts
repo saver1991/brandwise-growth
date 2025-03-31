@@ -13,16 +13,17 @@ serve(async (req) => {
   }
   
   try {
+    console.log('LinkedIn Client ID request received - processing')
+    
     // Get LinkedIn client ID from environment variable
     const LINKEDIN_CLIENT_ID = Deno.env.get('LINKEDIN_CLIENT_ID')
     
-    console.log('LinkedIn Client ID request received')
-    console.log('Retrieved LinkedIn Client ID:', LINKEDIN_CLIENT_ID ? 'Found a value' : 'No value found')
+    console.log('Retrieved LinkedIn Client ID:', LINKEDIN_CLIENT_ID ? `Found: ${LINKEDIN_CLIENT_ID.substring(0, 4)}...` : 'No value found')
     
     if (!LINKEDIN_CLIENT_ID) {
-      console.error('LinkedIn Client ID not configured')
+      console.error('LinkedIn Client ID not configured in Supabase secrets')
       return new Response(
-        JSON.stringify({ error: 'LinkedIn integration not configured' }),
+        JSON.stringify({ error: 'LinkedIn integration not configured', details: 'Client ID missing in environment' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500 
@@ -31,6 +32,7 @@ serve(async (req) => {
     }
     
     // Return the client ID to the client
+    console.log('Returning LinkedIn Client ID to client')
     return new Response(
       JSON.stringify({ clientId: LINKEDIN_CLIENT_ID }),
       { 
@@ -42,7 +44,7 @@ serve(async (req) => {
     console.error('Error retrieving LinkedIn client ID:', error)
     
     return new Response(
-      JSON.stringify({ error: 'Server error' }),
+      JSON.stringify({ error: 'Server error', details: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500

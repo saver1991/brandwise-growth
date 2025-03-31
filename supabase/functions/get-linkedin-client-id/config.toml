@@ -1,4 +1,2 @@
 
 project_id = "nfblswfyqrllryptwnyr"
-[global.environment]
-LINKEDIN_CLIENT_ID = "{{LINKEDIN_CLIENT_ID}}"
