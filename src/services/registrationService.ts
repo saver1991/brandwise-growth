@@ -70,15 +70,12 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
   try {
     console.log("Creating Stripe checkout session for plan:", selectedPlan, billingCycle);
     
-    // Determine which price ID to use based on plan
-    // Note: In our STRIPE_PLANS object, we're storing the price IDs for each plan
-    const planKey = selectedPlan; // e.g., "professional"
-    
+    // Get the price ID based on selected plan and billing cycle
+    let planKey = selectedPlan;
     if (!planKey || !STRIPE_PLANS[planKey]) {
       throw new Error(`Invalid plan selected: ${planKey}`);
     }
     
-    // Get the price ID from our configuration
     const priceId = STRIPE_PLANS[planKey];
     console.log("Using Stripe price ID:", priceId);
     
@@ -108,7 +105,7 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
     window.location.href = data.url;
     
     return data;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating checkout session:', error);
     toast.error("Payment setup failed: " + (error.message || "Please try again"));
     throw error;

@@ -48,13 +48,14 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
 
   const handleSubmit = async () => {
     try {
+      console.log("Starting registration submission...");
       setSubmitError(null);
       // This returns the user ID if registration is successful
       const userId = await onSubmit();
       
-      // If userId is null, registration failed and onSubmit would have shown an error already
       if (!userId) {
         console.error("Registration failed - no userId returned");
+        setSubmitError("Registration failed. Please try again.");
       }
       // The redirect to Stripe checkout is handled in the onSubmit function
     } catch (error) {

@@ -68,18 +68,6 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       console.log('Found existing customer:', customerId);
-      
-      // Check if already subscribed
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customerId,
-        status: 'active',
-        price: priceId,
-        limit: 1
-      });
-
-      if (subscriptions.data.length > 0) {
-        throw new Error("Customer already has an active subscription for this plan");
-      }
     }
     
     // Get the origin or use the provided URLs

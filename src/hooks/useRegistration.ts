@@ -95,9 +95,8 @@ export const useRegistration = () => {
       console.log("Starting registration process");
       
       // Validate email one more time before submission
-      const isEmailUnique = !(await checkEmailExists(formData.personal.email));
+      const isEmailUnique = await validateEmail(formData.personal.email);
       if (!isEmailUnique) {
-        setEmailError("This email is already registered. Please login instead.");
         setIsSubmitting(false);
         return null;
       }
