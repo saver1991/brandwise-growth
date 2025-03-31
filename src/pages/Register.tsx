@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
@@ -71,16 +72,26 @@ const Register = () => {
 
   const checkEmailExists = async (email: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log("Checking if email exists:", email);
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: false,
         }
       });
       
+      console.log("Check email response:", { data, error });
+      
+      // If there's no error or the error is not "User not found",
+      // then the email already exists
       if (!error || (error && error.message !== "User not found")) {
+        console.log("Email exists, showing error");
+        setEmailError("This email is already registered. Please login instead.");
         return true;
       }
+      
+      // Clear any existing email error
+      setEmailError("");
       return false;
     } catch (err) {
       console.error("Error checking email:", err);
@@ -88,14 +99,11 @@ const Register = () => {
     }
   };
 
-  const handleEmailCheck = async (email: string): Promise<boolean> => {
-    setEmailError("");
-    const exists = await checkEmailExists(email);
-    if (exists) {
-      setEmailError("This email is already registered. Please login instead.");
-      return false;
+  const handleEmailChange = (email: string): void => {
+    // Clear error when email changes
+    if (email !== formData.personal.email) {
+      setEmailError("");
     }
-    return true;
   };
 
   const saveUserProfile = async (userId: string) => {
@@ -121,8 +129,8 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      const emailIsUnique = await handleEmailCheck(formData.personal.email);
-      if (!emailIsUnique) {
+      const emailIsUnique = await checkEmailExists(formData.personal.email);
+      if (emailIsUnique) {
         setIsSubmitting(false);
         return;
       }
@@ -176,11 +184,8 @@ const Register = () => {
             updateData={(data) => updateFormData("personal", data)}
             onNext={handleNextStep}
             emailError={emailError}
-            onEmailChange={(email) => {
-              if (email !== formData.personal.email) {
-                setEmailError("");
-              }
-            }}
+            onEmailChange={handleEmailChange}
+            checkEmailExists={checkEmailExists}
           />
         );
       case 2:

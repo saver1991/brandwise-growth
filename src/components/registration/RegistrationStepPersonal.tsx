@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -18,6 +18,7 @@ interface RegistrationStepPersonalProps {
   onNext: () => void;
   emailError?: string;
   onEmailChange?: (email: string) => void;
+  checkEmailExists?: (email: string) => Promise<boolean>;
 }
 
 const formSchema = z.object({
@@ -38,7 +39,8 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({
   updateData, 
   onNext,
   emailError,
-  onEmailChange
+  onEmailChange,
+  checkEmailExists
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,7 +55,16 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // If email validation is required, run it first
+    if (checkEmailExists && values.email) {
+      const exists = await checkEmailExists(values.email);
+      if (exists) {
+        // Email validation will be handled by parent component showing error
+        return;
+      }
+    }
+    
     updateData(values);
     onNext();
   };
@@ -64,6 +75,17 @@ const RegistrationStepPersonal: React.FC<RegistrationStepPersonalProps> = ({
       onEmailChange(e.target.value);
     }
   };
+
+  // Reset form error when email field changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'email' && onEmailChange && value.email) {
+        onEmailChange(value.email as string);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, onEmailChange]);
 
   return (
     <Form {...form}>
