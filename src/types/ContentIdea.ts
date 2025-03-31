@@ -17,5 +17,3 @@ export interface ContentIdea {
   score: ContentScore;
   imagePrompt?: string;
 }
-
-// No re-export to avoid conflicts
