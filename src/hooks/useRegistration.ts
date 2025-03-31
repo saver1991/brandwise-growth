@@ -75,6 +75,7 @@ export const useRegistration = () => {
       return true;
     } catch (err) {
       console.error("Error validating email:", err);
+      setEmailError("Failed to validate email. Please try again.");
       return false;
     }
   };
@@ -91,8 +92,9 @@ export const useRegistration = () => {
     
     try {
       // Validate email one more time before submission
-      const emailIsUnique = !(await checkEmailExists(formData.personal.email));
-      if (!emailIsUnique) {
+      const isEmailUnique = !(await checkEmailExists(formData.personal.email));
+      if (!isEmailUnique) {
+        setEmailError("This email is already registered. Please login instead.");
         setIsSubmitting(false);
         return null;
       }

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RegistrationFormData } from "@/types/registration";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
-import { STRIPE_PLANS } from "@/components/account/billing/PlanConfiguration";
 
 interface RegistrationStepConfirmationProps {
   formData: RegistrationFormData;
@@ -45,12 +44,9 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
   };
 
   const handleSubmit = async () => {
-    // This now returns the user ID if registration is successful
+    // This returns the user ID if registration is successful
     const userId = await onSubmit();
-    if (userId) {
-      // Now we can proceed with payment setup
-      console.log("Registration successful, proceeding to payment");
-    }
+    // The onSubmit function handles the redirect to Stripe checkout
   };
 
   return (

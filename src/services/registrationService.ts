@@ -9,15 +9,15 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
   try {
     console.log("Checking if email exists:", email);
     
-    // First try to get user by email to check if it exists
-    const { data, error } = await supabase.auth.signInWithOtp({
+    // Make an auth API call to check if the user exists
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: false,
       }
     });
     
-    console.log("Check email response:", { data, error });
+    console.log("Check email response:", { error });
     
     // If there's an error with message containing "User not found", 
     // then the email doesn't exist in the system
@@ -26,7 +26,7 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
     }
     
     // If we don't get a "User not found" error, 
-    // then the email already exists in the system
+    // then the email likely exists in the system
     return true; // Email exists, can't use for registration
   } catch (err) {
     console.error("Error checking email:", err);
