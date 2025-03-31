@@ -80,7 +80,7 @@ const AuthHeader = () => {
       {/* Mobile menu - now vertically stacked */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t">
-          <div className="container mx-auto px-4 py-3 space-y-1 flex flex-col">
+          <div className="container mx-auto px-4 py-3 flex flex-col">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -101,10 +101,10 @@ const AuthHeader = () => {
                 <span>Support</span>
               </Link>
               <div className="flex flex-col gap-2 mt-2">
-                <Link to="/register" className="w-full">
+                <Link to="/register" className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full">Register</Button>
                 </Link>
-                <Link to="/login" className="w-full">
+                <Link to="/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button size="sm" className="w-full">Login</Button>
                 </Link>
               </div>

@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Search, 
   MessageSquare, 
@@ -361,8 +361,11 @@ export default function Support() {
   const [openFAQs, setOpenFAQs] = useState<number[]>([]);
   const [activeIntegration, setActiveIntegration] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("faq");
   const [activeDocCategory, setActiveDocCategory] = useState("integrations");
+  
+  // Dialog states
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [callDialogOpen, setCallDialogOpen] = useState(false);
   
   useEffect(() => {
     document.title = "Support | BrandWise";
@@ -372,7 +375,6 @@ export default function Support() {
     const integrationId = urlParams.get('integration');
     if (integrationId) {
       setActiveIntegration(integrationId);
-      setActiveTab("documentation");
       setActiveDocCategory("integrations");
       
       // Scroll to the integration section
@@ -413,6 +415,7 @@ export default function Support() {
       <AuthHeader />
       
       <div className="container mx-auto px-4 py-12">
+        {/* Header section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">How can we help you?</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
@@ -434,248 +437,227 @@ export default function Support() {
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-16">
-          <TabsList className="grid grid-cols-3 max-w-lg mx-auto mb-8">
-            <TabsTrigger value="faq">FAQs</TabsTrigger>
-            <TabsTrigger value="documentation" id="documentation-tab">Documentation</TabsTrigger>
-            <TabsTrigger value="contact">Contact Us</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="faq">
-            <div className="space-y-4 max-w-3xl mx-auto">
-              {faqs.map((faq, index) => (
-                <Card key={index} className="cursor-pointer overflow-hidden">
-                  <div 
-                    className="p-6 flex justify-between items-center"
-                    onClick={() => toggleFAQ(index)}
-                  >
-                    <h3 className="text-lg font-medium">{faq.question}</h3>
-                    <ChevronDown 
-                      className={`h-5 w-5 transition-transform ${openFAQs.includes(index) ? 'rotate-180' : ''}`}
-                    />
-                  </div>
-                  {openFAQs.includes(index) && (
-                    <CardContent className="pt-0 pb-6 text-muted-foreground">
-                      {faq.answer}
-                    </CardContent>
-                  )}
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="documentation">
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Documentation Sidebar */}
-              <div className="md:w-1/4">
-                <div className="sticky top-24 border rounded-lg overflow-hidden">
-                  <div className="p-4 bg-muted/50">
-                    <h3 className="font-medium">Categories</h3>
-                  </div>
-                  <div className="p-2">
-                    {documentationCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        className={`w-full flex items-center gap-2 p-3 text-left rounded-md transition-colors ${
-                          activeDocCategory === category.id
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-accent"
-                        }`}
-                        onClick={() => setActiveDocCategory(category.id)}
-                      >
-                        {category.icon}
-                        <span>{category.title}</span>
-                      </button>
-                    ))}
-                  </div>
+        {/* Documentation Section */}
+        <section className="mb-20">
+          <h2 className="text-2xl font-bold mb-6 text-center">Documentation</h2>
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Documentation Sidebar */}
+            <div className="md:w-1/4">
+              <div className="sticky top-24 border rounded-lg overflow-hidden">
+                <div className="p-4 bg-muted/50">
+                  <h3 className="font-medium">Categories</h3>
+                </div>
+                <div className="p-2">
+                  {documentationCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      className={`w-full flex items-center gap-2 p-3 text-left rounded-md transition-colors ${
+                        activeDocCategory === category.id
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent"
+                      }`}
+                      onClick={() => setActiveDocCategory(category.id)}
+                    >
+                      {category.icon}
+                      <span>{category.title}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-              
-              {/* Documentation Content */}
-              <div className="md:w-3/4">
-                {activeDocCategory === "getting-started" && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6">Getting Started with BrandWise</h2>
-                    <Card className="mb-8">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-4">Setting Up Your Account</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Learn how to create your account, set up your profile, and get started with BrandWise.
-                        </p>
-                        <Button>View Guide</Button>
-                      </CardContent>
-                    </Card>
-                    <Card className="mb-8">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-4">Creating Your First Campaign</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Learn how to create, schedule, and publish your first content campaign.
-                        </p>
-                        <Button>View Guide</Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                
-                {activeDocCategory === "integrations" && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6">Platform Integrations</h2>
-                    
-                    {filteredIntegrations.length > 0 ? (
-                      filteredIntegrations.map((integration) => (
-                        <Card key={integration.id} id={`integration-${integration.id}`} className="mb-8">
-                          <CardContent className="p-6">
-                            <div className="flex items-start mb-6">
-                              <div className="mr-4">{integration.icon}</div>
-                              <div>
-                                <h3 className="text-2xl font-bold">{integration.title}</h3>
-                                <p className="text-muted-foreground">{integration.description}</p>
-                              </div>
-                            </div>
-                            
-                            {integration.sections.map((section, index) => (
-                              <div key={index} className="mb-6">
-                                <h4 className="text-xl font-semibold mb-2">{section.title}</h4>
-                                <p className="text-muted-foreground">{section.content}</p>
-                              </div>
-                            ))}
-                            
-                            <div className="mt-6 pt-6 border-t">
-                              <h4 className="text-lg font-semibold mb-2">Need more help?</h4>
-                              <p className="text-muted-foreground mb-4">
-                                If you're still having issues with this integration, our support team is here to help.
-                              </p>
-                              <Button className="mr-2">Contact Support</Button>
-                              <Button variant="outline">View API Documentation</Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    ) : (
-                      <div className="text-center p-8 bg-muted rounded-lg">
-                        <p className="text-lg mb-4">No integration guides match your search.</p>
-                        <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {activeDocCategory === "content-creation" && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6">Content Creation Guides</h2>
-                    <Card className="mb-8">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-4">Creating Effective Social Media Content</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Learn how to create engaging content that resonates with your audience.
-                        </p>
-                        <Button>View Guide</Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                
-                {activeDocCategory === "analytics" && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6">Analytics Guides</h2>
-                    <Card className="mb-8">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-4">Understanding Your Analytics Dashboard</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Learn how to interpret and use the analytics data to improve your content strategy.
-                        </p>
-                        <Button>View Guide</Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                
-                {activeDocCategory === "account" && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6">Account Management</h2>
-                    <Card className="mb-8">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-4">Managing Your Subscription</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Learn how to update your subscription, billing information, and account details.
-                        </p>
-                        <Button>View Guide</Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="contact">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <MessageSquare className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Live Chat</h3>
-                  <p className="text-muted-foreground mb-4">Chat with our support team in real-time.</p>
-                  <Button className="w-full">Start Chat</Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Mail className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Email Support</h3>
-                  <p className="text-muted-foreground mb-4">Send us an email and we'll respond within 24 hours.</p>
-                  <Button variant="outline" className="w-full">Send Email</Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Phone className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Phone Support</h3>
-                  <p className="text-muted-foreground mb-4">For Premium and Enterprise customers only.</p>
-                  <Button variant="outline" className="w-full">Schedule Call</Button>
-                </CardContent>
-              </Card>
             </div>
             
+            {/* Documentation Content */}
+            <div className="md:w-3/4">
+              {activeDocCategory === "getting-started" && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Getting Started with BrandWise</h2>
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-4">Setting Up Your Account</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Learn how to create your account, set up your profile, and get started with BrandWise.
+                      </p>
+                      <Button>View Guide</Button>
+                    </CardContent>
+                  </Card>
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-4">Creating Your First Campaign</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Learn how to create, schedule, and publish your first content campaign.
+                      </p>
+                      <Button>View Guide</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
+              {activeDocCategory === "integrations" && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Platform Integrations</h2>
+                  
+                  {filteredIntegrations.length > 0 ? (
+                    filteredIntegrations.map((integration) => (
+                      <Card key={integration.id} id={`integration-${integration.id}`} className="mb-8">
+                        <CardContent className="p-6">
+                          <div className="flex items-start mb-6">
+                            <div className="mr-4">{integration.icon}</div>
+                            <div>
+                              <h3 className="text-2xl font-bold">{integration.title}</h3>
+                              <p className="text-muted-foreground">{integration.description}</p>
+                            </div>
+                          </div>
+                          
+                          {integration.sections.map((section, index) => (
+                            <div key={index} className="mb-6">
+                              <h4 className="text-xl font-semibold mb-2">{section.title}</h4>
+                              <p className="text-muted-foreground">{section.content}</p>
+                            </div>
+                          ))}
+                          
+                          <div className="mt-6 pt-6 border-t">
+                            <h4 className="text-lg font-semibold mb-2">Need more help?</h4>
+                            <p className="text-muted-foreground mb-4">
+                              If you're still having issues with this integration, our support team is here to help.
+                            </p>
+                            <Button className="mr-2">Contact Support</Button>
+                            <Button variant="outline">View API Documentation</Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center p-8 bg-muted rounded-lg">
+                      <p className="text-lg mb-4">No integration guides match your search.</p>
+                      <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {activeDocCategory === "content-creation" && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Content Creation Guides</h2>
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-4">Creating Effective Social Media Content</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Learn how to create engaging content that resonates with your audience.
+                      </p>
+                      <Button>View Guide</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
+              {activeDocCategory === "analytics" && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Analytics Guides</h2>
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-4">Understanding Your Analytics Dashboard</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Learn how to interpret and use the analytics data to improve your content strategy.
+                      </p>
+                      <Button>View Guide</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
+              {activeDocCategory === "account" && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Account Management</h2>
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-4">Managing Your Subscription</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Learn how to update your subscription, billing information, and account details.
+                      </p>
+                      <Button>View Guide</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+        
+        {/* FAQ Section */}
+        <section className="mb-20">
+          <h2 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {faqs.map((faq, index) => (
+              <Card key={index} className="cursor-pointer overflow-hidden">
+                <div 
+                  className="p-6 flex justify-between items-center"
+                  onClick={() => toggleFAQ(index)}
+                >
+                  <h3 className="text-lg font-medium">{faq.question}</h3>
+                  <ChevronDown 
+                    className={`h-5 w-5 transition-transform ${openFAQs.includes(index) ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                {openFAQs.includes(index) && (
+                  <CardContent className="pt-0 pb-6 text-muted-foreground">
+                    {faq.answer}
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        </section>
+        
+        {/* Contact Us Section */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold mb-6 text-center">Contact Us</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-medium mb-4">Send us a message</h3>
-                <form className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="text-sm font-medium">Name</label>
-                      <Input id="name" placeholder="Your name" />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium">Email</label>
-                      <Input id="email" type="email" placeholder="Your email address" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                    <Input id="subject" placeholder="What is your question about?" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="message" className="text-sm font-medium">Message</label>
-                    <textarea 
-                      id="message" 
-                      placeholder="Please describe your issue in detail" 
-                      className="w-full h-32 rounded-md border border-input bg-background px-3 py-2"
-                    ></textarea>
-                  </div>
-                  <Button type="submit" className="w-full md:w-auto">Send Message</Button>
-                </form>
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Live Chat</h3>
+                <p className="text-muted-foreground mb-4">Chat with our support team in real-time.</p>
+                <Button className="w-full">Start Chat</Button>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Email Support</h3>
+                <p className="text-muted-foreground mb-4">Send us an email and we'll respond within 24 hours.</p>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setEmailDialogOpen(true)}
+                >
+                  Send Email
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Phone className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Phone Support</h3>
+                <p className="text-muted-foreground mb-4">For Premium and Enterprise customers only.</p>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setCallDialogOpen(true)}
+                >
+                  Schedule Call
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
         
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Still need help?</h2>
@@ -694,6 +676,80 @@ export default function Support() {
           </div>
         </div>
       </div>
+      
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Send us a message</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">Name</label>
+                <Input id="name" placeholder="Your name" />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <Input id="email" type="email" placeholder="Your email address" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="subject" className="text-sm font-medium">Subject</label>
+              <Input id="subject" placeholder="What is your question about?" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="message" className="text-sm font-medium">Message</label>
+              <textarea 
+                id="message" 
+                placeholder="Please describe your issue in detail" 
+                className="w-full h-32 rounded-md border border-input bg-background px-3 py-2"
+              ></textarea>
+            </div>
+            <Button type="submit" className="w-full">Send Message</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Schedule Call Dialog */}
+      <Dialog open={callDialogOpen} onOpenChange={setCallDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Schedule a Support Call</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="call-name" className="text-sm font-medium">Name</label>
+              <Input id="call-name" placeholder="Your name" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="call-email" className="text-sm font-medium">Email</label>
+              <Input id="call-email" type="email" placeholder="Your email address" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="call-phone" className="text-sm font-medium">Phone Number</label>
+              <Input id="call-phone" type="tel" placeholder="Your phone number" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="call-date" className="text-sm font-medium">Preferred Date</label>
+              <Input id="call-date" type="date" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="call-time" className="text-sm font-medium">Preferred Time</label>
+              <Input id="call-time" type="time" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="call-issue" className="text-sm font-medium">Issue Description</label>
+              <textarea 
+                id="call-issue" 
+                placeholder="Please briefly describe your issue" 
+                className="w-full h-24 rounded-md border border-input bg-background px-3 py-2"
+              ></textarea>
+            </div>
+            <Button type="submit" className="w-full">Request Call</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>
