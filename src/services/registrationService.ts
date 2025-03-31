@@ -86,17 +86,18 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
     const { data, error } = await supabase.functions.invoke('create-checkout-session', {
       body: { 
         priceId,
+        email: null, // Will be obtained from auth token
         successUrl: `${window.location.origin}/onboarding`, // Direct to onboarding after successful payment
         cancelUrl: `${window.location.origin}/register` // Back to registration if canceled
       }
     });
     
+    console.log("Stripe checkout response:", { data, error });
+    
     if (error) {
       console.error("Error invoking create-checkout-session:", error);
       throw error;
     }
-    
-    console.log("Checkout session created:", data);
     
     if (!data?.url) {
       console.error("No checkout URL returned");

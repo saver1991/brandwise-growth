@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BillingInfo } from "@/types/registration";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Wallet, Building, ArrowRight } from "lucide-react";
+import { CreditCard, Wallet, Building, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface RegistrationStepBillingProps {
   data: BillingInfo;
@@ -20,16 +20,46 @@ interface RegistrationStepBillingProps {
 
 const formSchema = z.object({
   paymentMethod: z.enum(["creditCard", "paypal", "bankTransfer", "googlePay", "applePay", "amazonPay"]),
-  cardholderName: z.string().min(2, "Cardholder name is required").optional(),
-  cardNumber: z.string().min(12, "Card number is invalid").optional(),
-  expiryDate: z.string().min(4, "Expiry date is invalid").optional(),
-  cvv: z.string().min(3, "CVV is invalid").optional(),
   country: z.string().min(2, "Country is required"),
   address: z.string().min(5, "Address is required"),
   city: z.string().min(2, "City is required"),
   state: z.string().min(2, "State is required"),
   zipCode: z.string().min(3, "ZIP code is required"),
 });
+
+// List of countries for the dropdown
+const countries = [
+  { code: "US", name: "United States" },
+  { code: "CA", name: "Canada" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "AU", name: "Australia" },
+  { code: "DE", name: "Germany" },
+  { code: "FR", name: "France" },
+  { code: "ES", name: "Spain" },
+  { code: "IT", name: "Italy" },
+  { code: "JP", name: "Japan" },
+  { code: "CN", name: "China" },
+  { code: "IN", name: "India" },
+  { code: "BR", name: "Brazil" },
+  { code: "MX", name: "Mexico" },
+  { code: "AR", name: "Argentina" },
+  { code: "ZA", name: "South Africa" },
+  { code: "RU", name: "Russia" },
+  { code: "KR", name: "South Korea" },
+  { code: "SG", name: "Singapore" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "SE", name: "Sweden" },
+  { code: "NO", name: "Norway" },
+  { code: "DK", name: "Denmark" },
+  { code: "FI", name: "Finland" },
+  { code: "NL", name: "Netherlands" },
+  { code: "BE", name: "Belgium" },
+  { code: "CH", name: "Switzerland" },
+  { code: "AT", name: "Austria" },
+  { code: "PL", name: "Poland" },
+  { code: "PT", name: "Portugal" },
+  { code: "GR", name: "Greece" },
+];
 
 const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
   data,
@@ -41,10 +71,6 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       paymentMethod: data.paymentMethod,
-      cardholderName: data.cardholderName,
-      cardNumber: data.cardNumber,
-      expiryDate: data.expiryDate,
-      cvv: data.cvv,
       country: data.country,
       address: data.address,
       city: data.city,
@@ -64,9 +90,6 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
     { id: "creditCard", name: "Credit Card", icon: <CreditCard className="h-5 w-5" /> },
     { id: "paypal", name: "PayPal", icon: <Wallet className="h-5 w-5" /> },
     { id: "bankTransfer", name: "Bank Transfer", icon: <Building className="h-5 w-5" /> },
-    { id: "googlePay", name: "Google Pay", icon: <span className="font-semibold">G</span> },
-    { id: "applePay", name: "Apple Pay", icon: <span className="font-semibold">A</span> },
-    { id: "amazonPay", name: "Amazon Pay", icon: <span className="font-semibold">Am</span> },
   ];
 
   return (
@@ -74,13 +97,16 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <h3 className="text-lg font-medium mb-3">Payment Method</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Select your preferred payment method. You'll enter your payment details securely on the Stripe checkout page after completing registration.
+          </p>
           <FormField
             control={form.control}
             name="paymentMethod"
             render={() => (
               <FormItem>
                 <FormControl>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {paymentMethods.map((method) => (
                       <Card
                         key={method.id}
@@ -104,69 +130,6 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
           />
         </div>
 
-        {watchPaymentMethod === "creditCard" && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Card Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="cardholderName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cardholder Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cardNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Card Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="**** **** **** ****" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="expiryDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
-                    <FormControl>
-                      <Input placeholder="MM/YY" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cvv"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CVV</FormLabel>
-                    <FormControl>
-                      <Input placeholder="***" type="password" maxLength={4} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        )}
-
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Billing Address</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -182,13 +145,12 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="US">United States</SelectItem>
-                      <SelectItem value="CA">Canada</SelectItem>
-                      <SelectItem value="GB">United Kingdom</SelectItem>
-                      <SelectItem value="AU">Australia</SelectItem>
-                      <SelectItem value="DE">Germany</SelectItem>
-                      <SelectItem value="FR">France</SelectItem>
+                    <SelectContent className="max-h-[300px]">
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -256,6 +218,7 @@ const RegistrationStepBilling: React.FC<RegistrationStepBillingProps> = ({
 
         <div className="flex justify-between mt-6">
           <Button type="button" variant="outline" onClick={onBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <Button type="submit">

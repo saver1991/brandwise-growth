@@ -29,50 +29,59 @@ serve(async (req) => {
     // Get authorization header
     const authHeader = req.headers.get('Authorization')!
     
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    )
-
-    // Get user from token
-    const token = authHeader.replace('Bearer ', '')
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token)
-    
-    if (userError) {
-      console.error("Error getting user:", userError);
-      throw new Error(`Error getting user: ${userError.message}`);
-    }
-    
-    const user = userData.user
-    const email = user?.email
-
-    if (!email) {
-      throw new Error('No email found');
-    }
-    
-    console.log("User email:", email);
-
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
     
-    // Check if customer already exists
-    const customers = await stripe.customers.list({
-      email: email,
-      limit: 1
-    })
+    let userId = null;
+    let email = null;
 
+    // If there's an auth header, get the user from it
+    if (authHeader) {
+      // Initialize Supabase client
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      )
+
+      // Get user from token
+      const token = authHeader.replace('Bearer ', '')
+      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token)
+      
+      if (userError) {
+        console.error("Error getting user:", userError);
+      } else {
+        userId = userData.user?.id;
+        email = userData.user?.email;
+        console.log("User email from auth:", email);
+      }
+    }
+    
+    // Get customer email from request body if not from auth
+    if (!email && req.body) {
+      try {
+        const body = await req.json();
+        email = body.email;
+        console.log("User email from request body:", email);
+      } catch (e) {
+        // No email in body, continue without it
+      }
+    }
+    
+    // Check if customer already exists if we have an email
     let customerId = undefined;
     
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      console.log('Found existing customer:', customerId);
+    if (email) {
+      const customers = await stripe.customers.list({
+        email: email,
+        limit: 1
+      });
+      
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        console.log('Found existing customer:', customerId);
+      }
     }
     
     // Get the origin or use the provided URLs
@@ -97,8 +106,9 @@ serve(async (req) => {
       success_url: finalSuccessUrl,
       cancel_url: finalCancelUrl,
       metadata: {
-        user_id: user.id,
+        user_id: userId || 'anonymous',
       },
+      allow_promotion_codes: true,
     });
 
     console.log('Checkout session created:', session.id);

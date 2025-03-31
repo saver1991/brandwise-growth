@@ -131,11 +131,11 @@ export const useRegistration = () => {
       // Save additional user profile information
       try {
         await saveUserProfile(data.user.id, formData);
-        toast.success("Account created! Redirecting to payment...");
+        console.log("Profile data saved successfully");
       } catch (profileError) {
         console.error("Error saving profile:", profileError);
-        // Continue to payment even if profile save fails
         toast.error("Warning: Some profile data couldn't be saved");
+        // Continue to payment even if profile save fails
       }
       
       // Send welcome email (don't await this, let it happen in the background)
