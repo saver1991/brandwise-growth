@@ -15,6 +15,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting checkout session creation");
+    
     // Get request body
     const { priceId, successUrl, cancelUrl } = await req.json();
     
@@ -22,6 +24,8 @@ serve(async (req) => {
       throw new Error('Price ID is required');
     }
 
+    console.log("Price ID:", priceId);
+    
     // Get authorization header
     const authHeader = req.headers.get('Authorization')!
     
@@ -40,6 +44,7 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token)
     
     if (userError) {
+      console.error("Error getting user:", userError);
       throw new Error(`Error getting user: ${userError.message}`);
     }
     
@@ -49,13 +54,13 @@ serve(async (req) => {
     if (!email) {
       throw new Error('No email found');
     }
+    
+    console.log("User email:", email);
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
-
-    console.log('Creating checkout session with price ID:', priceId);
     
     // Check if customer already exists
     const customers = await stripe.customers.list({
@@ -74,6 +79,9 @@ serve(async (req) => {
     const origin = req.headers.get('origin') || 'https://brandwise.app';
     const finalSuccessUrl = successUrl || `${origin}/onboarding`;
     const finalCancelUrl = cancelUrl || `${origin}/register`;
+    
+    console.log("Success URL:", finalSuccessUrl);
+    console.log("Cancel URL:", finalCancelUrl);
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -89,11 +97,12 @@ serve(async (req) => {
       success_url: finalSuccessUrl,
       cancel_url: finalCancelUrl,
       metadata: {
-        user_id: user.id, // Store user ID in metadata for webhook handler
+        user_id: user.id,
       },
     });
 
     console.log('Checkout session created:', session.id);
+    console.log('Checkout session URL:', session.url);
     
     return new Response(
       JSON.stringify({ url: session.url }),

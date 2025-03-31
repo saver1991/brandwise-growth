@@ -113,38 +113,53 @@ export const useRegistration = () => {
       );
       
       if (error) {
-        toast.error("Registration failed: " + (error.message || "Something went wrong"));
         console.error("Registration error:", error);
+        toast.error("Registration failed: " + (error.message || "Something went wrong"));
         setIsSubmitting(false);
         return null;
       }
       
-      if (data?.user) {
-        console.log("User created successfully, saving profile data");
-        
-        // Save additional user profile information
+      if (!data?.user) {
+        console.error("Registration error: No user data returned");
+        toast.error("Registration failed: Unable to create account");
+        setIsSubmitting(false);
+        return null;
+      }
+      
+      console.log("User created successfully, saving profile data", data.user);
+      
+      // Save additional user profile information
+      try {
         await saveUserProfile(data.user.id, formData);
-        
         toast.success("Account created! Redirecting to payment...");
-        
-        // Send welcome email (don't await this, let it happen in the background)
-        sendWelcomeEmail(formData.personal.email, formData.plan.selectedPlan)
-          .then(() => console.log("Welcome email sent"))
-          .catch(err => console.error("Error sending welcome email:", err));
-        
-        console.log("Proceeding to Stripe checkout");
-        
-        // Proceed to Stripe checkout
+      } catch (profileError) {
+        console.error("Error saving profile:", profileError);
+        // Continue to payment even if profile save fails
+        toast.error("Warning: Some profile data couldn't be saved");
+      }
+      
+      // Send welcome email (don't await this, let it happen in the background)
+      sendWelcomeEmail(formData.personal.email, formData.plan.selectedPlan)
+        .then(() => console.log("Welcome email sent"))
+        .catch(err => console.error("Error sending welcome email:", err));
+      
+      console.log("Proceeding to Stripe checkout");
+      
+      // Proceed to Stripe checkout
+      try {
         await createStripeCheckout(
           data.user.id, 
           formData.plan.selectedPlan, 
           formData.plan.billingCycle
         );
-        
-        return data.user.id;
+        // No need to handle the redirect here as it's done in createStripeCheckout
+      } catch (stripeError) {
+        console.error("Error creating Stripe checkout:", stripeError);
+        toast.error("Payment setup failed. Please try again or contact support.");
+        // Still return the user ID, as account was created
       }
       
-      return null;
+      return data.user.id;
     } catch (error: any) {
       console.error("Registration process error:", error);
       toast.error(error?.message || "An unexpected error occurred");

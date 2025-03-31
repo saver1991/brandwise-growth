@@ -36,6 +36,8 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 
 export const saveUserProfile = async (userId: string, formData: RegistrationFormData) => {
   try {
+    console.log("Saving user profile for ID:", userId);
+    
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -59,6 +61,7 @@ export const saveUserProfile = async (userId: string, formData: RegistrationForm
       throw error;
     }
     
+    console.log("User profile saved successfully");
     return { success: true };
   } catch (err) {
     console.error("Error saving profile data:", err);
@@ -70,7 +73,7 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
   try {
     console.log("Creating Stripe checkout session for plan:", selectedPlan, billingCycle);
     
-    // Get the price ID based on selected plan and billing cycle
+    // Get the price ID based on selected plan
     let planKey = selectedPlan;
     if (!planKey || !STRIPE_PLANS[planKey]) {
       throw new Error(`Invalid plan selected: ${planKey}`);
@@ -90,12 +93,13 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
     
     if (error) {
       console.error("Error invoking create-checkout-session:", error);
-      throw new Error(error.message);
+      throw error;
     }
     
     console.log("Checkout session created:", data);
     
     if (!data?.url) {
+      console.error("No checkout URL returned");
       throw new Error('No checkout URL returned');
     }
     
@@ -105,7 +109,7 @@ export const createStripeCheckout = async (userId: string, selectedPlan: string,
     window.location.href = data.url;
     
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating checkout session:', error);
     toast.error("Payment setup failed: " + (error.message || "Please try again"));
     throw error;

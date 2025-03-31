@@ -50,6 +50,7 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
     try {
       console.log("Starting registration submission...");
       setSubmitError(null);
+      
       // This returns the user ID if registration is successful
       const userId = await onSubmit();
       
@@ -57,10 +58,10 @@ const RegistrationStepConfirmation: React.FC<RegistrationStepConfirmationProps> 
         console.error("Registration failed - no userId returned");
         setSubmitError("Registration failed. Please try again.");
       }
-      // The redirect to Stripe checkout is handled in the onSubmit function
-    } catch (error) {
+      // The redirect to Stripe checkout is handled in the createStripeCheckout function
+    } catch (error: any) {
       console.error("Error during registration:", error);
-      setSubmitError("An unexpected error occurred. Please try again.");
+      setSubmitError(error?.message || "An unexpected error occurred. Please try again.");
       toast.error("Failed to complete registration");
     }
   };
