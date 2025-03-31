@@ -79,8 +79,9 @@ const SettingsPage = () => {
           .eq("id", user.id)
           .single();
           
-        if (error && error.code !== "PGRST116") {
-          throw error;
+        if (error) {
+          console.error("Error fetching settings:", error);
+          return;
         }
         
         // If user has settings stored in their profile, use them

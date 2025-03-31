@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import AccountSidebar from "@/components/account/AccountSidebar";
 import { Button } from "@/components/ui/button";
@@ -79,13 +79,14 @@ const BillingPage = () => {
           .eq("id", user.id)
           .single();
           
-        if (error && error.code !== "PGRST116") {
-          throw error;
+        if (error) {
+          console.error("Error fetching subscription data:", error);
+          return;
         }
         
+        // If we have subscription data in the profile, use it
         if (data && data.subscription_data) {
-          // If we have subscription data in the profile, use it
-          setSubscription(data.subscription_data);
+          setSubscription(data.subscription_data as Subscription);
         }
         
         // In a real app, you'd fetch invoices from your billing system
@@ -351,4 +352,3 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
-
