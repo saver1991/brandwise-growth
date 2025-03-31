@@ -24,7 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ProfileSwitcher = () => {
-  const { currentProfile, setCurrentProfile, availableProfiles, isLoading } = useProfile();
+  const { currentProfile, setCurrentProfile, availableProfiles, isLoading, hasProfiles } = useProfile();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
@@ -56,52 +56,75 @@ const ProfileSwitcher = () => {
           <AvatarImage src={currentProfile.avatar} alt={currentProfile.name} />
         </Avatar>
         <span className="text-sm font-medium hidden sm:inline-block">
-          {currentProfile.name.split(" ")[0]}
+          {hasProfiles 
+            ? currentProfile.name.split(" ")[0] 
+            : user?.user_metadata?.full_name?.split(" ")[0] || "Account"}
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{currentProfile.name}</p>
+            <p className="text-sm font-medium leading-none">
+              {user?.user_metadata?.full_name || "User"}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || "example@brandwise.com"}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {availableProfiles.map((profile) => (
-          <DropdownMenuItem
-            key={profile.id}
-            className="cursor-pointer py-2"
-            onClick={() => setCurrentProfile(profile)}
-          >
+        
+        {hasProfiles ? (
+          <>
+            {availableProfiles.map((profile) => (
+              <DropdownMenuItem
+                key={profile.id}
+                className="cursor-pointer py-2"
+                onClick={() => setCurrentProfile(profile)}
+              >
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{profile.fallback}</AvatarFallback>
+                    <AvatarImage src={profile.avatar} alt={profile.name} />
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{profile.name}</span>
+                    <span className="text-xs text-muted-foreground">{profile.role}</span>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </>
+        ) : (
+          <DropdownMenuItem className="cursor-pointer py-2 opacity-70">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback>{profile.fallback}</AvatarFallback>
-                <AvatarImage src={profile.avatar} alt={profile.name} />
+                <AvatarFallback>NP</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-sm font-medium">{profile.name}</span>
-                <span className="text-xs text-muted-foreground">{profile.role}</span>
+                <span className="text-sm font-medium">No profiles yet</span>
+                <span className="text-xs text-muted-foreground">Create your first profile</span>
               </div>
             </div>
           </DropdownMenuItem>
-        ))}
+        )}
         
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profiles/new')}>
           <div className="flex items-center gap-2 text-primary">
             <UserPlus className="h-4 w-4" />
-            <span>Create New Profile</span>
+            <span>{hasProfiles ? "Create New Profile" : "Create First Profile"}</span>
           </div>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profiles')}>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span>Manage All Profiles</span>
-          </div>
-        </DropdownMenuItem>
+        {hasProfiles && (
+          <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profiles')}>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>Manage All Profiles</span>
+            </div>
+          </DropdownMenuItem>
+        )}
         
         <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/profile")}>

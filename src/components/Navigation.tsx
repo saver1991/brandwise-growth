@@ -18,17 +18,20 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileSwitcher from "./ProfileSwitcher";
+import { useProfile } from "@/contexts/ProfileContext";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ReactNode;
+  requiresProfile?: boolean;
 }
 
 const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { hasProfiles } = useProfile();
 
   const navItems: NavItem[] = [
     {
@@ -40,36 +43,48 @@ const Navigation = () => {
       title: "Content Calendar",
       href: "/calendar",
       icon: <Calendar className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "Content Creation",
       href: "/ideas",
       icon: <BookOpen className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "Audience Growth",
       href: "/audience",
       icon: <Users className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "LinkedIn Strategy",
       href: "/linkedin",
       icon: <Linkedin className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "Medium Content",
       href: "/medium",
       icon: <MessageSquare className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "WordPress",
       href: "/wordpress",
       icon: <MessageSquare className="h-5 w-5" />,
+      requiresProfile: true,
     },
     {
       title: "Growth Analytics",
       href: "/analytics",
       icon: <TrendingUp className="h-5 w-5" />,
+      requiresProfile: true,
+    },
+    {
+      title: "Manage Profiles",
+      href: "/profiles",
+      icon: <Users className="h-5 w-5" />,
     },
   ];
 
@@ -109,7 +124,10 @@ const Navigation = () => {
     },
   ];
 
-  const currentNavItems = isMarketingPage ? marketingNavItems : navItems;
+  // Filter nav items based on whether a profile exists if needed
+  const filteredNavItems = isMarketingPage 
+    ? marketingNavItems 
+    : navItems.filter(item => !item.requiresProfile || hasProfiles);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -149,15 +167,19 @@ const Navigation = () => {
               {mobileMenuOpen && (
                 <div className="fixed inset-0 top-16 z-50 bg-background animate-fade-in">
                   <nav className="flex flex-col gap-2 p-4">
-                    {currentNavItems.map((item) => (
+                    {filteredNavItems.map((item) => (
                       <Link
                         key={item.href}
                         to={item.href}
-                        className="flex items-center gap-2 rounded-md px-3 py-3 text-sm font-medium hover:bg-accent"
+                        className={cn(
+                          "flex items-center gap-2 rounded-md px-3 py-3 text-sm font-medium hover:bg-accent",
+                          !hasProfiles && item.requiresProfile && "opacity-50 pointer-events-none"
+                        )}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.icon}
                         {item.title}
+                        {!hasProfiles && item.requiresProfile && " (Create profile first)"}
                       </Link>
                     ))}
                     {isMarketingPage && (
@@ -179,14 +201,16 @@ const Navigation = () => {
           ) : (
             <div className="flex items-center gap-2">
               <nav className="hidden md:flex items-center gap-1">
-                {currentNavItems.map((item) => (
+                {filteredNavItems.map((item) => (
                   <Link
                     key={item.href}
                     to={item.href}
                     className={cn(
                       "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent/10 transition-colors",
-                      location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground"
+                      location.pathname === item.href ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground",
+                      !hasProfiles && item.requiresProfile && "opacity-50 pointer-events-none"
                     )}
+                    title={!hasProfiles && item.requiresProfile ? "Create a profile first" : ""}
                   >
                     {item.icon}
                     <span>{item.title}</span>

@@ -2,18 +2,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfilesRow } from "@/types/supabaseCustomTypes";
+import { UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProfileSummary = () => {
-  const { currentProfile, isLoading } = useProfile();
+  const { currentProfile, isLoading, hasProfiles } = useProfile();
   const { user } = useAuth();
   const [dbProfile, setDbProfile] = useState<ProfilesRow | null>(null);
   const [isDbProfileLoading, setIsDbProfileLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function getProfile() {
@@ -76,6 +80,40 @@ const ProfileSummary = () => {
                 <Skeleton className="h-6 w-20" />
               </div>
               <Skeleton className="h-4 w-full max-w-md" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Display a create profile prompt if no profiles exist
+  if (!hasProfiles) {
+    return (
+      <Card className="bg-gradient-to-br from-card via-card to-accent/10 card-hover">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="h-24 w-24 rounded-full bg-accent/20 flex items-center justify-center">
+              <UserPlus className="h-12 w-12 text-accent/70" />
+            </div>
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-2xl font-bold">Welcome, {displayName}!</h2>
+                <p className="text-muted-foreground">Let's create your first profile to get started</p>
+              </div>
+              
+              <Button 
+                onClick={() => navigate("/profiles/new")} 
+                className="mt-4"
+                size="lg"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Create Your First Profile
+              </Button>
+              
+              <p className="text-sm max-w-md mt-4">
+                Profiles help you manage different brands, projects or personas with separate content strategies.
+              </p>
             </div>
           </div>
         </CardContent>

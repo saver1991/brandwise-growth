@@ -12,6 +12,7 @@ import {
   ProfileIntegrationRow,
   ProfileIntegrationInsert
 } from "@/types/supabaseCustomTypes";
+import { useNavigate } from "react-router-dom";
 
 export interface Profile {
   id: string;
@@ -38,7 +39,7 @@ export const availableIntegrations = [
   "pinterest"
 ];
 
-// Default profile to show while loading
+// Default profile to show while loading or when no profiles exist
 const defaultProfile: Profile = {
   id: "default",
   name: "Default Profile",
@@ -59,6 +60,7 @@ interface ProfileContextType {
   deleteProfile: (profileId: string) => Promise<boolean>;
   availableIntegrations: string[];
   isLoading: boolean;
+  hasProfiles: boolean;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -67,13 +69,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [profilesList, setProfilesList] = useState<Profile[]>([]);
   const [currentProfile, setCurrentProfile] = useState<Profile>(defaultProfile);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasProfiles, setHasProfiles] = useState<boolean>(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Load profiles from Supabase
   useEffect(() => {
     const fetchProfiles = async () => {
       if (!user) {
         setIsLoading(false);
+        setHasProfiles(false);
         return;
       }
       
@@ -90,6 +95,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (brandProfiles && brandProfiles.length > 0) {
+          setHasProfiles(true);
+          
           // For each profile, fetch its tags and integrations
           const profilesWithDetails = await Promise.all(
             brandProfiles.map(async (profile) => {
@@ -157,12 +164,26 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
             setCurrentProfile(profilesWithDetails[0]);
           }
         } else {
-          // If the user has no profiles, leave the list empty
+          // If the user has no profiles, leave the list empty and set hasProfiles to false
           setProfilesList([]);
+          setHasProfiles(false);
+          
+          // Set default empty profile
+          setCurrentProfile({
+            id: "empty",
+            name: "Create Your First Profile",
+            role: "New User",
+            avatar: "",
+            fallback: "NP",
+            tags: [],
+            description: "Please create your first profile to get started",
+            integrations: []
+          });
         }
       } catch (error) {
         console.error("Error fetching profiles:", error);
         toast.error("Failed to load profiles");
+        setHasProfiles(false);
       } finally {
         setIsLoading(false);
       }
@@ -424,7 +445,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         updateProfile,
         deleteProfile,
         availableIntegrations,
-        isLoading
+        isLoading,
+        hasProfiles
       }}
     >
       {children}
