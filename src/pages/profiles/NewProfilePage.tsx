@@ -29,8 +29,10 @@ import {
   ArrowRight,
   RefreshCw,
   Plus,
-  Check
+  Check,
+  Sparkles
 } from "lucide-react";
+import { aiGenerationService } from "@/services/aiGenerationService";
 
 // Define all available integrations
 const AVAILABLE_INTEGRATIONS = [
@@ -151,6 +153,7 @@ const NewProfilePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [connectionStates, setConnectionStates] = useState<Record<string, "idle" | "connecting" | "connected">>({});
   const [customTagInput, setCustomTagInput] = useState("");
+  const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
   
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -172,10 +175,10 @@ const NewProfilePage = () => {
       // Simulate AI analyzing the content and suggesting relevant tags
       const combinedText = `${profileForm.name} ${profileForm.role} ${profileForm.description}`.toLowerCase();
       
-      // Simple keyword matching as an example
+      // Add base tags first
       const newSuggestions = [...BASE_TAG_SUGGESTIONS];
       
-      // Add relevant tags based on keywords
+      // Add relevant additional tags based on keywords found in the profile text
       ADDITIONAL_TAGS.forEach(tag => {
         // Only add tags that aren't already in the suggestions
         if (!newSuggestions.some(t => t.label === tag.label)) {
@@ -242,6 +245,60 @@ const NewProfilePage = () => {
       }));
       setCustomTagInput("");
     }
+  };
+
+  const enhanceProfileDescription = () => {
+    if (!profileForm.description) {
+      toast.error("Please add a description before enhancing");
+      return;
+    }
+    
+    setIsEnhancingDescription(true);
+    
+    // Simulate AI enhancing the description
+    setTimeout(() => {
+      // Create a more professional version of the description
+      const enhancedDescription = improveDescription(profileForm.description, profileForm.role);
+      
+      // Update the form with enhanced description
+      setProfileForm(prev => ({
+        ...prev,
+        description: enhancedDescription
+      }));
+      
+      setIsEnhancingDescription(false);
+      toast.success("Profile description enhanced!");
+    }, 1500);
+  };
+  
+  // Function to improve description with AI
+  const improveDescription = (description: string, role: string): string => {
+    // This is a simple simulation of AI enhancement
+    // In a real implementation, this would call an API like OpenAI
+    if (!description) return "";
+    
+    // Add professional tone and language
+    let enhanced = description;
+    
+    // Add industry-specific terminology based on role
+    if (role.toLowerCase().includes("market")) {
+      enhanced = `With extensive experience in strategic marketing and brand development, ${enhanced} Specializing in data-driven approaches to maximize ROI and brand visibility.`;
+    } else if (role.toLowerCase().includes("tech") || role.toLowerCase().includes("develop")) {
+      enhanced = `Leveraging cutting-edge technical expertise and innovative problem-solving abilities, ${enhanced} Committed to building scalable solutions that drive business growth.`;
+    } else if (role.toLowerCase().includes("design")) {
+      enhanced = `Bringing creative vision and user-centric design thinking to every project, ${enhanced} Focused on delivering engaging experiences that balance aesthetics and functionality.`;
+    } else if (role.toLowerCase().includes("sales")) {
+      enhanced = `Driving revenue growth through strategic relationship building and consultative sales approaches, ${enhanced} Dedicated to understanding client needs and delivering tailored solutions.`;
+    } else {
+      enhanced = `As an accomplished ${role}, ${enhanced} Committed to delivering exceptional results and driving continuous improvement.`;
+    }
+    
+    // Make sure it's not too long
+    if (enhanced.length > 500) {
+      enhanced = enhanced.substring(0, 497) + "...";
+    }
+    
+    return enhanced;
   };
 
   const connectIntegration = (integrationId: string) => {
@@ -358,14 +415,30 @@ const NewProfilePage = () => {
             
             <div className="space-y-2">
               <Label htmlFor="description" className="text-base font-medium">Profile Description</Label>
-              <Textarea 
-                id="description" 
-                name="description"
-                placeholder="Describe the purpose and goals of this profile" 
-                value={profileForm.description}
-                onChange={handleProfileChange}
-                className="text-base h-32"
-              />
+              <div className="relative">
+                <Textarea 
+                  id="description" 
+                  name="description"
+                  placeholder="Describe the purpose and goals of this profile" 
+                  value={profileForm.description}
+                  onChange={handleProfileChange}
+                  className="text-base h-32"
+                />
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2 gap-1"
+                  onClick={enhanceProfileDescription}
+                  disabled={isEnhancingDescription || !profileForm.description}
+                >
+                  {isEnhancingDescription ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {isEnhancingDescription ? "Enhancing..." : "Enhance with AI"}
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -634,4 +707,3 @@ const NewProfilePage = () => {
 };
 
 export default NewProfilePage;
-
