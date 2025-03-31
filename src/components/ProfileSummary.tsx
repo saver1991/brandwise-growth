@@ -7,12 +7,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tables } from "@/types/supabase";
+import { ProfilesRow } from "@/types/supabaseCustomTypes";
 
 const ProfileSummary = () => {
   const { currentProfile, isLoading } = useProfile();
   const { user } = useAuth();
-  const [dbProfile, setDbProfile] = useState<Tables<"profiles"> | null>(null);
+  const [dbProfile, setDbProfile] = useState<ProfilesRow | null>(null);
   const [isDbProfileLoading, setIsDbProfileLoading] = useState(false);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const ProfileSummary = () => {
         }
         
         if (data) {
-          setDbProfile(data);
+          setDbProfile(data as ProfilesRow);
         }
       } catch (error) {
         console.error("Error:", error);

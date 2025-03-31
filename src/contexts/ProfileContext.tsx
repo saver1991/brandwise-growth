@@ -3,6 +3,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { 
+  BrandProfileRow, 
+  BrandProfileInsert,
+  BrandProfileUpdate,
+  ProfileTagRow, 
+  ProfileTagInsert,
+  ProfileIntegrationRow,
+  ProfileIntegrationInsert
+} from "@/types/supabaseCustomTypes";
 
 export interface Profile {
   id: string;
@@ -74,7 +83,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         const { data: brandProfiles, error: profilesError } = await supabase
           .from("brand_profiles")
           .select("*")
-          .eq("user_id", user.id);
+          .eq("user_id", user.id) as { data: BrandProfileRow[] | null, error: any };
           
         if (profilesError) {
           throw profilesError;
@@ -88,7 +97,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
               const { data: tagData, error: tagError } = await supabase
                 .from("profile_tags")
                 .select("*")
-                .eq("profile_id", profile.id);
+                .eq("profile_id", profile.id) as { data: ProfileTagRow[] | null, error: any };
                 
               if (tagError) {
                 console.error("Error fetching tags:", tagError);
@@ -98,7 +107,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
               const { data: integrationData, error: integrationError } = await supabase
                 .from("profile_integrations")
                 .select("*")
-                .eq("profile_id", profile.id);
+                .eq("profile_id", profile.id) as { data: ProfileIntegrationRow[] | null, error: any };
                 
               if (integrationError) {
                 console.error("Error fetching integrations:", integrationError);
@@ -125,11 +134,15 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
           setProfilesList(profilesWithDetails);
           
           // Fetch active profile from user profile
-          const { data: userData } = await supabase
+          const { data: userData, error: userError } = await supabase
             .from("profiles")
             .select("active_brand_profile_id")
             .eq("id", user.id)
             .single();
+          
+          if (userError) {
+            console.error("Error fetching user data:", userError);
+          }
           
           if (userData?.active_brand_profile_id) {
             // Find and set the active profile
@@ -172,15 +185,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
           fallback: profile.fallback,
           description: profile.description,
           user_id: user.id
-        })
+        } as BrandProfileInsert)
         .select()
-        .single();
+        .single() as { data: BrandProfileRow | null, error: any };
         
       if (profileError) throw profileError;
+      if (!brandProfile) throw new Error("Failed to create profile");
       
       // Insert the tags
       if (profile.tags.length > 0) {
-        const tagsToInsert = profile.tags.map(tag => ({
+        const tagsToInsert: ProfileTagInsert[] = profile.tags.map(tag => ({
           profile_id: brandProfile.id,
           label: tag.label,
           bg_color: tag.bgColor,
@@ -189,21 +203,21 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: tagError } = await supabase
           .from("profile_tags")
-          .insert(tagsToInsert);
+          .insert(tagsToInsert as any);
           
         if (tagError) throw tagError;
       }
       
       // Insert the integrations
       if (profile.integrations && profile.integrations.length > 0) {
-        const integrationsToInsert = profile.integrations.map(integration => ({
+        const integrationsToInsert: ProfileIntegrationInsert[] = profile.integrations.map(integration => ({
           profile_id: brandProfile.id,
           integration_type: integration
         }));
         
         const { error: integrationError } = await supabase
           .from("profile_integrations")
-          .insert(integrationsToInsert);
+          .insert(integrationsToInsert as any);
           
         if (integrationError) throw integrationError;
       }
@@ -260,7 +274,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
           avatar: updatedProfile.avatar,
           fallback: updatedProfile.fallback,
           description: updatedProfile.description
-        })
+        } as BrandProfileUpdate)
         .eq("id", updatedProfile.id)
         .eq("user_id", user.id);
         
@@ -275,7 +289,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       if (deleteTagsError) throw deleteTagsError;
       
       if (updatedProfile.tags.length > 0) {
-        const tagsToInsert = updatedProfile.tags.map(tag => ({
+        const tagsToInsert: ProfileTagInsert[] = updatedProfile.tags.map(tag => ({
           profile_id: updatedProfile.id,
           label: tag.label,
           bg_color: tag.bgColor,
@@ -284,7 +298,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: insertTagsError } = await supabase
           .from("profile_tags")
-          .insert(tagsToInsert);
+          .insert(tagsToInsert as any);
           
         if (insertTagsError) throw insertTagsError;
       }
@@ -298,14 +312,14 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       if (deleteIntegrationsError) throw deleteIntegrationsError;
       
       if (updatedProfile.integrations && updatedProfile.integrations.length > 0) {
-        const integrationsToInsert = updatedProfile.integrations.map(integration => ({
+        const integrationsToInsert: ProfileIntegrationInsert[] = updatedProfile.integrations.map(integration => ({
           profile_id: updatedProfile.id,
           integration_type: integration
         }));
         
         const { error: insertIntegrationsError } = await supabase
           .from("profile_integrations")
-          .insert(integrationsToInsert);
+          .insert(integrationsToInsert as any);
           
         if (insertIntegrationsError) throw insertIntegrationsError;
       }
