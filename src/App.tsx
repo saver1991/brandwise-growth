@@ -22,6 +22,12 @@ import Support from "./pages/Support";
 import Pricing from "./pages/Pricing";
 import Affiliate from "./pages/Affiliate";
 import Register from "./pages/Register";
+import Integrations from "./pages/Integrations";
+import Blog from "./pages/Blog";
+import Guides from "./pages/Guides";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +56,12 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/affiliate" element={<Affiliate />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/guides" element={<Guides />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
