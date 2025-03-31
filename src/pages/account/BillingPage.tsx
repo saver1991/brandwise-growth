@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import AccountSidebar from "@/components/account/AccountSidebar";
 import {
@@ -9,102 +9,52 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import CurrentPlanCard from "@/components/account/billing/CurrentPlanCard";
 import PaymentMethodForm from "@/components/account/billing/PaymentMethodForm";
 import InvoiceHistory from "@/components/account/billing/InvoiceHistory";
-
-type Subscription = {
-  plan: string;
-  price: string;
-  renewal_date: string;
-  status: "active" | "canceled" | "past_due";
-  payment_method: {
-    type: "card";
-    last4: string;
-    expiry: string;
-  } | null;
-};
-
-type Invoice = {
-  id: string;
-  date: string;
-  amount: string;
-};
+import { useSubscription } from "@/hooks/useSubscription";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const BillingPage = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [subscription, setSubscription] = useState<Subscription>({
-    plan: "Professional Plan",
-    price: "$29/month",
-    renewal_date: "September 30, 2023",
-    status: "active",
-    payment_method: {
-      type: "card",
-      last4: "4242",
-      expiry: "12/2025"
-    }
-  });
-  const [invoices, setInvoices] = useState<Invoice[]>([
+  const { 
+    subscription, 
+    isLoading, 
+    error, 
+    refreshSubscription 
+  } = useSubscription();
+
+  // Sample invoice data - in a real app, these would come from Stripe
+  const invoices = [
     { id: "12345", date: "Aug 1, 2023", amount: "$29.00" },
     { id: "12344", date: "Jul 1, 2023", amount: "$29.00" },
     { id: "12343", date: "Jun 1, 2023", amount: "$29.00" }
-  ]);
+  ];
 
   useEffect(() => {
-    async function getBillingInfo() {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // In a real app, you would fetch subscription data from your billing system
-        // via a Supabase edge function or another backend service
-        
-        // For demonstration purposes, we'll just check if the user has any subscription data
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("subscription_data")
-          .eq("id", user.id)
-          .single();
-          
-        if (error) {
-          console.error("Error fetching subscription data:", error);
-          return;
-        }
-        
-        // If we have subscription data in the profile, use it
-        if (data && data.subscription_data) {
-          setSubscription(data.subscription_data as Subscription);
-        }
-        
-        // In a real app, you'd fetch invoices from your billing system
-        // This is just placeholder data
-        
-      } catch (error: any) {
-        console.error("Error loading billing information: ", error);
-        toast({
-          title: "Error loading billing information",
-          description: error.message,
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    // Check URL parameters for success/canceled message from Stripe
+    const urlParams = new URLSearchParams(window.location.search);
     
-    getBillingInfo();
-  }, [user, toast]);
+    if (urlParams.get('success') === 'true') {
+      toast.success('Subscription updated successfully');
+      refreshSubscription();
+      // Remove the query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('canceled') === 'true') {
+      toast.error('Subscription update was canceled');
+      // Remove the query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [refreshSubscription]);
 
-  const updatePaymentMethod = (newPaymentMethod: Subscription["payment_method"]) => {
-    setSubscription({
-      ...subscription,
-      payment_method: newPaymentMethod
-    });
+  const updatePaymentMethod = (newPaymentMethod: { type: "card"; last4: string; expiry: string }) => {
+    // In a real application, this would interact with the Stripe API
+    // and update the payment method server-side
+    refreshSubscription();
   };
 
   return (
@@ -117,16 +67,41 @@ const BillingPage = () => {
           </div>
           
           <div className="md:w-3/4 space-y-8">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  There was a problem loading your billing information. Please try again later.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Card>
               <CardHeader>
                 <CardTitle>Current Plan</CardTitle>
                 <CardDescription>Manage your subscription plan</CardDescription>
               </CardHeader>
               <CardContent>
-                <CurrentPlanCard 
-                  subscription={subscription} 
-                  isLoading={isLoading} 
-                />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-20 w-full rounded" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Skeleton className="h-16 w-full rounded" />
+                      <Skeleton className="h-16 w-full rounded" />
+                      <Skeleton className="h-16 w-full rounded" />
+                    </div>
+                    <div className="flex justify-between">
+                      <Skeleton className="h-10 w-28 rounded" />
+                      <Skeleton className="h-10 w-28 rounded" />
+                    </div>
+                  </div>
+                ) : (
+                  <CurrentPlanCard 
+                    subscription={subscription} 
+                    isLoading={isLoading} 
+                  />
+                )}
               </CardContent>
             </Card>
             
@@ -136,11 +111,19 @@ const BillingPage = () => {
                 <CardDescription>Update your payment information</CardDescription>
               </CardHeader>
               <CardContent>
-                <PaymentMethodForm 
-                  userId={user?.id}
-                  paymentMethod={subscription.payment_method}
-                  onUpdate={updatePaymentMethod}
-                />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-16 w-full rounded" />
+                    <Skeleton className="h-40 w-full rounded" />
+                  </div>
+                ) : (
+                  <PaymentMethodForm 
+                    userId={user?.id}
+                    paymentMethod={subscription?.payment_method}
+                    onUpdate={updatePaymentMethod}
+                    subscriptionId={subscription?.stripe_subscription_id}
+                  />
+                )}
               </CardContent>
             </Card>
             
@@ -150,10 +133,27 @@ const BillingPage = () => {
                 <CardDescription>View your past invoices</CardDescription>
               </CardHeader>
               <CardContent>
-                <InvoiceHistory 
-                  invoices={invoices} 
-                  isLoading={isLoading} 
-                />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center justify-between py-2">
+                        <div>
+                          <Skeleton className="h-5 w-36 rounded mb-1" />
+                          <Skeleton className="h-4 w-24 rounded" />
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Skeleton className="h-5 w-16 rounded" />
+                          <Skeleton className="h-8 w-24 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <InvoiceHistory 
+                    invoices={invoices} 
+                    isLoading={isLoading} 
+                  />
+                )}
               </CardContent>
             </Card>
           </div>
