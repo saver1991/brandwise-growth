@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -55,6 +56,8 @@ export default function Login() {
           </form>
         </Card>
       </div>
+      
+      <Footer />
     </div>
   );
 }
