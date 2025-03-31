@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Profile, useProfile } from "@/contexts/ProfileContext";
@@ -15,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Facebook, Instagram, Linkedin, Twitter, Youtube, Share2, Video, MessageSquare, Globe, Pencil, Trash2 } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Twitter, Youtube, Share2, Video, MessageSquare, Globe, Pencil, Trash2, Loader2 } from "lucide-react";
 
 interface ProfileCardProps {
   profile: Profile;
@@ -39,10 +40,18 @@ const ProfileCard = ({ profile, isActive, onSelect }: ProfileCardProps) => {
   const navigate = useNavigate();
   const { deleteProfile } = useProfile();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  const handleDeleteProfile = () => {
-    deleteProfile(profile.id);
-    setDeleteDialogOpen(false);
+  const handleDeleteProfile = async () => {
+    setIsDeleting(true);
+    try {
+      const success = await deleteProfile(profile.id);
+      if (success) {
+        setDeleteDialogOpen(false);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
   
   return (
@@ -140,9 +149,20 @@ const ProfileCard = ({ profile, isActive, onSelect }: ProfileCardProps) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProfile} className="bg-red-500 hover:bg-red-600">
-              Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProfile} 
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

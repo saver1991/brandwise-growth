@@ -18,18 +18,35 @@ import {
   User,
   UserPlus,
   Users,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ProfileSwitcher = () => {
-  const { currentProfile, setCurrentProfile, availableProfiles } = useProfile();
+  const { currentProfile, setCurrentProfile, availableProfiles, isLoading } = useProfile();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-accent/10 transition-colors">
+        <Avatar className="h-7 w-7">
+          <AvatarFallback className="text-xs">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm font-medium hidden sm:inline-block">
+          Loading...
+        </span>
+        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>

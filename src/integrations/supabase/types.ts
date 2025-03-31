@@ -9,8 +9,109 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      brand_profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          description: string | null
+          fallback: string | null
+          id: string
+          name: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          description?: string | null
+          fallback?: string | null
+          id?: string
+          name: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          description?: string | null
+          fallback?: string | null
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          integration_type: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          integration_type: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          integration_type?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_integrations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "brand_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_tags: {
+        Row: {
+          bg_color: string
+          created_at: string
+          id: string
+          label: string
+          profile_id: string
+          text_color: string
+        }
+        Insert: {
+          bg_color: string
+          created_at?: string
+          id?: string
+          label: string
+          profile_id: string
+          text_color: string
+        }
+        Update: {
+          bg_color?: string
+          created_at?: string
+          id?: string
+          label?: string
+          profile_id?: string
+          text_color?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_tags_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "brand_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          active_brand_profile_id: string | null
           avatar_url: string | null
           full_name: string | null
           id: string
@@ -21,6 +122,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          active_brand_profile_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id: string
@@ -31,6 +133,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          active_brand_profile_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id?: string
@@ -40,7 +143,15 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_brand_profile_id_fkey"
+            columns: ["active_brand_profile_id"]
+            isOneToOne: false
+            referencedRelation: "brand_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -1,6 +1,8 @@
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Profile {
   id: string;
@@ -27,108 +29,388 @@ export const availableIntegrations = [
   "pinterest"
 ];
 
-export const profiles: Profile[] = [
-  {
-    id: "salvatore",
-    name: "Salvatore Mezzatesta",
-    role: "Product Design & Strategy Expert",
-    avatar: "https://placehold.co/200x200/0F2E3D/FFFFFF?text=SM",
-    fallback: "SM",
-    tags: [
-      { label: "Product Design", bgColor: "bg-brand-blue/10", textColor: "text-brand-blue" },
-      { label: "Product Strategy", bgColor: "bg-brand-teal/10", textColor: "text-brand-teal" },
-      { label: "UX Leadership", bgColor: "bg-brand-orange/10", textColor: "text-brand-orange" },
-      { label: "Thought Leader", bgColor: "bg-muted", textColor: "text-foreground" }
-    ],
-    description: "Building a strong personal brand to establish authority in product design and strategy, drive audience growth, and increase industry recognition.",
-    integrations: ["linkedin", "medium", "twitter"]
-  },
-  {
-    id: "hanako",
-    name: "Hanako Yamamasu",
-    role: "Food Blogger & Dining Expert",
-    avatar: "https://placehold.co/200x200/4A1D1F/FFFFFF?text=HY",
-    fallback: "HY",
-    tags: [
-      { label: "Food Photography", bgColor: "bg-red-500/10", textColor: "text-red-500" },
-      { label: "Restaurant Reviews", bgColor: "bg-amber-500/10", textColor: "text-amber-600" },
-      { label: "Culinary Trends", bgColor: "bg-green-500/10", textColor: "text-green-600" },
-      { label: "Recipe Creator", bgColor: "bg-muted", textColor: "text-foreground" }
-    ],
-    description: "Sharing authentic culinary experiences and food photography to inspire foodies and build a community of passionate dining enthusiasts.",
-    integrations: ["instagram", "wordpress", "pinterest"]
-  }
-];
+// Default profile to show while loading
+const defaultProfile: Profile = {
+  id: "default",
+  name: "Default Profile",
+  role: "Loading...",
+  avatar: "",
+  fallback: "DP",
+  tags: [],
+  description: "Loading profile data...",
+  integrations: []
+};
 
 interface ProfileContextType {
   currentProfile: Profile;
   setCurrentProfile: (profile: Profile) => void;
   availableProfiles: Profile[];
-  addProfile: (profile: Profile) => void;
-  updateProfile: (profile: Profile) => void;
-  deleteProfile: (profileId: string) => boolean;
+  addProfile: (profile: Profile) => Promise<boolean>;
+  updateProfile: (profile: Profile) => Promise<boolean>;
+  deleteProfile: (profileId: string) => Promise<boolean>;
   availableIntegrations: string[];
+  isLoading: boolean;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
-  const [profilesList, setProfilesList] = useState<Profile[]>(profiles);
-  const [currentProfile, setCurrentProfile] = useState<Profile>(profiles[0]);
+  const [profilesList, setProfilesList] = useState<Profile[]>([]);
+  const [currentProfile, setCurrentProfile] = useState<Profile>(defaultProfile);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { user } = useAuth();
 
-  const addProfile = (profile: Profile) => {
-    setProfilesList((prevProfiles) => [...prevProfiles, profile]);
-    setCurrentProfile(profile);
-    toast.success("New profile created successfully!");
-  };
+  // Load profiles from Supabase
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        // Fetch brand profiles from Supabase
+        const { data: brandProfiles, error: profilesError } = await supabase
+          .from("brand_profiles")
+          .select("*")
+          .eq("user_id", user.id);
+          
+        if (profilesError) {
+          throw profilesError;
+        }
 
-  const updateProfile = (updatedProfile: Profile) => {
-    setProfilesList(prevProfiles => 
-      prevProfiles.map(profile => 
-        profile.id === updatedProfile.id ? updatedProfile : profile
-      )
-    );
+        if (brandProfiles && brandProfiles.length > 0) {
+          // For each profile, fetch its tags and integrations
+          const profilesWithDetails = await Promise.all(
+            brandProfiles.map(async (profile) => {
+              // Fetch tags
+              const { data: tagData, error: tagError } = await supabase
+                .from("profile_tags")
+                .select("*")
+                .eq("profile_id", profile.id);
+                
+              if (tagError) {
+                console.error("Error fetching tags:", tagError);
+              }
+
+              // Fetch integrations
+              const { data: integrationData, error: integrationError } = await supabase
+                .from("profile_integrations")
+                .select("*")
+                .eq("profile_id", profile.id);
+                
+              if (integrationError) {
+                console.error("Error fetching integrations:", integrationError);
+              }
+
+              // Map to our Profile interface
+              return {
+                id: profile.id,
+                name: profile.name,
+                role: profile.role,
+                avatar: profile.avatar || "",
+                fallback: profile.fallback || profile.name.substring(0, 2).toUpperCase(),
+                description: profile.description || "",
+                tags: tagData ? tagData.map(tag => ({
+                  label: tag.label,
+                  bgColor: tag.bg_color,
+                  textColor: tag.text_color
+                })) : [],
+                integrations: integrationData ? integrationData.map(int => int.integration_type) : []
+              };
+            })
+          );
+
+          setProfilesList(profilesWithDetails);
+          
+          // Fetch active profile from user profile
+          const { data: userData } = await supabase
+            .from("profiles")
+            .select("active_brand_profile_id")
+            .eq("id", user.id)
+            .single();
+          
+          if (userData?.active_brand_profile_id) {
+            // Find and set the active profile
+            const activeProfile = profilesWithDetails.find(p => p.id === userData.active_brand_profile_id);
+            if (activeProfile) {
+              setCurrentProfile(activeProfile);
+            } else if (profilesWithDetails.length > 0) {
+              setCurrentProfile(profilesWithDetails[0]);
+            }
+          } else if (profilesWithDetails.length > 0) {
+            // If no active profile is set, use the first one
+            setCurrentProfile(profilesWithDetails[0]);
+          }
+        } else {
+          // If the user has no profiles, leave the list empty
+          setProfilesList([]);
+        }
+      } catch (error) {
+        console.error("Error fetching profiles:", error);
+        toast.error("Failed to load profiles");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, [user]);
+
+  const addProfile = async (profile: Profile): Promise<boolean> => {
+    if (!user) return false;
     
-    // If the current profile was updated, also update the current profile state
-    if (currentProfile.id === updatedProfile.id) {
-      setCurrentProfile(updatedProfile);
+    try {
+      // Insert the brand profile
+      const { data: brandProfile, error: profileError } = await supabase
+        .from("brand_profiles")
+        .insert({
+          name: profile.name,
+          role: profile.role,
+          avatar: profile.avatar,
+          fallback: profile.fallback,
+          description: profile.description,
+          user_id: user.id
+        })
+        .select()
+        .single();
+        
+      if (profileError) throw profileError;
+      
+      // Insert the tags
+      if (profile.tags.length > 0) {
+        const tagsToInsert = profile.tags.map(tag => ({
+          profile_id: brandProfile.id,
+          label: tag.label,
+          bg_color: tag.bgColor,
+          text_color: tag.textColor
+        }));
+        
+        const { error: tagError } = await supabase
+          .from("profile_tags")
+          .insert(tagsToInsert);
+          
+        if (tagError) throw tagError;
+      }
+      
+      // Insert the integrations
+      if (profile.integrations && profile.integrations.length > 0) {
+        const integrationsToInsert = profile.integrations.map(integration => ({
+          profile_id: brandProfile.id,
+          integration_type: integration
+        }));
+        
+        const { error: integrationError } = await supabase
+          .from("profile_integrations")
+          .insert(integrationsToInsert);
+          
+        if (integrationError) throw integrationError;
+      }
+      
+      // Set as active profile if it's the first one
+      if (profilesList.length === 0) {
+        const { error: activeError } = await supabase
+          .from("profiles")
+          .update({ active_brand_profile_id: brandProfile.id })
+          .eq("id", user.id);
+          
+        if (activeError) throw activeError;
+      }
+      
+      // Format the new profile with the database ID
+      const newProfile: Profile = {
+        id: brandProfile.id,
+        name: profile.name,
+        role: profile.role,
+        avatar: profile.avatar,
+        fallback: profile.fallback,
+        description: profile.description || "",
+        tags: profile.tags,
+        integrations: profile.integrations
+      };
+      
+      // Update local state
+      setProfilesList(prev => [...prev, newProfile]);
+      
+      // If this is the first profile, set it as current
+      if (profilesList.length === 0) {
+        setCurrentProfile(newProfile);
+      }
+      
+      toast.success("New profile created successfully!");
+      return true;
+    } catch (error: any) {
+      console.error("Error creating profile:", error);
+      toast.error(`Failed to create profile: ${error.message}`);
+      return false;
     }
-    
-    toast.success("Profile updated successfully!");
   };
 
-  const deleteProfile = (profileId: string): boolean => {
+  const updateProfile = async (updatedProfile: Profile): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      // Update the brand profile
+      const { error: profileError } = await supabase
+        .from("brand_profiles")
+        .update({
+          name: updatedProfile.name,
+          role: updatedProfile.role,
+          avatar: updatedProfile.avatar,
+          fallback: updatedProfile.fallback,
+          description: updatedProfile.description
+        })
+        .eq("id", updatedProfile.id)
+        .eq("user_id", user.id);
+        
+      if (profileError) throw profileError;
+      
+      // Delete existing tags and insert new ones
+      const { error: deleteTagsError } = await supabase
+        .from("profile_tags")
+        .delete()
+        .eq("profile_id", updatedProfile.id);
+        
+      if (deleteTagsError) throw deleteTagsError;
+      
+      if (updatedProfile.tags.length > 0) {
+        const tagsToInsert = updatedProfile.tags.map(tag => ({
+          profile_id: updatedProfile.id,
+          label: tag.label,
+          bg_color: tag.bgColor,
+          text_color: tag.textColor
+        }));
+        
+        const { error: insertTagsError } = await supabase
+          .from("profile_tags")
+          .insert(tagsToInsert);
+          
+        if (insertTagsError) throw insertTagsError;
+      }
+      
+      // Delete existing integrations and insert new ones
+      const { error: deleteIntegrationsError } = await supabase
+        .from("profile_integrations")
+        .delete()
+        .eq("profile_id", updatedProfile.id);
+        
+      if (deleteIntegrationsError) throw deleteIntegrationsError;
+      
+      if (updatedProfile.integrations && updatedProfile.integrations.length > 0) {
+        const integrationsToInsert = updatedProfile.integrations.map(integration => ({
+          profile_id: updatedProfile.id,
+          integration_type: integration
+        }));
+        
+        const { error: insertIntegrationsError } = await supabase
+          .from("profile_integrations")
+          .insert(integrationsToInsert);
+          
+        if (insertIntegrationsError) throw insertIntegrationsError;
+      }
+      
+      // Update local state
+      setProfilesList(prev => 
+        prev.map(profile => 
+          profile.id === updatedProfile.id ? updatedProfile : profile
+        )
+      );
+      
+      // If the current profile was updated, also update the current profile state
+      if (currentProfile.id === updatedProfile.id) {
+        setCurrentProfile(updatedProfile);
+      }
+      
+      toast.success("Profile updated successfully!");
+      return true;
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error(`Failed to update profile: ${error.message}`);
+      return false;
+    }
+  };
+
+  const deleteProfile = async (profileId: string): Promise<boolean> => {
+    if (!user) return false;
+    
     // Don't allow deleting if there's only one profile left
     if (profilesList.length <= 1) {
       toast.error("You must have at least one profile.");
       return false;
     }
 
-    // Update profiles list by filtering out the deleted profile
-    setProfilesList(prevProfiles => 
-      prevProfiles.filter(profile => profile.id !== profileId)
-    );
-    
-    // If the current profile was deleted, switch to another profile
-    if (currentProfile.id === profileId) {
-      const remainingProfiles = profilesList.filter(profile => profile.id !== profileId);
-      setCurrentProfile(remainingProfiles[0]);
+    try {
+      // Check if the profile is currently active
+      const isActive = currentProfile.id === profileId;
+      
+      // Delete the profile (cascade will handle tags and integrations)
+      const { error: deleteError } = await supabase
+        .from("brand_profiles")
+        .delete()
+        .eq("id", profileId)
+        .eq("user_id", user.id);
+        
+      if (deleteError) throw deleteError;
+      
+      // Update local state
+      const updatedProfiles = profilesList.filter(profile => profile.id !== profileId);
+      setProfilesList(updatedProfiles);
+      
+      // If the deleted profile was active, switch to another profile
+      if (isActive && updatedProfiles.length > 0) {
+        const newActiveProfile = updatedProfiles[0];
+        setCurrentProfile(newActiveProfile);
+        
+        // Update active profile in database
+        const { error: activeError } = await supabase
+          .from("profiles")
+          .update({ active_brand_profile_id: newActiveProfile.id })
+          .eq("id", user.id);
+          
+        if (activeError) throw activeError;
+      }
+      
+      toast.success("Profile deleted successfully!");
+      return true;
+    } catch (error: any) {
+      console.error("Error deleting profile:", error);
+      toast.error(`Failed to delete profile: ${error.message}`);
+      return false;
     }
+  };
+
+  const handleSetCurrentProfile = async (profile: Profile) => {
+    if (!user) return;
     
-    toast.success("Profile deleted successfully!");
-    return true;
+    try {
+      // Update active profile in database
+      const { error } = await supabase
+        .from("profiles")
+        .update({ active_brand_profile_id: profile.id })
+        .eq("id", user.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setCurrentProfile(profile);
+    } catch (error: any) {
+      console.error("Error setting active profile:", error);
+      toast.error(`Failed to switch profile: ${error.message}`);
+    }
   };
 
   return (
     <ProfileContext.Provider
       value={{
         currentProfile,
-        setCurrentProfile,
+        setCurrentProfile: handleSetCurrentProfile,
         availableProfiles: profilesList,
         addProfile,
         updateProfile,
         deleteProfile,
-        availableIntegrations
+        availableIntegrations,
+        isLoading
       }}
     >
       {children}

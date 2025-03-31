@@ -6,18 +6,21 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tables } from "@/types/supabase";
 
 const ProfileSummary = () => {
-  const { currentProfile } = useProfile();
+  const { currentProfile, isLoading } = useProfile();
   const { user } = useAuth();
   const [dbProfile, setDbProfile] = useState<Tables<"profiles"> | null>(null);
+  const [isDbProfileLoading, setIsDbProfileLoading] = useState(false);
 
   useEffect(() => {
     async function getProfile() {
       if (!user) return;
       
       try {
+        setIsDbProfileLoading(true);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -34,6 +37,8 @@ const ProfileSummary = () => {
         }
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+        setIsDbProfileLoading(false);
       }
     }
     
@@ -53,6 +58,30 @@ const ProfileSummary = () => {
     .join("")
     .toUpperCase()
     .substring(0, 2);
+
+  if (isLoading || isDbProfileLoading) {
+    return (
+      <Card className="bg-gradient-to-br from-card via-card to-accent/10 card-hover">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <Skeleton className="h-24 w-24 rounded-full" />
+            <div className="space-y-3 text-center md:text-left w-full">
+              <div>
+                <Skeleton className="h-8 w-40 mb-1" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-20" />
+              </div>
+              <Skeleton className="h-4 w-full max-w-md" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-gradient-to-br from-card via-card to-accent/10 card-hover">
