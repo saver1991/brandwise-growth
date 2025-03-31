@@ -80,7 +80,7 @@ const AuthHeader = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t">
-          <div className="container mx-auto px-4 py-3 space-y-1">
+          <div className="container mx-auto px-4 py-3 space-y-1 flex flex-col">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -100,11 +100,11 @@ const AuthHeader = () => {
                 <LifeBuoy className="h-4 w-4" />
                 <span>Support</span>
               </Link>
-              <div className="flex gap-2 mt-2 px-3">
-                <Link to="/register" className="flex-1">
+              <div className="flex flex-col gap-2 mt-2 px-3">
+                <Link to="/register" className="w-full">
                   <Button variant="outline" size="sm" className="w-full">Register</Button>
                 </Link>
-                <Link to="/login" className="flex-1">
+                <Link to="/login" className="w-full">
                   <Button size="sm" className="w-full">Login</Button>
                 </Link>
               </div>

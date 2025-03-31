@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-// Add the scrollToTop function to fix the issue with pages not scrolling to top on navigation
+// Add the scrollRestoration to ensure pages always scroll to top
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
