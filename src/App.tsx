@@ -7,22 +7,28 @@ import Dashboard from "@/pages/Index";
 import ProfilesPage from "@/pages/profiles/ProfilesPage";
 import NewProfilePage from "@/pages/profiles/NewProfilePage";
 import EditProfilePage from "@/pages/profiles/EditProfilePage";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
 
 function App() {
   return (
-    <AuthProvider>
-      <ProfileProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <ProfileProvider>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/profiles/new" element={<NewProfilePage />} />
             <Route path="/profiles/edit/:id" element={<EditProfilePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Routes>
           <Toaster />
-        </Router>
-      </ProfileProvider>
-    </AuthProvider>
+        </ProfileProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
