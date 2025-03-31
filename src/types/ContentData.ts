@@ -1,4 +1,3 @@
-
 import { ContentIdea, ContentScore } from "@/types/ContentIdea";
 import { Database } from "@/types/supabase";
 
@@ -88,21 +87,6 @@ export function mapContentIdeaToDbRecord(idea: ContentIdea, userId: string): Con
     image_prompt: idea.imagePrompt,
     score: idea.score
   };
-}
-
-// Define platform-specific fields configuration
-export interface PlatformFieldConfig {
-  name: string;
-  fields: FieldConfig[];
-}
-
-export interface FieldConfig {
-  name: string;
-  label: string;
-  type: 'text' | 'textarea' | 'url' | 'number' | 'image' | 'tags' | 'carousel' | 'video';
-  placeholder?: string;
-  required?: boolean;
-  description?: string;
 }
 
 export const PLATFORM_FIELDS: Record<ContentPlatform, PlatformFieldConfig> = {

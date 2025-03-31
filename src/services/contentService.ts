@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ContentIdeaData, ContentIdeaRecord, ContentPlatform, ContentWithPlatformData, PlatformContentFields } from "@/types/ContentData";
+import { ContentScore } from "@/types/ContentIdea";
 import { toast } from "sonner";
 
 export const contentService = {
@@ -21,8 +22,8 @@ export const contentService = {
       // Parse the JSONB columns
       return data.map(item => ({
         ...item,
-        topics: Array.isArray(item.topics) ? item.topics : JSON.parse(item.topics || '[]'),
-        score: item.score ? JSON.parse(item.score) : null
+        topics: Array.isArray(item.topics) ? item.topics : JSON.parse(String(item.topics || '[]')),
+        score: item.score ? JSON.parse(String(item.score)) : null
       })) as ContentIdeaRecord[];
     } catch (error) {
       console.error("Unexpected error fetching content ideas:", error);
@@ -49,8 +50,8 @@ export const contentService = {
       // Parse the JSONB columns
       const content = {
         ...contentData,
-        topics: Array.isArray(contentData.topics) ? contentData.topics : JSON.parse(contentData.topics || '[]'),
-        score: contentData.score ? JSON.parse(contentData.score) : null
+        topics: Array.isArray(contentData.topics) ? contentData.topics : JSON.parse(String(contentData.topics || '[]')),
+        score: contentData.score ? JSON.parse(String(contentData.score)) : null
       } as ContentIdeaRecord;
 
       // Get platform-specific data if available
@@ -73,14 +74,16 @@ export const contentService = {
         parsedPlatformData = {
           ...platformData,
           hashtags: platformData.hashtags || [],
-          carousel_images: platformData.carousel_images ? JSON.parse(platformData.carousel_images) : [],
-          metadata: platformData.metadata ? JSON.parse(platformData.metadata) : {}
+          carousel_images: platformData.carousel_images ? JSON.parse(String(platformData.carousel_images)) : [],
+          metadata: platformData.metadata ? JSON.parse(String(platformData.metadata)) : {}
         };
       }
 
+      // We need to cast this as any temporarily to avoid the type error
+      // as the types are not perfectly matching the DB structure
       return {
         ...content,
-        platformData: parsedPlatformData
+        platformData: parsedPlatformData as unknown as PlatformContentFields
       };
     } catch (error) {
       console.error("Unexpected error fetching content idea:", error);
@@ -102,7 +105,7 @@ export const contentService = {
           topics: contentData.topics,
           image_url: contentData.image_url,
           image_prompt: contentData.image_prompt,
-          score: contentData.score
+          score: contentData.score ? JSON.stringify(contentData.score) : null
         })
         .select('id')
         .single();
@@ -117,13 +120,17 @@ export const contentService = {
 
       // If platform-specific data was provided, insert that too
       if (platformData && Object.keys(platformData).length > 0) {
+        // Convert carousel_images to string for storage
+        const preparedPlatformData = {
+          ...platformData,
+          content_id: contentId,
+          carousel_images: platformData.carousel_images ? JSON.stringify(platformData.carousel_images) : null,
+          metadata: platformData.metadata ? JSON.stringify(platformData.metadata) : null
+        };
+
         const { error: platformError } = await supabase
           .from('platform_content_fields')
-          .insert({
-            content_id: contentId,
-            platform: contentData.platform,
-            ...platformData
-          });
+          .insert(preparedPlatformData);
 
         if (platformError) {
           console.error("Error saving platform-specific content data:", platformError);
@@ -156,7 +163,7 @@ export const contentService = {
           topics: contentData.topics,
           image_url: contentData.image_url,
           image_prompt: contentData.image_prompt,
-          score: contentData.score
+          score: contentData.score ? JSON.stringify(contentData.score) : null
         })
         .eq('id', id);
 
@@ -168,13 +175,17 @@ export const contentService = {
 
       // If platform-specific data was provided, upsert that too
       if (platformData && Object.keys(platformData).length > 0) {
+        // Convert carousel_images to string for storage
+        const preparedPlatformData = {
+          ...platformData,
+          content_id: id,
+          carousel_images: platformData.carousel_images ? JSON.stringify(platformData.carousel_images) : null,
+          metadata: platformData.metadata ? JSON.stringify(platformData.metadata) : null
+        };
+
         const { error: platformError } = await supabase
           .from('platform_content_fields')
-          .upsert({
-            content_id: id,
-            platform: contentData.platform,
-            ...platformData
-          });
+          .upsert(preparedPlatformData);
 
         if (platformError) {
           console.error("Error updating platform-specific content data:", platformError);

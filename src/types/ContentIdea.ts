@@ -18,5 +18,5 @@ export interface ContentIdea {
   imagePrompt?: string;
 }
 
-// Fix the re-export using export type
+// Use proper re-export syntax
 export type { ContentScore };
