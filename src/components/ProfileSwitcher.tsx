@@ -5,10 +5,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, LogOut } from "lucide-react";
+import { 
+  ChevronDown, 
+  LogOut, 
+  Settings, 
+  CreditCard, 
+  Lock, 
+  User 
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProfileSwitcher = () => {
@@ -33,6 +41,15 @@ const ProfileSwitcher = () => {
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{currentProfile.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              example@brandwise.com
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
         {availableProfiles.map((profile) => (
           <DropdownMenuItem
             key={profile.id}
@@ -51,6 +68,23 @@ const ProfileSwitcher = () => {
             </div>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/profile")}>
+          <User className="mr-2 h-4 w-4" />
+          <span>My Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/security")}>
+          <Lock className="mr-2 h-4 w-4" />
+          <span>Security</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/billing")}>
+          <CreditCard className="mr-2 h-4 w-4" />
+          <span>Billing</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account/settings")}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
           <div className="flex items-center gap-2 text-red-500">

@@ -32,6 +32,10 @@ import Cookies from "./pages/Cookies";
 import BlogPost from "./pages/BlogPost";
 import CookieConsent from "./components/CookieConsent";
 import ForgotPassword from "./pages/ForgotPassword";
+import ProfilePage from "./pages/account/ProfilePage";
+import SecurityPage from "./pages/account/SecurityPage";
+import BillingPage from "./pages/account/BillingPage";
+import SettingsPage from "./pages/account/SettingsPage";
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -81,6 +85,13 @@ function App() {
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
               <Route path="/blog/:id" element={<BlogPost />} />
+              
+              {/* Account routes */}
+              <Route path="/account/profile" element={<ProfilePage />} />
+              <Route path="/account/security" element={<SecurityPage />} />
+              <Route path="/account/billing" element={<BillingPage />} />
+              <Route path="/account/settings" element={<SettingsPage />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CookieConsent />
