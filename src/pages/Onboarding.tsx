@@ -1,154 +1,303 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowRight, Check, Settings, Users, Lightbulb } from "lucide-react";
-import AuthHeader from "@/components/AuthHeader";
-import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import { toast } from "sonner";
+import { CheckCircle, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const OnboardingStep = ({ 
-  title, 
-  description, 
-  icon, 
-  isActive, 
-  isCompleted, 
-  onClick 
-}: { 
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  isActive: boolean;
-  isCompleted: boolean;
-  onClick: () => void;
-}) => {
-  return (
-    <Card 
-      className={`p-6 cursor-pointer transition-all ${
-        isActive ? "border-primary shadow-md" : "hover:border-primary/50"
-      } ${isCompleted ? "bg-muted/30" : ""}`}
-      onClick={onClick}
-    >
-      <div className="flex items-start gap-4">
-        <div className={`p-2 rounded-full ${isActive || isCompleted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-          {isCompleted ? <Check className="h-5 w-5" /> : icon}
-        </div>
-        <div>
-          <h3 className="font-medium text-lg mb-1 flex items-center gap-2">
-            {title}
-            {isCompleted && <span className="text-sm text-muted-foreground">(Completed)</span>}
-          </h3>
-          <p className="text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+const Onboarding: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState("welcome");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Check if user exists, otherwise redirect to login
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate]);
-
-  const steps = [
-    {
-      title: "Set Up Your Profile",
-      description: "Complete your profile information to personalize your BrandWise experience.",
-      icon: <Users className="h-5 w-5" />,
-      action: () => navigate("/account/profile"),
-    },
-    {
-      title: "Configure Your Account",
-      description: "Set your preferences and notification settings to customize how you use BrandWise.",
-      icon: <Settings className="h-5 w-5" />,
-      action: () => navigate("/account/settings"),
-    },
-    {
-      title: "Create Your First Profile",
-      description: "Set up a brand profile to start managing your content and social media presence.",
-      icon: <Lightbulb className="h-5 w-5" />,
-      action: () => navigate("/profiles/new"),
-    },
-  ];
-
-  const handleStepClick = (index: number) => {
-    setCurrentStep(index);
+  const handleContinue = () => {
+    setLoading(true);
     
-    // Mark as completed if not already
-    if (!completedSteps.includes(index)) {
-      // For demo purposes, mark as completed immediately
-      // In a real app, you might do this after they complete the actual setup
-      setCompletedSteps(prev => [...prev, index]);
-    }
-    
-    // Perform the action for this step
-    steps[index].action();
+    // Simulate processing
+    setTimeout(() => {
+      setLoading(false);
+      
+      switch (currentStep) {
+        case "welcome":
+          setCurrentStep("profile");
+          break;
+        case "profile":
+          setCurrentStep("preferences");
+          break;
+        case "preferences":
+          setCurrentStep("connections");
+          break;
+        case "connections":
+          // Onboarding complete
+          toast.success("Onboarding completed successfully!", {
+            description: "You're all set to start using BrandWise"
+          });
+          navigate("/dashboard");
+          break;
+        default:
+          break;
+      }
+    }, 800);
   };
-
-  const handleFinish = () => {
-    toast({
-      title: "Onboarding Complete!",
-      description: "You're all set to use BrandWise.",
-    });
-    navigate("/dashboard");
-  };
-
-  const isAllCompleted = completedSteps.length === steps.length;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <AuthHeader />
+    <div className="min-h-screen flex flex-col bg-muted/30">
+      <Navigation />
       
-      <div className="flex-1 flex justify-center items-center p-4 bg-muted/30">
-        <div className="w-full max-w-3xl">
-          <div className="bg-background rounded-lg shadow-md p-6 md:p-8">
-            <div className="mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-center mb-2">Welcome to BrandWise!</h1>
-              <p className="text-muted-foreground text-center mb-8">
-                Let's get you set up to make the most of your new account
-              </p>
-
-              <div className="space-y-4">
-                {steps.map((step, index) => (
-                  <OnboardingStep
-                    key={index}
-                    title={step.title}
-                    description={step.description}
-                    icon={step.icon}
-                    isActive={currentStep === index}
-                    isCompleted={completedSteps.includes(index)}
-                    onClick={() => handleStepClick(index)}
+      <div className="flex-1 container max-w-5xl py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Welcome to BrandWise</h1>
+          <p className="text-muted-foreground">Let's set up your account in just a few steps</p>
+        </div>
+        
+        <div className="mb-8">
+          <div className="flex justify-between items-center max-w-2xl mb-8">
+            {["welcome", "profile", "preferences", "connections"].map((step, index) => (
+              <React.Fragment key={step}>
+                <div className="flex flex-col items-center">
+                  <div 
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      currentStep === step 
+                        ? "bg-primary text-primary-foreground"
+                        : ["welcome", "profile", "preferences", "connections"].indexOf(currentStep) > 
+                          ["welcome", "profile", "preferences", "connections"].indexOf(step)
+                          ? "bg-green-500 text-white"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {["welcome", "profile", "preferences", "connections"].indexOf(currentStep) > 
+                      ["welcome", "profile", "preferences", "connections"].indexOf(step) ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <span className="text-xs mt-1">
+                    {step.charAt(0).toUpperCase() + step.slice(1)}
+                  </span>
+                </div>
+                {index < 3 && (
+                  <div 
+                    className={`w-full h-1 max-w-[60px] ${
+                      ["welcome", "profile", "preferences", "connections"].indexOf(currentStep) > 
+                      ["welcome", "profile", "preferences", "connections"].indexOf(step)
+                        ? "bg-green-500"
+                        : "bg-muted"
+                    }`}
                   />
-                ))}
-              </div>
-
-              <div className="mt-8 flex justify-end">
-                <Button 
-                  onClick={handleFinish} 
-                  className="flex items-center gap-2"
-                  size="lg"
-                  disabled={!isAllCompleted}
-                >
-                  Go to Dashboard
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
+        
+        <Tabs value={currentStep} className="space-y-8">
+          <TabsContent value="welcome" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Welcome to BrandWise!</CardTitle>
+                <CardDescription>
+                  Thanks for joining us! Let's get your account set up so you can start using all the features.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Here's what you can do with BrandWise:</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span>Manage and publish content across multiple platforms</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span>Track engagement and performance analytics</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span>Generate content ideas with AI assistance</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span>Plan your content calendar efficiently</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="pt-4 flex justify-end">
+                  <Button onClick={handleContinue} disabled={loading}>
+                    {loading ? "Loading..." : "Continue"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Complete Your Profile</CardTitle>
+                <CardDescription>
+                  Tell us more about yourself and your brand
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="displayName">Display Name</label>
+                      <Input id="displayName" defaultValue={user?.user_metadata?.full_name || ""} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="jobTitle">Job Title</label>
+                      <Input id="jobTitle" placeholder="Content Creator" />
+                    </div>
+                    
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium" htmlFor="bio">Bio</label>
+                      <Textarea id="bio" placeholder="Tell us about yourself or your brand..." />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="industry">Industry</label>
+                      <Input id="industry" placeholder="Technology, Marketing, etc." />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="website">Website</label>
+                      <Input id="website" placeholder="https://yourwebsite.com" />
+                    </div>
+                  </div>
+                </form>
+                
+                <div className="pt-6 flex justify-between">
+                  <Button variant="outline" onClick={() => setCurrentStep("welcome")}>
+                    Back
+                  </Button>
+                  <Button onClick={handleContinue} disabled={loading}>
+                    {loading ? "Saving..." : "Continue"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="preferences" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Content Preferences</CardTitle>
+                <CardDescription>
+                  Customize your content preferences to get personalized recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium">Content Topics</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {["Marketing", "Social Media", "Technology", "Business", "Design", 
+                        "SEO", "Content Creation", "Analytics"].map(topic => (
+                        <Button key={topic} variant="outline" className="rounded-full">
+                          {topic}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium">Content Types</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {["Blog Posts", "Images", "Videos", "Infographics", "Podcasts", 
+                        "Short-form", "Long-form"].map(type => (
+                        <Button key={type} variant="outline" className="rounded-full">
+                          {type}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Content Goals</h3>
+                    <Textarea 
+                      placeholder="What are you trying to achieve with your content? (e.g., brand awareness, lead generation, etc.)" 
+                    />
+                  </div>
+                  
+                  <div className="pt-4 flex justify-between">
+                    <Button variant="outline" onClick={() => setCurrentStep("profile")}>
+                      Back
+                    </Button>
+                    <Button onClick={handleContinue} disabled={loading}>
+                      {loading ? "Saving..." : "Continue"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="connections" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Connect Your Platforms</CardTitle>
+                <CardDescription>
+                  Connect your social media and content platforms to start managing them in one place
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { name: "WordPress", icon: "W", connected: false },
+                      { name: "LinkedIn", icon: "In", connected: false },
+                      { name: "Medium", icon: "M", connected: false },
+                      { name: "Twitter", icon: "T", connected: false },
+                    ].map(platform => (
+                      <div key={platform.name} className="flex items-center justify-between p-4 border rounded-md">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg font-bold">
+                            {platform.icon}
+                          </div>
+                          <span>{platform.name}</span>
+                        </div>
+                        <Button variant={platform.connected ? "outline" : "default"}>
+                          {platform.connected ? "Disconnect" : "Connect"}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="bg-muted/50 p-4 rounded-md">
+                    <p className="text-sm">
+                      You can always connect more platforms later from your account settings.
+                    </p>
+                  </div>
+                  
+                  <div className="pt-4 flex justify-between">
+                    <Button variant="outline" onClick={() => setCurrentStep("preferences")}>
+                      Back
+                    </Button>
+                    <Button onClick={handleContinue} disabled={loading}>
+                      {loading ? "Finishing..." : "Complete Setup"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Footer />
     </div>
   );
 };
