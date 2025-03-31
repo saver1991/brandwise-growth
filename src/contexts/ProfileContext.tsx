@@ -17,6 +17,16 @@ export interface Profile {
   integrations?: string[];
 }
 
+// Define all available integration platforms
+export const availableIntegrations = [
+  "linkedin", 
+  "medium", 
+  "twitter", 
+  "instagram", 
+  "wordpress", 
+  "pinterest"
+];
+
 export const profiles: Profile[] = [
   {
     id: "salvatore",
@@ -56,6 +66,7 @@ interface ProfileContextType {
   availableProfiles: Profile[];
   addProfile: (profile: Profile) => void;
   updateProfile: (profile: Profile) => void;
+  availableIntegrations: string[];
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -92,7 +103,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         setCurrentProfile,
         availableProfiles: profilesList,
         addProfile,
-        updateProfile
+        updateProfile,
+        availableIntegrations
       }}
     >
       {children}

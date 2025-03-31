@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContentIdea } from "@/types/ContentIdea";
 import { ContentScore } from "@/services/aiGenerationService";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const trendingTopicsData = [
   [
@@ -201,6 +202,7 @@ const Ideas = () => {
   const [currentTopicsPage, setCurrentTopicsPage] = useState(1);
   const [currentInspirationPage, setCurrentInspirationPage] = useState(1);
   const { toast } = useToast();
+  const { currentProfile } = useProfile();
 
   const handleCreateIdea = (data: ContentIdeaFormValues) => {
     if (currentEditIdea) {
@@ -428,6 +430,7 @@ const Ideas = () => {
         onSubmit={handleCreateIdea}
         initialData={currentEditIdea || undefined}
         editMode={!!currentEditIdea}
+        availablePlatforms={currentProfile.integrations || []}
       />
     </div>
   );
