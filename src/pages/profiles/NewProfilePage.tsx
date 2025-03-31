@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfile, Profile } from "@/contexts/ProfileContext";
 import AuthHeader from "@/components/AuthHeader";
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { 
   Facebook, 
@@ -28,7 +27,9 @@ import {
   Calendar,
   MessageSquare,
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Check
 } from "lucide-react";
 
 // Define all available integrations
@@ -105,7 +106,8 @@ const AVAILABLE_INTEGRATIONS = [
   }
 ];
 
-const PREDEFINED_TAGS = [
+// Base tag suggestions
+const BASE_TAG_SUGGESTIONS = [
   { label: "Business", bgColor: "bg-blue-500/10", textColor: "text-blue-500" },
   { label: "Marketing", bgColor: "bg-green-500/10", textColor: "text-green-500" },
   { label: "Design", bgColor: "bg-purple-500/10", textColor: "text-purple-500" },
@@ -118,11 +120,37 @@ const PREDEFINED_TAGS = [
   { label: "Photography", bgColor: "bg-emerald-500/10", textColor: "text-emerald-500" },
 ];
 
+// Additional tags that might be suggested based on user input
+const ADDITIONAL_TAGS = [
+  { label: "Social Media", bgColor: "bg-blue-500/10", textColor: "text-blue-500" },
+  { label: "Content Creation", bgColor: "bg-green-500/10", textColor: "text-green-500" },
+  { label: "Startups", bgColor: "bg-purple-500/10", textColor: "text-purple-500" },
+  { label: "E-commerce", bgColor: "bg-yellow-500/10", textColor: "text-yellow-600" },
+  { label: "Personal Branding", bgColor: "bg-orange-500/10", textColor: "text-orange-500" },
+  { label: "Coaching", bgColor: "bg-red-500/10", textColor: "text-red-500" },
+  { label: "Consulting", bgColor: "bg-indigo-500/10", textColor: "text-indigo-500" },
+  { label: "Sales", bgColor: "bg-pink-500/10", textColor: "text-pink-500" },
+  { label: "Analytics", bgColor: "bg-cyan-500/10", textColor: "text-cyan-500" },
+  { label: "Blogging", bgColor: "bg-emerald-500/10", textColor: "text-emerald-500" },
+  { label: "SaaS", bgColor: "bg-blue-700/10", textColor: "text-blue-700" },
+  { label: "Software", bgColor: "bg-green-700/10", textColor: "text-green-700" },
+  { label: "Agency", bgColor: "bg-purple-700/10", textColor: "text-purple-700" },
+  { label: "Influencer", bgColor: "bg-yellow-700/10", textColor: "text-yellow-700" },
+  { label: "Recruitment", bgColor: "bg-orange-700/10", textColor: "text-orange-700" },
+  { label: "Healthcare", bgColor: "bg-red-700/10", textColor: "text-red-700" },
+  { label: "Media", bgColor: "bg-indigo-700/10", textColor: "text-indigo-700" },
+  { label: "Real Estate", bgColor: "bg-pink-700/10", textColor: "text-pink-700" },
+  { label: "Entertainment", bgColor: "bg-cyan-700/10", textColor: "text-cyan-700" },
+  { label: "Legal", bgColor: "bg-emerald-700/10", textColor: "text-emerald-700" },
+];
+
 const NewProfilePage = () => {
   const navigate = useNavigate();
   const { addProfile } = useProfile();
   const [currentStep, setCurrentStep] = useState<"profile" | "integrations" | "review">("profile");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [connectionStates, setConnectionStates] = useState<Record<string, "idle" | "connecting" | "connected">>({});
+  const [customTagInput, setCustomTagInput] = useState("");
   
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -134,6 +162,62 @@ const NewProfilePage = () => {
   
   // Integration state
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
+
+  // Suggested tags state based on profile data
+  const [suggestedTags, setSuggestedTags] = useState(BASE_TAG_SUGGESTIONS);
+
+  // Generate tag suggestions based on profile information
+  useEffect(() => {
+    if (profileForm.name || profileForm.role || profileForm.description) {
+      // Simulate AI analyzing the content and suggesting relevant tags
+      const combinedText = `${profileForm.name} ${profileForm.role} ${profileForm.description}`.toLowerCase();
+      
+      // Simple keyword matching as an example
+      const newSuggestions = [...BASE_TAG_SUGGESTIONS];
+      
+      // Add relevant tags based on keywords
+      ADDITIONAL_TAGS.forEach(tag => {
+        // Only add tags that aren't already in the suggestions
+        if (!newSuggestions.some(t => t.label === tag.label)) {
+          const shouldAdd = matchTagToContent(tag.label, combinedText);
+          if (shouldAdd) {
+            newSuggestions.push(tag);
+          }
+        }
+      });
+      
+      setSuggestedTags(newSuggestions);
+    }
+  }, [profileForm.name, profileForm.role, profileForm.description]);
+
+  // Simple keyword matching function
+  const matchTagToContent = (tagLabel: string, content: string): boolean => {
+    const keywords = {
+      'Social Media': ['social', 'media', 'content', 'post', 'engagement', 'followers'],
+      'Content Creation': ['content', 'create', 'video', 'blog', 'article', 'write', 'creator'],
+      'Startups': ['startup', 'founder', 'entrepreneur', 'launch', 'venture'],
+      'E-commerce': ['ecommerce', 'shop', 'store', 'product', 'sell', 'retail'],
+      'Personal Branding': ['personal', 'brand', 'image', 'presence', 'professional'],
+      'Coaching': ['coach', 'mentor', 'guide', 'help', 'improve'],
+      'Consulting': ['consult', 'advice', 'expert', 'strategy'],
+      'Sales': ['sales', 'sell', 'revenue', 'business development', 'leads'],
+      'Analytics': ['analytics', 'data', 'metrics', 'insights', 'performance'],
+      'Blogging': ['blog', 'write', 'post', 'article', 'content'],
+      'SaaS': ['saas', 'software', 'cloud', 'subscription', 'service'],
+      'Software': ['software', 'development', 'code', 'tech', 'application'],
+      'Agency': ['agency', 'client', 'service', 'manage', 'campaign'],
+      'Influencer': ['influencer', 'followers', 'audience', 'reach', 'impact'],
+      'Recruitment': ['recruit', 'hire', 'talent', 'hr', 'human resources'],
+      'Healthcare': ['health', 'medical', 'doctor', 'care', 'patient', 'wellness'],
+      'Media': ['media', 'press', 'news', 'journalist', 'publication'],
+      'Real Estate': ['real estate', 'property', 'home', 'house', 'land', 'agent'],
+      'Entertainment': ['entertainment', 'music', 'film', 'movie', 'actor', 'art'],
+      'Legal': ['legal', 'law', 'attorney', 'lawyer', 'rights', 'compliance'],
+    };
+    
+    const tagKeywords = keywords[tagLabel as keyof typeof keywords] || [tagLabel.toLowerCase()];
+    return tagKeywords.some(keyword => content.includes(keyword.toLowerCase()));
+  };
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -150,14 +234,40 @@ const NewProfilePage = () => {
     });
   };
 
-  const toggleIntegration = (integrationId: string) => {
-    setSelectedIntegrations(prev => {
-      if (prev.includes(integrationId)) {
-        return prev.filter(id => id !== integrationId);
-      } else {
-        return [...prev, integrationId];
-      }
-    });
+  const addCustomTag = () => {
+    if (customTagInput && !profileForm.selectedTags.includes(customTagInput)) {
+      setProfileForm(prev => ({
+        ...prev,
+        selectedTags: [...prev.selectedTags, customTagInput]
+      }));
+      setCustomTagInput("");
+    }
+  };
+
+  const connectIntegration = (integrationId: string) => {
+    // Set to connecting state
+    setConnectionStates(prev => ({
+      ...prev,
+      [integrationId]: "connecting"
+    }));
+
+    // Simulate connection process
+    setTimeout(() => {
+      // Update to connected state
+      setConnectionStates(prev => ({
+        ...prev,
+        [integrationId]: "connected"
+      }));
+      
+      // Add to selected integrations
+      setSelectedIntegrations(prev => {
+        if (!prev.includes(integrationId)) {
+          toast.success(`Connected to ${AVAILABLE_INTEGRATIONS.find(i => i.id === integrationId)?.name}`);
+          return [...prev, integrationId];
+        }
+        return prev;
+      });
+    }, 1500); // Simulate a 1.5 second connection time
   };
 
   const nextStep = () => {
@@ -199,13 +309,14 @@ const NewProfilePage = () => {
         avatar: `https://placehold.co/200x200/${Math.floor(Math.random()*16777215).toString(16)}/${Math.floor(Math.random()*16777215).toString(16)}?text=${fallback}`,
         fallback: fallback,
         tags: profileForm.selectedTags.map(tag => {
-          const foundTag = PREDEFINED_TAGS.find(t => t.label === tag);
+          const foundTag = [...suggestedTags, ...ADDITIONAL_TAGS].find(t => t.label === tag);
           return foundTag || { label: tag, bgColor: "bg-muted", textColor: "text-foreground" };
         }),
         integrations: selectedIntegrations
       };
       
       addProfile(newProfile);
+      toast.success("Profile created successfully!");
       navigate("/dashboard");
     } catch (error) {
       toast.error("An error occurred while creating the profile");
@@ -258,10 +369,14 @@ const NewProfilePage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-base font-medium">Tags</Label>
-              <p className="text-sm text-muted-foreground">Select tags that describe this profile</p>
+              <div className="flex justify-between items-center">
+                <Label className="text-base font-medium">Tags</Label>
+                <div className="text-sm text-muted-foreground italic">
+                  AI-suggested based on your profile
+                </div>
+              </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {PREDEFINED_TAGS.map((tag) => (
+                {suggestedTags.map((tag) => (
                   <Badge 
                     key={tag.label}
                     variant={profileForm.selectedTags.includes(tag.label) ? "default" : "outline"}
@@ -272,6 +387,29 @@ const NewProfilePage = () => {
                   </Badge>
                 ))}
               </div>
+              
+              <div className="flex items-center gap-2 mt-4">
+                <Input 
+                  placeholder="Add a custom tag..." 
+                  value={customTagInput}
+                  onChange={(e) => setCustomTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomTag();
+                    }
+                  }}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={addCustomTag}
+                  disabled={!customTagInput}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -280,7 +418,7 @@ const NewProfilePage = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium">Select Integrations</h3>
+              <h3 className="text-lg font-medium">Connect Your Platforms</h3>
               <p className="text-sm text-muted-foreground">Choose the platforms you want to connect to this profile</p>
             </div>
             
@@ -295,14 +433,32 @@ const NewProfilePage = () => {
                 {AVAILABLE_INTEGRATIONS
                   .filter(integration => integration.category === "social")
                   .map(integration => (
-                    <Card key={integration.id} className={`cursor-pointer transition-colors ${selectedIntegrations.includes(integration.id) ? 'border-primary' : 'hover:border-primary/50'}`} onClick={() => toggleIntegration(integration.id)}>
+                    <Card key={integration.id} className={`transition-colors ${selectedIntegrations.includes(integration.id) ? 'border-primary' : 'hover:border-primary/50'}`}>
                       <CardContent className="p-4 flex items-center space-x-4">
                         <div>{integration.icon}</div>
                         <div className="flex-1">
                           <h4 className="font-medium">{integration.name}</h4>
                           <p className="text-sm text-muted-foreground">{integration.description}</p>
                         </div>
-                        <Switch checked={selectedIntegrations.includes(integration.id)} onCheckedChange={() => toggleIntegration(integration.id)} />
+                        {!selectedIntegrations.includes(integration.id) ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => connectIntegration(integration.id)}
+                            disabled={connectionStates[integration.id] === "connecting"}
+                          >
+                            {connectionStates[integration.id] === "connecting" ? (
+                              <>
+                                <RefreshCw className="mr-1 h-3 w-3 animate-spin" /> 
+                                Connecting
+                              </>
+                            ) : "Connect"}
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" className="text-green-500 border-green-500">
+                            <Check className="mr-1 h-3 w-3" /> Connected
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))
@@ -313,14 +469,32 @@ const NewProfilePage = () => {
                 {AVAILABLE_INTEGRATIONS
                   .filter(integration => ["email", "cms"].includes(integration.category))
                   .map(integration => (
-                    <Card key={integration.id} className={`cursor-pointer transition-colors ${selectedIntegrations.includes(integration.id) ? 'border-primary' : 'hover:border-primary/50'}`} onClick={() => toggleIntegration(integration.id)}>
+                    <Card key={integration.id} className={`transition-colors ${selectedIntegrations.includes(integration.id) ? 'border-primary' : 'hover:border-primary/50'}`}>
                       <CardContent className="p-4 flex items-center space-x-4">
                         <div>{integration.icon}</div>
                         <div className="flex-1">
                           <h4 className="font-medium">{integration.name}</h4>
                           <p className="text-sm text-muted-foreground">{integration.description}</p>
                         </div>
-                        <Switch checked={selectedIntegrations.includes(integration.id)} onCheckedChange={() => toggleIntegration(integration.id)} />
+                        {!selectedIntegrations.includes(integration.id) ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => connectIntegration(integration.id)}
+                            disabled={connectionStates[integration.id] === "connecting"}
+                          >
+                            {connectionStates[integration.id] === "connecting" ? (
+                              <>
+                                <RefreshCw className="mr-1 h-3 w-3 animate-spin" /> 
+                                Connecting
+                              </>
+                            ) : "Connect"}
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" className="text-green-500 border-green-500">
+                            <Check className="mr-1 h-3 w-3" /> Connected
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))
@@ -362,7 +536,7 @@ const NewProfilePage = () => {
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">Tags:</h4>
                     <div className="flex flex-wrap gap-2">
                       {profileForm.selectedTags.map(tag => {
-                        const tagConfig = PREDEFINED_TAGS.find(t => t.label === tag);
+                        const tagConfig = [...suggestedTags, ...ADDITIONAL_TAGS].find(t => t.label === tag);
                         return (
                           <Badge 
                             key={tag} 
@@ -460,3 +634,4 @@ const NewProfilePage = () => {
 };
 
 export default NewProfilePage;
+
