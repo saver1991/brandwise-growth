@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Linkedin, TrendingUp, Users, MessageSquare, Award, Calendar, Link2, ExternalLink } from "lucide-react";
+import { Linkedin, TrendingUp, Users, MessageSquare, Award, Calendar, Link2, ExternalLink, Loader2 } from "lucide-react";
 import { linkedinService } from "@/services/linkedinService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -56,30 +57,53 @@ const LinkedIn = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string>("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        console.log("No active session found, redirecting to login");
+        toast.error("Please log in to access LinkedIn features");
+        navigate("/login");
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      setUserId(data.session.user.id);
+    };
+    
+    checkAuth();
+  }, [navigate]);
   
   useEffect(() => {
     const checkLinkedInConnection = async () => {
+      if (!userId || !isAuthenticated) return;
+      
       try {
         setIsLoading(true);
+        console.log("Checking LinkedIn connection for user:", userId);
         
-        const { data: { user } } = await supabase.auth.getUser();
+        const connected = await linkedinService.isConnected(userId);
+        console.log("LinkedIn connected status:", connected);
+        setIsConnected(connected);
         
-        if (user) {
-          setUserId(user.id);
+        if (connected) {
+          const tokens = await linkedinService.getTokens(userId);
           
-          const connected = await linkedinService.isConnected(user.id);
-          setIsConnected(connected);
-          
-          if (connected) {
-            const tokens = await linkedinService.getTokens(user.id);
+          if (tokens) {
+            console.log("Retrieved LinkedIn tokens successfully");
+            const profile = await linkedinService.getProfile(tokens.access_token);
             
-            if (tokens) {
-              const profile = await linkedinService.getProfile(tokens.access_token);
-              
-              if (profile) {
-                setProfileName(`${profile.localizedFirstName} ${profile.localizedLastName}`);
-              }
+            if (profile) {
+              console.log("Retrieved LinkedIn profile:", profile.localizedFirstName, profile.localizedLastName);
+              setProfileName(`${profile.localizedFirstName} ${profile.localizedLastName}`);
+            } else {
+              console.error("Failed to retrieve LinkedIn profile");
             }
+          } else {
+            console.error("Failed to retrieve LinkedIn tokens");
           }
         }
       } catch (error) {
@@ -90,7 +114,7 @@ const LinkedIn = () => {
     };
     
     checkLinkedInConnection();
-  }, []);
+  }, [userId, isAuthenticated]);
   
   const handleConnect = async () => {
     try {
@@ -107,12 +131,11 @@ const LinkedIn = () => {
         return;
       }
       
-      console.log("Full LinkedIn Auth URL:", authUrl);
-      
+      console.log("Redirecting to LinkedIn Auth URL");
       window.location.href = authUrl;
     } catch (error) {
       console.error("Error starting LinkedIn connection:", error);
-      toast.error("Failed to connect to LinkedIn: " + error.message);
+      toast.error("Failed to connect to LinkedIn: " + (error instanceof Error ? error.message : "Unknown error"));
       setIsLoading(false);
     }
   };
@@ -162,6 +185,24 @@ const LinkedIn = () => {
       toast.error("Failed to share post to LinkedIn");
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+          <Card className="w-[380px]">
+            <CardContent className="flex flex-col items-center justify-center p-6">
+              <Loader2 className="h-8 w-8 text-primary animate-spin my-4" />
+              <p className="text-center text-muted-foreground">
+                Checking authentication...
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -1,33 +1,39 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LinkedInTokens } from "./types";
 
+const LINKEDIN_API_BASE_URL = "https://api.linkedin.com/v2";
+
 export const getAuthUrl = async (): Promise<string> => {
   try {
-    // Retrieve redirect URL from environment or use a default
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error("User must be logged in to connect LinkedIn");
+      toast.error("Please log in to connect your LinkedIn account");
+      return "";
+    }
+
     const redirectUri = window.location.origin + "/linkedin-callback";
+    console.log("LinkedIn redirect URI:", redirectUri);
     
-    console.log("Getting LinkedIn Client ID from edge function");
+    console.log("Calling get-linkedin-client-id edge function");
+    const { data, error } = await supabase.functions.invoke('get-linkedin-client-id', {});
     
-    // Get the client ID from Supabase Edge Function with detailed error handling
-    const response = await supabase.functions.invoke('get-linkedin-client-id', {});
+    console.log("Edge function response:", data, error);
     
-    console.log("LinkedIn Client ID edge function response:", response);
-    
-    if (response.error) {
-      console.error("Error from edge function:", response.error);
-      toast.error("Failed to prepare LinkedIn authentication: Edge function error");
+    if (error) {
+      console.error("Error from edge function:", error);
+      toast.error("Failed to prepare LinkedIn authentication: " + error.message);
       return "";
     }
     
-    if (!response.data || !response.data.clientId) {
-      console.error("No client ID returned from edge function:", response.data);
+    if (!data || !data.clientId) {
+      console.error("No client ID returned from edge function:", data);
       toast.error("Failed to prepare LinkedIn authentication: Missing client ID");
       return "";
     }
     
-    const LINKEDIN_CLIENT_ID = response.data.clientId;
+    const LINKEDIN_CLIENT_ID = data.clientId;
     console.log("Using LinkedIn Client ID:", LINKEDIN_CLIENT_ID.substring(0, 4) + "...");
     
     const scope = encodeURIComponent("r_liteprofile r_emailaddress w_member_social");
@@ -39,13 +45,22 @@ export const getAuthUrl = async (): Promise<string> => {
     return authUrl;
   } catch (error) {
     console.error("Unexpected error generating LinkedIn auth URL:", error);
-    toast.error("Failed to prepare LinkedIn authentication: " + error.message);
+    toast.error("Failed to prepare LinkedIn authentication: " + (error instanceof Error ? error.message : "Unknown error"));
     return "";
   }
 };
 
 export const storeTokens = async (userId: string, tokens: LinkedInTokens): Promise<boolean> => {
   try {
+    console.log("Storing LinkedIn tokens for user:", userId);
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || session.user.id !== userId) {
+      console.error("User authentication mismatch or not authenticated");
+      toast.error("Authentication error: Please log in again");
+      return false;
+    }
+    
     const { error } = await supabase
       .from('platform_tokens')
       .upsert({
@@ -58,10 +73,11 @@ export const storeTokens = async (userId: string, tokens: LinkedInTokens): Promi
       
     if (error) {
       console.error("Error storing LinkedIn tokens:", error);
-      toast.error("Failed to store LinkedIn credentials");
+      toast.error("Failed to store LinkedIn credentials: " + error.message);
       return false;
     }
     
+    console.log("LinkedIn tokens stored successfully");
     return true;
   } catch (error) {
     console.error("Unexpected error storing LinkedIn tokens:", error);
@@ -72,6 +88,15 @@ export const storeTokens = async (userId: string, tokens: LinkedInTokens): Promi
 
 export const getTokens = async (userId: string): Promise<LinkedInTokens | null> => {
   try {
+    console.log("Getting LinkedIn tokens for user:", userId);
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || session.user.id !== userId) {
+      console.error("User authentication mismatch or not authenticated");
+      toast.error("Authentication error: Please log in again");
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('platform_tokens')
       .select('access_token, refresh_token, expires_at')
@@ -79,14 +104,26 @@ export const getTokens = async (userId: string): Promise<LinkedInTokens | null> 
       .eq('platform', 'linkedin')
       .single();
     
-    if (error || !data) {
+    if (error) {
       console.error("Error retrieving LinkedIn tokens:", error);
+      if (error.code === 'PGRST116') {
+        console.log("No LinkedIn tokens found for this user");
+        return null;
+      }
+      toast.error("Error retrieving LinkedIn connection: " + error.message);
       return null;
     }
     
-    // Check if token is expired and needs refresh
+    if (!data) {
+      console.log("No LinkedIn tokens found for this user");
+      return null;
+    }
+    
+    console.log("Retrieved LinkedIn tokens, expires at:", data.expires_at);
+    
     const expiresAt = new Date(data.expires_at);
     if (expiresAt.getTime() <= Date.now() && data.refresh_token) {
+      console.log("LinkedIn token expired, attempting refresh");
       return await refreshTokens(userId, data.refresh_token);
     }
     
@@ -97,16 +134,13 @@ export const getTokens = async (userId: string): Promise<LinkedInTokens | null> 
     };
   } catch (error) {
     console.error("Unexpected error getting LinkedIn tokens:", error);
+    toast.error("An unexpected error occurred retrieving LinkedIn connection");
     return null;
   }
 };
 
 export const refreshTokens = async (userId: string, refreshToken: string): Promise<LinkedInTokens | null> => {
   try {
-    // In a real implementation, this would make a request to a secure backend service
-    // that would handle the token exchange with LinkedIn
-    // For demonstration, we'll use a Supabase Edge Function
-    
     const { data, error } = await supabase.functions.invoke('refresh-linkedin-token', {
       body: { refresh_token: refreshToken }
     });
@@ -117,7 +151,6 @@ export const refreshTokens = async (userId: string, refreshToken: string): Promi
       return null;
     }
     
-    // Store the new tokens
     await storeTokens(userId, data);
     
     return data;
