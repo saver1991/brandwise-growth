@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
@@ -412,6 +411,9 @@ const blogPosts = [
       <h3>Attribution Modeling</h3>
       <p>Implement systems to track how users move between platforms and eventually convert, recognizing that the customer journey often crosses multiple channels.</p>
       
+      <h3>Content Effectiveness Measurement</h3>
+      <p>Beyond basic metrics, AI can help attribute content's impact on the entire customer journey, connecting content consumption to specific business outcomes like leads, sales, and customer retention.</p>
+      
       <h2>Case Study: Cross-Platform Campaign Success</h2>
       
       <p>Consider how a financial education company successfully adapted their content about retirement planning across platforms:</p>
@@ -649,8 +651,8 @@ export default function BlogPost() {
             />
           </div>
           
-          <div 
-            className="prose prose-lg max-w-none prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/90 prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-sm prose-strong:text-foreground/90"
+          <article 
+            className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-foreground prose-h2:text-2xl prose-h3:text-xl prose-p:text-muted-foreground prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-li:text-muted-foreground prose-ul:my-6 prose-ol:my-6 prose-li:my-2"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
           
