@@ -66,6 +66,7 @@ interface ProfileContextType {
   availableProfiles: Profile[];
   addProfile: (profile: Profile) => void;
   updateProfile: (profile: Profile) => void;
+  deleteProfile: (profileId: string) => void;
   availableIntegrations: string[];
 }
 
@@ -96,6 +97,28 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     toast.success("Profile updated successfully!");
   };
 
+  const deleteProfile = (profileId: string) => {
+    // Don't allow deleting if there's only one profile left
+    if (profilesList.length <= 1) {
+      toast.error("You must have at least one profile.");
+      return false;
+    }
+
+    // Update profiles list by filtering out the deleted profile
+    setProfilesList(prevProfiles => 
+      prevProfiles.filter(profile => profile.id !== profileId)
+    );
+    
+    // If the current profile was deleted, switch to another profile
+    if (currentProfile.id === profileId) {
+      const remainingProfiles = profilesList.filter(profile => profile.id !== profileId);
+      setCurrentProfile(remainingProfiles[0]);
+    }
+    
+    toast.success("Profile deleted successfully!");
+    return true;
+  };
+
   return (
     <ProfileContext.Provider
       value={{
@@ -104,6 +127,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         availableProfiles: profilesList,
         addProfile,
         updateProfile,
+        deleteProfile,
         availableIntegrations
       }}
     >
