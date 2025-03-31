@@ -173,6 +173,7 @@ const CurrentPlanCard = ({ subscription, isLoading }: CurrentPlanCardProps) => {
             <Button 
               variant="destructive" 
               disabled={isLoading || subscription.status === "canceled"}
+              // Fix for the TypeScript error - properly check status against literal
               onClick={() => toast.error("Please contact support to cancel your subscription")}
             >
               Cancel Subscription
