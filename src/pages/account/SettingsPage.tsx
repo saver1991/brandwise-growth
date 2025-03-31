@@ -22,9 +22,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const SettingsPage = () => {
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState({
     newsletters: true,
     accountActivities: true,
@@ -32,7 +34,6 @@ const SettingsPage = () => {
     promotions: false,
   });
   
-  const [theme, setTheme] = useState("system");
   const [language, setLanguage] = useState("english");
   
   const handleNotificationChange = (key: keyof typeof emailNotifications) => {
@@ -48,7 +49,7 @@ const SettingsPage = () => {
   };
   
   const handleThemeChange = (value: string) => {
-    setTheme(value);
+    setTheme(value as "light" | "dark" | "system");
     toast({
       title: "Theme updated",
       description: `Theme changed to ${value}.`,

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Features from "./pages/Features";
 import About from "./pages/About";
@@ -37,7 +37,6 @@ import SecurityPage from "./pages/account/SecurityPage";
 import BillingPage from "./pages/account/BillingPage";
 import SettingsPage from "./pages/account/SettingsPage";
 
-// Component to handle scroll restoration
 function ScrollToTop() {
   const { pathname } = useLocation();
   
@@ -53,51 +52,52 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <ProfileProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Navigate to="/home" replace />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/ideas" element={<Ideas />} />
-              <Route path="/linkedin" element={<LinkedIn />} />
-              <Route path="/audience" element={<Audience />} />
-              <Route path="/medium" element={<Medium />} />
-              <Route path="/wordpress" element={<WordPress />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/affiliate" element={<Affiliate />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/integrations" element={<Integrations />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/guides" element={<Guides />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/cookies" element={<Cookies />} />
-              <Route path="/blog/:id" element={<BlogPost />} />
-              
-              {/* Account routes */}
-              <Route path="/account/profile" element={<ProfilePage />} />
-              <Route path="/account/security" element={<SecurityPage />} />
-              <Route path="/account/billing" element={<BillingPage />} />
-              <Route path="/account/settings" element={<SettingsPage />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <CookieConsent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/ideas" element={<Ideas />} />
+                <Route path="/linkedin" element={<LinkedIn />} />
+                <Route path="/audience" element={<Audience />} />
+                <Route path="/medium" element={<Medium />} />
+                <Route path="/wordpress" element={<WordPress />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/affiliate" element={<Affiliate />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/guides" element={<Guides />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/cookies" element={<Cookies />} />
+                <Route path="/blog/:id" element={<BlogPost />} />
+                
+                <Route path="/account/profile" element={<ProfilePage />} />
+                <Route path="/account/security" element={<SecurityPage />} />
+                <Route path="/account/billing" element={<BillingPage />} />
+                <Route path="/account/settings" element={<SettingsPage />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <CookieConsent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </ProfileProvider>
   );
 }
