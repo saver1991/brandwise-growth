@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +23,7 @@ import { Tables } from "@/integrations/supabase/types";
 type Profile = Tables<"profiles"> | null;
 
 const ProfilePage = () => {
-  const { currentProfile } = useProfile();
+  const { currentProfile, updateProfile } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -58,13 +57,14 @@ const ProfilePage = () => {
           setName(data.full_name || "");
           setUsername(data.username || "");
           setAvatarUrl(data.avatar_url || "");
+          
+          // If we have a description in the context, use it as initial value
+          // This will be overwritten if we save to Supabase
+          setDescription(currentProfile.description || "");
         }
         
         // Get email from auth user
         setEmail(user.email || "");
-        
-        // Use description from currentProfile as it's not stored in Supabase profiles table
-        setDescription(currentProfile.description);
         
       } catch (error: any) {
         console.error("Error loading profile: ", error);
@@ -79,7 +79,7 @@ const ProfilePage = () => {
     }
     
     getProfile();
-  }, [user, toast, currentProfile.description]);
+  }, [user, toast, currentProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +103,15 @@ const ProfilePage = () => {
       if (error) {
         throw error;
       }
+      
+      // Also update the profile in context to keep UI in sync
+      // This ensures the ProfileSummary component shows the updated info
+      updateProfile({
+        ...currentProfile,
+        name: name,
+        description: description,
+        avatar: avatarUrl,
+      });
       
       toast({
         title: "Profile updated",
@@ -148,7 +157,7 @@ const ProfilePage = () => {
                   <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
                     <Avatar className="h-24 w-24">
                       <AvatarFallback className="text-xl">
-                        {avatarUrl ? getAvatarFallback(name) : currentProfile.fallback}
+                        {name ? getAvatarFallback(name) : currentProfile.fallback}
                       </AvatarFallback>
                       <AvatarImage src={avatarUrl || currentProfile.avatar} alt={name || currentProfile.name} />
                     </Avatar>
