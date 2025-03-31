@@ -27,6 +27,17 @@ import SecurityPage from "@/pages/account/SecurityPage";
 import BillingPage from "@/pages/account/BillingPage";
 import SettingsPage from "@/pages/account/SettingsPage";
 
+// Marketing pages
+import Home from "@/pages/Home";
+import Features from "@/pages/Features";
+import About from "@/pages/About";
+import Pricing from "@/pages/Pricing";
+import Support from "@/pages/Support";
+import Affiliate from "@/pages/Affiliate";
+import Blog from "@/pages/Blog";
+import Terms from "@/pages/Terms";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+
 function App() {
   return (
     <Router>
@@ -59,6 +70,17 @@ function App() {
               <Route path="/account/security" element={<PrivateRoute><SecurityPage /></PrivateRoute>} />
               <Route path="/account/billing" element={<PrivateRoute><BillingPage /></PrivateRoute>} />
               <Route path="/account/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+              
+              {/* Marketing routes */}
+              <Route path="/home" element={<Home />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/affiliate" element={<Affiliate />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               
               {/* Auth routes */}
               <Route path="/login" element={<Login />} />
