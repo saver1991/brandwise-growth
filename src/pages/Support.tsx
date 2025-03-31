@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -682,7 +681,7 @@ const Support = () => {
                     {filteredCategories.find((c) => c.id === activeCategory)?.title || "Support"}
                   </h2>
 
-                  <Tabs defaultValue={filteredCategories[0]?.topics[0]?.id} className="w-full">
+                  <Tabs defaultValue={filteredCategories.find((c) => c.id === activeCategory)?.topics[0]?.id} className="w-full">
                     <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-6">
                       {filteredCategories
                         .find((c) => c.id === activeCategory)
