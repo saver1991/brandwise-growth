@@ -13,6 +13,7 @@ import RegistrationStepConfirmation from "@/components/registration/Registration
 import { RegistrationFormData } from "@/types/registration";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { STRIPE_PLANS } from "@/components/account/billing/PlanConfiguration";
 
 const Register = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -113,6 +114,15 @@ const Register = () => {
         .update({
           full_name: formData.personal.fullName,
           username: formData.personal.username,
+          company_name: formData.personal.companyName,
+          company_size: formData.personal.companySize,
+          billing_address: {
+            country: formData.billing.country,
+            address: formData.billing.address,
+            city: formData.billing.city,
+            state: formData.billing.state,
+            zip_code: formData.billing.zipCode
+          },
           updated_at: new Date().toISOString()
         })
         .eq("id", userId);
@@ -122,6 +132,48 @@ const Register = () => {
       }
     } catch (err) {
       console.error("Error saving profile data:", err);
+    }
+  };
+
+  // Create a checkout session with Stripe
+  const createStripeCheckout = async (userId: string) => {
+    try {
+      // Determine which price ID to use based on plan and billing cycle
+      const planKey = formData.plan.selectedPlan;
+      
+      // Get the price ID from our configuration
+      const priceId = STRIPE_PLANS[planKey];
+      
+      if (!priceId) {
+        throw new Error(`No price ID found for plan: ${planKey}`);
+      }
+      
+      // Call our Supabase Edge Function to create a checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (!data?.url) {
+        throw new Error('No checkout URL returned');
+      }
+      
+      // Redirect the user to the Stripe Checkout page
+      window.location.href = data.url;
+      
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Payment setup failed",
+        description: error.message || "Could not set up payment. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Navigate to dashboard anyway so they're not stuck
+      navigate("/dashboard");
     }
   };
 
@@ -150,21 +202,23 @@ const Register = () => {
           variant: "destructive",
         });
         setIsSubmitting(false);
-        return;
+        return null;
       }
       
       if (data?.user) {
         await saveUserProfile(data.user.id);
+        
+        toast({
+          title: "Account created successfully!",
+          description: "Redirecting to payment...",
+        });
+        
+        // Proceed to Stripe checkout
+        await createStripeCheckout(data.user.id);
+        return data.user.id;
       }
       
-      toast({
-        title: "Registration successful!",
-        description: "Please check your email to verify your account.",
-      });
-      
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      return null;
     } catch (error: any) {
       toast({
         title: "Registration failed",
@@ -172,6 +226,7 @@ const Register = () => {
         variant: "destructive",
       });
       setIsSubmitting(false);
+      return null;
     }
   };
 

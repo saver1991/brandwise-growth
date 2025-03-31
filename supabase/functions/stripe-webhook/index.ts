@@ -132,6 +132,14 @@ serve(async (req) => {
             console.error('Error updating user subscription data:', updateError);
           } else {
             console.log('Successfully updated subscription data');
+            
+            // Send welcome email after successful subscription
+            try {
+              // Send confirmation email via Edge function
+              await sendWelcomeEmail(supabaseClient, email, product.name);
+            } catch (emailError) {
+              console.error('Error sending welcome email:', emailError);
+            }
           }
         } else {
           console.error('Could not find a user to associate with this subscription');
@@ -192,7 +200,26 @@ serve(async (req) => {
       case 'invoice.paid':
       case 'invoice.payment_failed':
         console.log(`Received invoice event: ${event.type}`);
-        // These events could be handled to update payment history
+        
+        // For invoice.paid event, send confirmation email
+        if (event.type === 'invoice.paid') {
+          const invoice = event.data.object;
+          const customerInfo = await stripe.customers.retrieve(invoice.customer as string);
+          
+          if (customerInfo && !customerInfo.deleted && customerInfo.email) {
+            try {
+              // Send payment confirmation email
+              await sendPaymentConfirmationEmail(
+                supabaseClient,
+                customerInfo.email as string,
+                invoice.total / 100,
+                new Date(invoice.created * 1000).toLocaleDateString()
+              );
+            } catch (emailError) {
+              console.error('Error sending payment confirmation email:', emailError);
+            }
+          }
+        }
         break;
         
       default:
@@ -214,3 +241,35 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to send welcome email
+async function sendWelcomeEmail(supabaseClient, email, planName) {
+  try {
+    // In production, you would use a dedicated email service
+    // For now, we'll just log it
+    console.log(`Sending welcome email to ${email} for plan ${planName}`);
+    
+    // This is where you would call your email service
+    // Ideally through another edge function dedicated to sending emails
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    throw error;
+  }
+}
+
+// Helper function to send payment confirmation email
+async function sendPaymentConfirmationEmail(supabaseClient, email, amount, date) {
+  try {
+    console.log(`Sending payment confirmation email to ${email} for $${amount} on ${date}`);
+    
+    // This is where you would call your email service
+    // Ideally through another edge function dedicated to sending emails
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending payment confirmation email:', error);
+    throw error;
+  }
+}
