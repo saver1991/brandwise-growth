@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AuthHeader from "@/components/AuthHeader";
 import Footer from "@/components/Footer";
@@ -13,7 +13,7 @@ const blogPosts = [
     title: "How to Build a Content Strategy that Actually Works",
     excerpt: "Learn the key elements of a successful content strategy and how to implement them for your brand.",
     category: "Content Strategy",
-    author: "Sarah Johnson",
+    author: "Salvatore Mezzatesta",
     date: "May 10, 2023",
     readTime: "8 min read",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800&h=500"
@@ -23,7 +23,7 @@ const blogPosts = [
     title: "The Ultimate Guide to LinkedIn Marketing in 2023",
     excerpt: "Discover the latest LinkedIn strategies to grow your professional network and business presence.",
     category: "LinkedIn",
-    author: "Michael Richards",
+    author: "Salvatore Mezzatesta",
     date: "June 5, 2023",
     readTime: "12 min read",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=800&h=500"
@@ -33,7 +33,7 @@ const blogPosts = [
     title: "5 Ways AI is Transforming Content Creation",
     excerpt: "Explore how artificial intelligence is revolutionizing the way brands create and distribute content.",
     category: "AI & Technology",
-    author: "Priya Patel",
+    author: "Salvatore Mezzatesta",
     date: "July 18, 2023",
     readTime: "10 min read",
     image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80&w=800&h=500"
@@ -43,7 +43,7 @@ const blogPosts = [
     title: "Creating Engaging Content for Multiple Platforms",
     excerpt: "Learn how to adapt your content for different social media platforms while maintaining your brand voice.",
     category: "Content Creation",
-    author: "David Wong",
+    author: "Salvatore Mezzatesta",
     date: "August 22, 2023",
     readTime: "7 min read",
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800&h=500"
@@ -53,7 +53,7 @@ const blogPosts = [
     title: "Building Your Personal Brand Through Consistent Content",
     excerpt: "Discover strategies for developing a strong personal brand that resonates with your audience.",
     category: "Personal Branding",
-    author: "Emily Rodriguez",
+    author: "Salvatore Mezzatesta",
     date: "September 15, 2023",
     readTime: "9 min read",
     image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800&h=500"
@@ -64,6 +64,10 @@ const featuredPost = blogPosts[0];
 const recentPosts = blogPosts.slice(1);
 
 const Blog = () => {
+  const [hasConsented, setHasConsented] = useState(() => {
+    return localStorage.getItem("cookieConsent") === "true";
+  });
+  
   useEffect(() => {
     document.title = "Blog | BrandWise";
   }, []);
