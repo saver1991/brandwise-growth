@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LinkedInTokens } from "./types";
@@ -10,8 +11,12 @@ export const getAuthUrl = async (): Promise<string> => {
     // Retrieve redirect URL from environment or use a default
     const redirectUri = window.location.origin + "/linkedin-callback";
     
+    console.log("Getting LinkedIn Client ID from edge function");
+    
     // Get the client ID from Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('get-linkedin-client-id', {});
+    
+    console.log("LinkedIn Client ID response:", data, error);
     
     if (error || !data?.clientId) {
       console.error("Error retrieving LinkedIn client ID:", error);
@@ -20,9 +25,15 @@ export const getAuthUrl = async (): Promise<string> => {
     }
     
     const LINKEDIN_CLIENT_ID = data.clientId;
+    console.log("Using LinkedIn Client ID:", LINKEDIN_CLIENT_ID);
+    
     const scope = encodeURIComponent("r_liteprofile r_emailaddress w_member_social");
     
-    return `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${Math.random().toString(36).substring(2, 15)}`;
+    const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${Math.random().toString(36).substring(2, 15)}`;
+    
+    console.log("Generated LinkedIn Auth URL");
+    
+    return authUrl;
   } catch (error) {
     console.error("Unexpected error generating LinkedIn auth URL:", error);
     toast.error("Failed to prepare LinkedIn authentication");

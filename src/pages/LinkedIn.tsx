@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -98,8 +99,12 @@ const LinkedIn = () => {
   const handleConnect = async () => {
     try {
       setIsLoading(true);
-      // Get authorization URL
+      console.log("Starting LinkedIn connection process");
+      
+      // Get authorization URL using the service
       const authUrl = await linkedinService.getAuthUrl();
+      
+      console.log("LinkedIn Auth URL:", authUrl ? "URL generated successfully" : "Failed to generate URL");
       
       if (!authUrl) {
         toast.error("Failed to initialize LinkedIn authorization. Please try again later.");

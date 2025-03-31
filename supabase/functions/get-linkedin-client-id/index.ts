@@ -16,6 +16,9 @@ serve(async (req) => {
     // Get LinkedIn client ID from environment variable
     const LINKEDIN_CLIENT_ID = Deno.env.get('LINKEDIN_CLIENT_ID')
     
+    console.log('LinkedIn Client ID request received')
+    console.log('Retrieved LinkedIn Client ID:', LINKEDIN_CLIENT_ID ? 'Found a value' : 'No value found')
+    
     if (!LINKEDIN_CLIENT_ID) {
       console.error('LinkedIn Client ID not configured')
       return new Response(
