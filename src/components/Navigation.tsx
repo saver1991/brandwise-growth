@@ -33,7 +33,7 @@ const Navigation = () => {
   const navItems: NavItem[] = [
     {
       title: "Dashboard",
-      href: "/",
+      href: "/dashboard",
       icon: <BarChart2 className="h-5 w-5" />,
     },
     {
@@ -119,7 +119,7 @@ const Navigation = () => {
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <div className="flex w-full justify-between items-center">
-          <Link to={isMarketingPage ? "/home" : "/"} className="flex items-center gap-2">
+          <Link to={isMarketingPage ? "/home" : "/dashboard"} className="flex items-center gap-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-teal to-brand-orange bg-clip-text text-transparent">
               BrandWise
             </span>

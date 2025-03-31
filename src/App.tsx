@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
 import Ideas from "./pages/Ideas";
@@ -30,6 +30,7 @@ import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
 import BlogPost from "./pages/BlogPost";
 import CookieConsent from "./components/CookieConsent";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
@@ -42,7 +43,8 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/ideas" element={<Ideas />} />
               <Route path="/linkedin" element={<LinkedIn />} />
@@ -51,6 +53,7 @@ function App() {
               <Route path="/wordpress" element={<WordPress />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/home" element={<Home />} />
               <Route path="/features" element={<Features />} />
               <Route path="/about" element={<About />} />

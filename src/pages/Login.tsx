@@ -13,7 +13,7 @@ export default function Login() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, you would validate credentials and authenticate
-    navigate("/");
+    navigate("/dashboard");
   };
 
   return (

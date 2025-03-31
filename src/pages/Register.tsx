@@ -1,7 +1,8 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+import AuthHeader from "@/components/AuthHeader";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import RegistrationStepPersonal from "@/components/registration/RegistrationStepPersonal";
@@ -121,7 +122,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <AuthHeader />
 
       <div className="flex-1 flex justify-center items-center p-4 bg-muted/30">
         <div className="w-full max-w-3xl">
@@ -164,6 +165,8 @@ const Register = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
